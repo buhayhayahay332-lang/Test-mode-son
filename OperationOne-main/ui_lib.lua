@@ -1799,8 +1799,12 @@ function LibClass:addDropdown(name, options, default, callback)
 	})
 	addCorner(dropBtn, 7)
 
+	local function getPanelWidth()
+		return math.max(math.floor(dropBtn.AbsoluteSize.X + 0.5), 120)
+	end
+
 	local panel = make("Frame", {
-		Size = UDim2.new(0, 140, 0, 0),
+		Size = UDim2.new(0, getPanelWidth(), 0, 0),
 		BackgroundColor3 = Color3.fromRGB(18, 18, 18),
 		BackgroundTransparency = 0.1,
 		BorderSizePixel = 0,
@@ -1833,7 +1837,7 @@ function LibClass:addDropdown(name, options, default, callback)
 		local vp = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1920, 1080)
 		local contentH = panelLayout.AbsoluteContentSize.Y + 8
 		local maxH = vp.Y - panel.AbsolutePosition.Y - 10
-		panel.Size = UDim2.new(0, 140, 0, math.min(contentH, math.max(maxH, 30)))
+		panel.Size = UDim2.new(0, getPanelWidth(), 0, math.min(contentH, math.max(maxH, 30)))
 	end)
 
 	local optionConns = {}
@@ -1859,11 +1863,14 @@ function LibClass:addDropdown(name, options, default, callback)
 		local ap = dropBtn.AbsolutePosition
 		local as = dropBtn.AbsoluteSize
 		local vp = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1920, 1080)
+		local panelW = getPanelWidth()
 		local panelH = panel.AbsoluteSize.Y
 		local yBelow = ap.Y + as.Y + 2
 		local yAbove = ap.Y - panelH - 2
 		local finalY = (yBelow + panelH > vp.Y) and yAbove or yBelow
-		local finalX = math.clamp(ap.X, 4, vp.X - 144)
+		local maxX = math.max(vp.X - panelW - 4, 4)
+		local finalX = math.clamp(ap.X, 4, maxX)
+		panel.Size = UDim2.new(0, panelW, 0, panel.AbsoluteSize.Y)
 		panel.Position = UDim2.new(0, finalX, 0, finalY)
 	end
 
@@ -1920,6 +1927,11 @@ function LibClass:addDropdown(name, options, default, callback)
 	end)
 
 	self._conn(dropBtn:GetPropertyChangedSignal("AbsolutePosition"), function()
+		if isOpen then
+			updatePanelPosition()
+		end
+	end)
+	self._conn(dropBtn:GetPropertyChangedSignal("AbsoluteSize"), function()
 		if isOpen then
 			updatePanelPosition()
 		end
