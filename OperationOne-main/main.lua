@@ -433,7 +433,7 @@ local function buildAkUi(lib)
     window.mainFrame.Size = UDim2.new(0, 400, 0, 500)
     window:_updateScroll()
     if type(window.setConfigFolder) == "function" then
-        window:setConfigFolder("OperationOneConfigs")
+        window:setConfigFolder("FURRY KILLER CONFIG")
     end
 
 
