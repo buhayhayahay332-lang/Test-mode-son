@@ -1,6 +1,6 @@
 local FLAG_NAME = "DebugRunParallelLuaOnMainThread"
 local MAIN_URL = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/main.lua"
-local REJOIN_MESSAGE = "Rejoin the game."
+local REJOIN_MESSAGE = "Rejoin the game again."
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -69,6 +69,75 @@ local function compileChunk(source)
     end
 
     return chunk
+end
+
+local function getFirstActor()
+    if type(getactors) ~= "function" then
+        return nil
+    end
+
+    local ok, actors = pcall(getactors)
+    if not ok or type(actors) ~= "table" then
+        return nil
+    end
+
+    for _, actor in ipairs(actors) do
+        if typeof(actor) == "Instance" and actor:IsA("Actor") then
+            return actor
+        end
+    end
+
+    for _, actor in pairs(actors) do
+        if typeof(actor) == "Instance" and actor:IsA("Actor") then
+            return actor
+        end
+    end
+
+    return nil
+end
+
+local function buildActorLoader(url)
+    return string.format([[
+local okSource, source = pcall(function()
+    return game:HttpGet(%q)
+end)
+if not okSource or type(source) ~= "string" or source == "" then
+    return
+end
+
+local compiler = loadstring
+if type(compiler) ~= "function" then
+    return
+end
+
+local okChunk, chunk = pcall(compiler, source, "@operationone_main")
+if not okChunk or type(chunk) ~= "function" then
+    return
+end
+
+pcall(chunk)
+]], url)
+end
+
+local function runMainOnActor(actor, url)
+    if typeof(actor) ~= "Instance" or not actor:IsA("Actor") then
+        return false
+    end
+    if type(run_on_actor) ~= "function" then
+        return false
+    end
+
+    local actorSource = buildActorLoader(url)
+    task.spawn(function()
+        pcall(run_on_actor, actor, actorSource)
+    end)
+
+    return true
+end
+
+local actor = getFirstActor()
+if actor and runMainOnActor(actor, MAIN_URL) then
+    return
 end
 
 if not isFlagEnabled(readFlag(FLAG_NAME)) then
