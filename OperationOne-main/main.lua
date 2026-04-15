@@ -422,7 +422,7 @@ local function buildVUi(lib)
     end
 
     local window = lib:new({
-        name = "Op1NIGGAs",
+        name = "FURRY KILLER",
         subtitle = "Operation One",
         toggleKey = Enum.KeyCode.RightShift,
         minimizeKey = Enum.KeyCode.K,
