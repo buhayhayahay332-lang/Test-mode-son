@@ -1,6 +1,4 @@
--- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 -- SERVICES
--- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 local Players      = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService   = game:GetService("RunService")
@@ -16,169 +14,168 @@ local MOBILE  = UIS.TouchEnabled and not UIS.KeyboardEnabled
 
 local Library = {}
 Library.Version = "3.3"
+local makeIcon = (utf8 and utf8.char) or function()
+	return "*"
+end
 
--- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 -- ICON SYSTEM
--- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
--- â”€â”€ ASTRO WAS GOD Icon System â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
--- All icons are emoji â€” full color, render in Roblox TextLabels.
 -- Usage:  icon = Library.Icons.sword
---         icon = "âš”ï¸"   (direct emoji also works)
 Library.Icons = {
 	-- Navigation & UI
-	home        = "ðŸ ",
-	settings    = "âš™ï¸",
-	gear        = "âš™ï¸",
-	menu        = "ðŸ“‹",
-	search      = "ðŸ”",
-	close       = "âŒ",
-	back        = "â—€ï¸",
-	forward     = "â–¶ï¸",
-	up          = "â¬†ï¸",
-	down        = "â¬‡ï¸",
-	refresh     = "ðŸ”„",
-	check       = "âœ…",
-	tick        = "âœ…",
-	cross       = "âŒ",
-	plus        = "âž•",
-	minus       = "âž–",
-	star        = "â­",
-	heart       = "â¤ï¸",
-	diamond     = "ðŸ’ ",
-	dot         = "ðŸ”µ",
-	edit        = "âœï¸",
-	send        = "ðŸ“¨",
-	reply       = "â†©ï¸",
-	share       = "ðŸ“¤",
-	warning_sym = "âš ï¸",
-	info_sym    = "â„¹ï¸",
-	bolt        = "âš¡",
-	zap         = "âš¡",
-	sun         = "â˜€ï¸",
-	moon        = "ðŸŒ™",
-	music_sym   = "ðŸŽµ",
-	crown       = "ðŸ‘‘",
-	rank        = "ðŸ…",
-	ban         = "ðŸš«",
-	sliders     = "ðŸŽšï¸",
-	grid        = "ðŸ“Š",
+	home        = makeIcon(0x1F3E0),
+	settings    = makeIcon(0x2699, 0xFE0F),
+	gear        = makeIcon(0x2699, 0xFE0F),
+	menu        = makeIcon(0x1F4CB),
+	search      = makeIcon(0x1F50D),
+	close       = makeIcon(0x274C),
+	back        = makeIcon(0x25C0, 0xFE0F),
+	forward     = makeIcon(0x25B6, 0xFE0F),
+	up          = makeIcon(0x2B06, 0xFE0F),
+	down        = makeIcon(0x2B07, 0xFE0F),
+	refresh     = makeIcon(0x1F504),
+	check       = makeIcon(0x2705),
+	tick        = makeIcon(0x2705),
+	cross       = makeIcon(0x274C),
+	plus        = makeIcon(0x2795),
+	minus       = makeIcon(0x2796),
+	star        = makeIcon(0x2B50),
+	heart       = makeIcon(0x2764, 0xFE0F),
+	diamond     = makeIcon(0x1F4A0),
+	dot         = makeIcon(0x1F535),
+	edit        = makeIcon(0x270F, 0xFE0F),
+	send        = makeIcon(0x1F4E8),
+	reply       = makeIcon(0x21A9, 0xFE0F),
+	share       = makeIcon(0x1F4E4),
+	warning_sym = makeIcon(0x26A0, 0xFE0F),
+	info_sym    = makeIcon(0x2139, 0xFE0F),
+	bolt        = makeIcon(0x26A1),
+	zap         = makeIcon(0x26A1),
+	sun         = makeIcon(0x2600, 0xFE0F),
+	moon        = makeIcon(0x1F319),
+	music_sym   = makeIcon(0x1F3B5),
+	crown       = makeIcon(0x1F451),
+	rank        = makeIcon(0x1F3C5),
+	ban         = makeIcon(0x26D4),
+	sliders     = makeIcon(0x1F39A, 0xFE0F),
+	grid        = makeIcon(0x1F4CA),
 
 	-- People
-	user        = "ðŸ‘¤",
-	player      = "ðŸ‘¤",
-	users       = "ðŸ‘¥",
-	group       = "ðŸ‘¥",
-	avatar      = "ðŸ§‘",
+	user        = makeIcon(0x1F464),
+	player      = makeIcon(0x1F464),
+	users       = makeIcon(0x1F465),
+	group       = makeIcon(0x1F465),
+	avatar      = makeIcon(0x1F9D1),
 
 	-- Files & Media
-	folder      = "ðŸ“",
-	folder2     = "ðŸ“‚",
-	file        = "ðŸ“„",
-	document    = "ðŸ“„",
-	image       = "ðŸ–¼ï¸",
-	photo       = "ðŸ“·",
-	video       = "ðŸŽ¥",
-	music       = "ðŸŽµ",
-	sound       = "ðŸ”Š",
-	mute        = "ðŸ”‡",
-	volume      = "ðŸ”‰",
-	download    = "ðŸ“¥",
-	upload      = "ðŸ“¤",
-	save        = "ðŸ’¾",
-	calendar    = "ðŸ“…",
-	clock       = "ðŸ•",
-	timer       = "â±ï¸",
+	folder      = makeIcon(0x1F4C1),
+	folder2     = makeIcon(0x1F4C2),
+	file        = makeIcon(0x1F4C4),
+	document    = makeIcon(0x1F4C4),
+	image       = makeIcon(0x1F5BC, 0xFE0F),
+	photo       = makeIcon(0x1F4F7),
+	video       = makeIcon(0x1F3A5),
+	music       = makeIcon(0x1F3B5),
+	sound       = makeIcon(0x1F50A),
+	mute        = makeIcon(0x1F507),
+	volume      = makeIcon(0x1F509),
+	download    = makeIcon(0x1F4E5),
+	upload      = makeIcon(0x1F4E4),
+	save        = makeIcon(0x1F4BE),
+	calendar    = makeIcon(0x1F4C5),
+	clock       = makeIcon(0x1F551),
+	timer       = makeIcon(0x23F1, 0xFE0F),
 
 	-- Communication
-	bell        = "ðŸ””",
-	notif       = "ðŸ””",
-	belloff     = "ðŸ”•",
-	bookmark    = "ðŸ”–",
-	pin         = "ðŸ“Œ",
-	link        = "ðŸ”—",
-	inbox       = "ðŸ“¨",
-	mail        = "ðŸ“§",
+	bell        = makeIcon(0x1F514),
+	notif       = makeIcon(0x1F514),
+	belloff     = makeIcon(0x1F515),
+	bookmark    = makeIcon(0x1F516),
+	pin         = makeIcon(0x1F4CC),
+	link        = makeIcon(0x1F517),
+	inbox       = makeIcon(0x1F4E8),
+	mail        = makeIcon(0x1F4E7),
 
 	-- Status
-	info        = "â„¹ï¸",
-	warning     = "âš ï¸",
-	alert       = "âš ï¸",
-	success     = "âœ…",
-	error2      = "âŒ",
-	question    = "â“",
-	help        = "â“",
-	loading     = "â³",
+	info        = makeIcon(0x2139, 0xFE0F),
+	warning     = makeIcon(0x26A0, 0xFE0F),
+	alert       = makeIcon(0x26A0, 0xFE0F),
+	success     = makeIcon(0x2705),
+	error2      = makeIcon(0x274C),
+	question    = makeIcon(0x2753),
+	help        = makeIcon(0x2753),
+	loading     = makeIcon(0x23F3),
 
 	-- Dev & Code
-	bug         = "ðŸ›",
-	package     = "ðŸ“¦",
-	plugin      = "ðŸ”Œ",
-	database    = "ðŸ—„ï¸",
-	server      = "ðŸ–¥ï¸",
-	mobile      = "ðŸ“±",
-	monitor     = "ðŸ–¥ï¸",
-	console     = "âŒ¨ï¸",
-	wrench      = "ðŸ”§",
-	hammer      = "ðŸ”¨",
-	magnet      = "ðŸ§²",
+	bug         = makeIcon(0x1F41B),
+	package     = makeIcon(0x1F4E6),
+	plugin      = makeIcon(0x1F50C),
+	database    = makeIcon(0x1F5C4, 0xFE0F),
+	server      = makeIcon(0x1F5A5, 0xFE0F),
+	mobile      = makeIcon(0x1F4F1),
+	monitor     = makeIcon(0x1F5A5, 0xFE0F),
+	console     = makeIcon(0x2328, 0xFE0F),
+	wrench      = makeIcon(0x1F527),
+	hammer      = makeIcon(0x1F528),
+	magnet      = makeIcon(0x1F9F2),
 
 	-- Themes & UI
-	palette     = "ðŸŽ¨",
-	theme       = "ðŸŽ¨",
-	color       = "ðŸ–Œï¸",
-	fire        = "ðŸ”¥",
-	ice         = "â„ï¸",
-	leaf        = "ðŸŒ¿",
-	world       = "ðŸŒ",
-	earth       = "ðŸŒ",
-	map         = "ðŸ—ºï¸",
-	compass     = "ðŸ§­",
-	location    = "ðŸ“",
+	palette     = makeIcon(0x1F3A8),
+	theme       = makeIcon(0x1F3A8),
+	color       = makeIcon(0x1F58C, 0xFE0F),
+	fire        = makeIcon(0x1F525),
+	ice         = makeIcon(0x2744, 0xFE0F),
+	leaf        = makeIcon(0x1F33F),
+	world       = makeIcon(0x1F310),
+	earth       = makeIcon(0x1F30D),
+	map         = makeIcon(0x1F5FA, 0xFE0F),
+	compass     = makeIcon(0x1F9ED),
+	location    = makeIcon(0x1F4CD),
 
 	-- Security
-	lock        = "ðŸ”’",
-	unlock      = "ðŸ”“",
-	key         = "ðŸ”‘",
-	shield      = "ðŸ›¡ï¸",
-	eye         = "ðŸ‘ï¸",
-	password    = "ðŸ”",
+	lock        = makeIcon(0x1F512),
+	unlock      = makeIcon(0x1F513),
+	key         = makeIcon(0x1F511),
+	shield      = makeIcon(0x1F6E1, 0xFE0F),
+	eye         = makeIcon(0x1F441, 0xFE0F),
+	password    = makeIcon(0x1F510),
 
 	-- Misc
-	trash       = "ðŸ—‘ï¸",
-	delete      = "ðŸ—‘ï¸",
-	pencil      = "âœï¸",
-	copy        = "ðŸ“‹",
-	sparkle     = "âœ¨",
-	aura        = "âœ¨",
-	target      = "ðŸŽ¯",
-	gift        = "ðŸŽ",
-	chart       = "ðŸ“Š",
-	trophy      = "ðŸ†",
-	medal       = "ðŸ¥‡",
-	ribbon      = "ðŸ…",
-	crown2      = "ðŸ‘‘",
-	robot       = "ðŸ¤–",
+	trash       = makeIcon(0x1F5D1, 0xFE0F),
+	delete      = makeIcon(0x1F5D1, 0xFE0F),
+	pencil      = makeIcon(0x270F, 0xFE0F),
+	copy        = makeIcon(0x1F4CB),
+	sparkle     = makeIcon(0x2728),
+	aura        = makeIcon(0x2728),
+	target      = makeIcon(0x1F3AF),
+	crosshair   = makeIcon(0x1F3AF),
+	gift        = makeIcon(0x1F381),
+	chart       = makeIcon(0x1F4CA),
+	trophy      = makeIcon(0x1F3C6),
+	medal       = makeIcon(0x1F947),
+	ribbon      = makeIcon(0x1F3C5),
+	crown2      = makeIcon(0x1F451),
+	robot       = makeIcon(0x1F916),
 
 	-- Game / Roblox specific
-	sword       = "âš”ï¸",
-	gun         = "ðŸ”«",
-	shop        = "ðŸ›’",
-	coins       = "ðŸª™",
-	gem         = "ðŸ’Ž",
-	map2        = "ðŸ—ºï¸",
-	chest       = "ðŸ“¦",
-	speed       = "ðŸ’¨",
-	fly         = "âœˆï¸",
-	invisible   = "ðŸ‘»",
-	skull       = "ðŸ’€",
-	explosion   = "ðŸ’¥",
-	alien       = "ðŸ‘½",
-	zombie      = "ðŸ§Ÿ",
-	ninja       = "ðŸ¥·",
-	detective   = "ðŸ•µï¸",
-	esp         = "â—Ž",
-	aimbot      = "âŠ•",
-	tp          = "âŠ›",
+	sword       = makeIcon(0x2694, 0xFE0F),
+	gun         = makeIcon(0x1F52B),
+	shop        = makeIcon(0x1F6D2),
+	coins       = makeIcon(0x1FA99),
+	gem         = makeIcon(0x1F48E),
+	map2        = makeIcon(0x1F5FA, 0xFE0F),
+	chest       = makeIcon(0x1F4E6),
+	speed       = makeIcon(0x1F4A8),
+	fly         = makeIcon(0x2708, 0xFE0F),
+	invisible   = makeIcon(0x1F47B),
+	skull       = makeIcon(0x1F480),
+	explosion   = makeIcon(0x1F4A5),
+	alien       = makeIcon(0x1F47D),
+	zombie      = makeIcon(0x1F9DF),
+	ninja       = makeIcon(0x1F977),
+	detective   = makeIcon(0x1F575, 0xFE0F),
+	esp         = makeIcon(0x25CE),
+	aimbot      = makeIcon(0x2295),
+	tp          = makeIcon(0x229B),
 }
 
 local function destroyExistingAstroGUI()
@@ -209,9 +206,7 @@ local function resolveIcon(icon)
 	return {kind="none", value=""}
 end
 
--- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 -- THEME & HELPERS
--- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 Library.Theme = {
 	Accent        = Color3.fromRGB(220, 35, 35),
 	Background    = Color3.fromRGB(12, 12, 12),
@@ -297,12 +292,6 @@ local function addTooltip(frame, text)
 	frame.MouseLeave:Connect(function() if _ttFrame then _ttFrame.Visible=false end end)
 end
 
--- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
--- LIBRARY:NEW â€” Window constructor
--- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
--- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
--- LIBRARY:NEW â€” Window Constructor
--- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function Library:new(options)
 	options=validate({
 		name            = "ASTRO WAS GOD",
@@ -596,7 +585,6 @@ function Library:new(options)
 		kAttempts.TextSize=10; kAttempts.TextColor3=Color3.fromRGB(55,55,55)
 		kAttempts.FontFace=Font.new("rbxasset://fonts/families/Ubuntu.json")
 
-		-- "Get Key" link button â€” only shown if keyLink is provided
 		if hasLink then
 			local kLinkBtn = Instance.new("TextButton", kPanel)
 			kLinkBtn.Size              = UDim2.new(1,-32,0,30)
@@ -764,7 +752,6 @@ function Library:new(options)
 	verLabel.ZIndex           = 2
 	corner(verLabel, 4)
 	-- Auto-size width to text; AnchorPoint=(1,0.5) so Position.X = right edge of label
-	-- minBtn right edge = -28, width=14 â†’ left edge = -42; gap of 8 â†’ label right edge = -50
 	local verPad = 6
 	local ts = game:GetService("TextService")
 	local tsize = ts:GetTextSize(verLabel.Text, 10,
@@ -783,7 +770,6 @@ function Library:new(options)
 	Nav.Size=UDim2.new(0,navW,1,-34); Nav.Position=UDim2.new(0,0,0,34)
 	Nav.ClipsDescendants=true; corner(Nav,8)
 
-	-- â”€â”€ Sidebar toggle button â€” 3 stacked lines (hamburger) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	local navOpen    = true
 	local sidebarBtn = Instance.new("TextButton", Topbar)
 	sidebarBtn.BackgroundTransparency = 1
@@ -862,7 +848,6 @@ function Library:new(options)
 		return _navOrder
 	end
 
-	-- GUI:NavSection(label) â€” collapsible category label in the nav sidebar
 	-- Call this BEFORE creating the tabs that belong to that section
 	-- Returns a section object with :Collapse() / :Expand() / :Toggle()
 	function GUI:NavSection(label)
@@ -934,7 +919,6 @@ function Library:new(options)
 		end
 
 		-- Register next-created tabs as members of this section
-		-- We track using a marker â€” any tab created after this section
 		-- and before the next section belongs here
 		local prevTabCount = #GUI._tabs
 		Section._registerTab = function(navBtn)
@@ -1053,9 +1037,7 @@ function Library:new(options)
 		_notifReflow()
 	end
 
-	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 	-- NOTIFICATION SYSTEM
-	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 	function GUI.notify(title, text, duration, ntype)
 		duration = duration or 3
 		-- Color the accent bar based on notification type
@@ -1123,9 +1105,6 @@ function Library:new(options)
 		end)
 	end
 
-	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-	-- WINDOW CONTROLS â€” Minimize, Destroy, Title, SelectTab
-	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 	local minimized=false
 	local _mainTween = nil  -- tracks active tween on Main so we can cancel it
 
@@ -1233,7 +1212,6 @@ function Library:new(options)
 		GUI:Destroy()
 	end)
 
-	-- â”€â”€ Global keybind listener (toggle / minimize keys) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	track(UIS.InputBegan:Connect(function(input,gpe)
 		if _destroyed or gpe or keybindListening then return end
 		if input.UserInputType~=Enum.UserInputType.Keyboard then return end
@@ -1244,7 +1222,6 @@ function Library:new(options)
 		end
 	end))
 
-	-- â”€â”€ Window drag â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	-- InputBegan on Topbar starts drag; move/end tracked globally so fast
 	-- mouse movement outside the topbar doesn't drop the drag.
 	local dragging,dragStart,startPos
@@ -1274,7 +1251,6 @@ function Library:new(options)
 		end
 	end))
 
-	-- â”€â”€ Window resize (bottom-right corner hotspot) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	-- Invisible resize hotspot (bottom-right 20x20, no visual)
 	local resizeHandle = Instance.new("TextButton", Main)
 	resizeHandle.Name = "ResizeHandle"
@@ -1321,12 +1297,9 @@ function Library:new(options)
 		end
 	end))
 
-	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-	-- MAIN TAB SYSTEM â€” GUI:CreateTab
 	-- Create a tab and all its component methods
-	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 	function GUI:CreateTab(opts)
-		opts=validate({name="Tab", icon="ðŸ ", badge=nil, badgeColor=nil},opts)
+		opts=validate({name="Tab", icon=Library.Icons.home or "H", badge=nil, badgeColor=nil},opts)
 		local Tab={Active=false, _name=opts.name, _disabled=false}
 		local isFirst=(#GUI._tabs==0)
 		table.insert(GUI._tabs,Tab)
@@ -1497,10 +1470,7 @@ function Library:new(options)
 			f.Size=UDim2.new(1,0,0,h or 32); corner(f); stroke(f,Library.Theme.Border); return f
 		end
 
-		-- â”€â”€ COMPONENTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-		-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		-- COMPONENTS
-		-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		function Tab:Section(opts)
 			opts=validate({name="Section"},opts)
 			local f=Instance.new("Frame",Tab._scroll)
@@ -1579,7 +1549,6 @@ function Library:new(options)
 			return f
 		end
 
-		-- â”€â”€ NEW: Tab:ButtonGrid â€” multi-column quick-action buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		-- Pass a list of {name, callback, icon} tables for compact button grid
 		function Tab:ButtonGrid(opts)
 			opts=validate({name="",buttons={},columns=2,tooltip=""},opts)
@@ -1664,7 +1633,6 @@ function Library:new(options)
 			return PB
 		end
 
-		-- â”€â”€ INTERACTIVE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		function Tab:Button(opts)
 			opts=validate({name="Button",description="",tooltip="",badge=nil,badgeColor=nil,callback=function()end},opts)
 			local h=opts.description~="" and 48 or 38
@@ -2095,7 +2063,6 @@ function Library:new(options)
 			return KB
 		end
 
-		-- â”€â”€ BANNERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		function Tab:Warning(opts)
 			opts=validate({text="Warning"},opts)
 			local f=base("Warning",34); f.BackgroundColor3=Color3.fromRGB(25,20,4)
@@ -2118,7 +2085,6 @@ function Library:new(options)
 			return f
 		end
 
-		-- â”€â”€ NEW: Tab:Success â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		function Tab:Success(opts)
 			opts=validate({text="Success!"},opts)
 			local f=base("Success",34); f.BackgroundColor3=Color3.fromRGB(8,28,14)
@@ -2131,7 +2097,6 @@ function Library:new(options)
 			return f
 		end
 
-		-- â”€â”€ NEW: Tab:Divider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		-- A thin horizontal rule with optional centered label
 		function Tab:Divider(opts)
 			opts=validate({text="",color=nil},opts)
@@ -2156,7 +2121,6 @@ function Library:new(options)
 			return f
 		end
 
-		-- â”€â”€ NEW: Tab:Chip â€” small inline status/tag pill â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		function Tab:Chip(opts)
 			opts=validate({text="Chip",color=nil,icon=""},opts)
 			local col=opts.color or Library.Theme.Accent
@@ -2180,7 +2144,6 @@ function Library:new(options)
 			return f
 		end
 
-		-- â”€â”€ NEW: Tab:Keybinds display (read-only keybind badge row) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		-- Shows a label + key badge, useful for controls reference sections
 		function Tab:ControlHint(opts)
 			opts=validate({name="Action",key="E",description=""},opts)
@@ -2243,9 +2206,7 @@ function Library:new(options)
 		return Tab
 	end -- GUI:CreateTab
 
-	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 	-- Config save / load
-	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 		local _cfgFolder = "ASTRO WAS GOD"
 	local _cfgPrefix = options.name:gsub("[^%w%-%_]", "_")
 	local _cfgFile   = _cfgFolder .. "/" .. _cfgPrefix .. ".json"
@@ -2460,12 +2421,7 @@ function Library:new(options)
 		if data then GUI:ApplyConfig(data) end
 	end)
 
-	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 	-- AI Assistant tab (FIXED: now properly inside Library:new)
-	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-	-- AI ASSISTANT TAB (optional â€” aiEnabled=true)
-	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 	if options.aiEnabled then
 		task.defer(function()
 			local HS    = game:GetService("HttpService")
@@ -2474,7 +2430,7 @@ function Library:new(options)
 			local _history = {}
 			local _msgN    = 0
 
-			local AI = GUI:CreateTab({ name = "AI", icon = "ðŸ¤–" })
+			local AI = GUI:CreateTab({ name = "AI", icon = Library.Icons.robot or "AI" })
 
 			AI:Paragraph({
 				title = "AI Assistant",
@@ -2486,7 +2442,6 @@ function Library:new(options)
 
 			local tabList = AI._scroll
 
-			-- â”€â”€ Input row at TOP (below tip, always visible) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 			local inputRow = Instance.new("Frame", tabList)
 			inputRow.Name               = "AIInputRow"
 			inputRow.BackgroundTransparency = 1
@@ -2538,7 +2493,6 @@ function Library:new(options)
 			sendBtn.MouseEnter:Connect(function() tw(sendBtn,{BackgroundColor3=Library.Theme.BorderHover}) end)
 			sendBtn.MouseLeave:Connect(function() tw(sendBtn,{BackgroundColor3=Library.Theme.Accent}) end)
 
-			-- â”€â”€ Chat scroll BELOW input â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 			local wrapper = Instance.new("Frame")
 			wrapper.Name                   = "AIChatWrapper"
 			wrapper.BackgroundTransparency = 1
@@ -2748,7 +2702,6 @@ function Library:new(options)
 						end
 					end
 
-					-- If still nothing, don't start cooldown â€” let them retry immediately
 					if reply == "" then
 						pcall(function() thinkBub.Text = "AI: No response â€” tap send again to retry." end)
 						_busy = false
@@ -2806,11 +2759,9 @@ function Library:new(options)
 		end) -- task.defer (AI)
 	end -- if options.aiEnabled
 
-	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 	-- SETTINGS TAB (auto-added last)
-	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 	task.defer(function()
-		local S = GUI:CreateTab({ name = "Settings", icon = "âš™ï¸" })
+		local S = GUI:CreateTab({ name = "Settings", icon = Library.Icons.settings or "S" })
 
 		S:Section({ name = "Theme" })
 
