@@ -30,6 +30,37 @@ local MODULE_SOURCES = {
 
 local moduleCache = {}
 local sharedRuntimeCache = nil
+local HttpService = game:GetService("HttpService")
+
+local FEATURE_CONFIG_FOLDER = "ASTRO WAS GOD"
+local FEATURE_CONFIG_PREFIX = "FURRY_KILLER"
+local featureState = {
+    silent_enabled = false,
+    silent_fov = 60,
+    silent_smoothness = 1,
+    silent_mode = "silent",
+    aim_activation = "mb2",
+    target_mode = "custom_parts",
+    gun_enabled = false,
+    gun_recoil_reduction = 0,
+    gun_horizontal_recoil = 0,
+    esp_enabled = false,
+    esp_team_check = false,
+    esp_players = false,
+    esp_skeleton = false,
+    esp_objects = false,
+    esp_player_color = Color3.fromRGB(210, 50, 80),
+    esp_skeleton_color = Color3.fromRGB(210, 50, 80),
+    esp_object_color = Color3.fromRGB(0, 255, 255),
+    esp_drone_color = Color3.fromRGB(0, 255, 255),
+    esp_claymore_color = Color3.fromRGB(255, 0, 0),
+    fullbright_enabled = false,
+    fb_brightness = 1,
+    fb_clock_time = 12,
+    fb_fog_end = 786543,
+    fb_global_shadows = false,
+    fb_ambient = Color3.fromRGB(178, 178, 178),
+}
 
 local function log(msg)
     print("[OP1] " .. tostring(msg))
@@ -172,6 +203,7 @@ local function withModule(name, callback)
 end
 
 local function setSilentAim(state)
+    featureState.silent_enabled = state == true
     withModule("silent_aim", function(m)
         if type(m.setEnabled) == "function" then
             m:setEnabled(state)
@@ -180,6 +212,7 @@ local function setSilentAim(state)
 end
 
 local function setSilentAimFov(value)
+    featureState.silent_fov = tonumber(value) or featureState.silent_fov
     withModule("silent_aim", function(m)
         if type(m.setFov) == "function" then
             m:setFov(value)
@@ -188,6 +221,7 @@ local function setSilentAimFov(value)
 end
 
 local function setSilentAimSmoothness(value)
+    featureState.silent_smoothness = tonumber(value) or featureState.silent_smoothness
     withModule("silent_aim", function(m)
         if type(m.setSmoothness) == "function" then
             m:setSmoothness(value)
@@ -196,6 +230,9 @@ local function setSilentAimSmoothness(value)
 end
 
 local function setSilentAimMode(mode)
+    if type(mode) == "string" and mode ~= "" then
+        featureState.silent_mode = mode
+    end
     withModule("silent_aim", function(m)
         if type(m.setMode) == "function" then
             m:setMode(mode)
@@ -204,6 +241,9 @@ local function setSilentAimMode(mode)
 end
 
 local function setAimAssistActivation(mode)
+    if type(mode) == "string" and mode ~= "" then
+        featureState.aim_activation = mode
+    end
     withModule("silent_aim", function(m)
         if type(m.setAimAssistActivation) == "function" then
             m:setAimAssistActivation(mode)
@@ -212,6 +252,9 @@ local function setAimAssistActivation(mode)
 end
 
 local function setSilentAimTargetMode(mode)
+    if type(mode) == "string" and mode ~= "" then
+        featureState.target_mode = mode
+    end
     withModule("silent_aim", function(m)
         if type(m.setTargetMode) == "function" then
             m:setTargetMode(mode)
@@ -220,6 +263,7 @@ local function setSilentAimTargetMode(mode)
 end
 
 local function setGunModEnabled(state)
+    featureState.gun_enabled = state == true
     withModule("gun_modification", function(m)
         if type(m.setEnabled) == "function" then
             m:setEnabled(state)
@@ -228,6 +272,11 @@ local function setGunModEnabled(state)
 end
 
 local function setGunModConfig(key, value)
+    if key == "recoil_reduction" then
+        featureState.gun_recoil_reduction = tonumber(value) or featureState.gun_recoil_reduction
+    elseif key == "horizontal_recoil" then
+        featureState.gun_horizontal_recoil = tonumber(value) or featureState.gun_horizontal_recoil
+    end
     withModule("gun_modification", function(m)
         if type(m.updateConfig) == "function" then
             m:updateConfig({ [key] = value })
@@ -238,6 +287,7 @@ local function setGunModConfig(key, value)
 end
 
 local function setEspEnabled(state)
+    featureState.esp_enabled = state == true
     withModule("player_esp_gadgets", function(m)
         if type(m.setEnabled) == "function" then
             m:setEnabled(state)
@@ -246,6 +296,7 @@ local function setEspEnabled(state)
 end
 
 local function setEspTeamCheck(state)
+    featureState.esp_team_check = state == true
     withModule("player_esp_gadgets", function(m)
         if type(m.setTeamCheck) == "function" then
             m:setTeamCheck(state)
@@ -254,6 +305,7 @@ local function setEspTeamCheck(state)
 end
 
 local function setEspPlayers(state)
+    featureState.esp_players = state == true
     withModule("player_esp_gadgets", function(m)
         if type(m.setPlayerBoxEnabled) == "function" then
             m:setPlayerBoxEnabled(state)
@@ -262,6 +314,7 @@ local function setEspPlayers(state)
 end
 
 local function setEspSkeleton(state)
+    featureState.esp_skeleton = state == true
     withModule("player_esp_gadgets", function(m)
         if type(m.setSkeletonEnabled) == "function" then
             m:setSkeletonEnabled(state)
@@ -270,6 +323,7 @@ local function setEspSkeleton(state)
 end
 
 local function setEspObjects(state)
+    featureState.esp_objects = state == true
     withModule("player_esp_gadgets", function(m)
         if type(m.setObjectBoxEnabled) == "function" then
             m:setObjectBoxEnabled(state)
@@ -278,6 +332,9 @@ local function setEspObjects(state)
 end
 
 local function setEspPlayerColor(color)
+    if typeof(color) == "Color3" then
+        featureState.esp_player_color = color
+    end
     withModule("player_esp_gadgets", function(m)
         if type(m.setPlayerColor) == "function" then
             m:setPlayerColor(color)
@@ -286,6 +343,9 @@ local function setEspPlayerColor(color)
 end
 
 local function setEspSkeletonColor(color)
+    if typeof(color) == "Color3" then
+        featureState.esp_skeleton_color = color
+    end
     withModule("player_esp_gadgets", function(m)
         if type(m.setSkeletonColor) == "function" then
             m:setSkeletonColor(color)
@@ -294,6 +354,9 @@ local function setEspSkeletonColor(color)
 end
 
 local function setEspObjectColor(color)
+    if typeof(color) == "Color3" then
+        featureState.esp_object_color = color
+    end
     withModule("player_esp_gadgets", function(m)
         if type(m.setObjectColor) == "function" then
             m:setObjectColor(color)
@@ -302,6 +365,9 @@ local function setEspObjectColor(color)
 end
 
 local function setEspDroneColor(color)
+    if typeof(color) == "Color3" then
+        featureState.esp_drone_color = color
+    end
     withModule("player_esp_gadgets", function(m)
         if type(m.setDroneColor) == "function" then
             m:setDroneColor(color)
@@ -310,6 +376,9 @@ local function setEspDroneColor(color)
 end
 
 local function setEspClaymoreColor(color)
+    if typeof(color) == "Color3" then
+        featureState.esp_claymore_color = color
+    end
     withModule("player_esp_gadgets", function(m)
         if type(m.setClaymoreColor) == "function" then
             m:setClaymoreColor(color)
@@ -318,6 +387,7 @@ local function setEspClaymoreColor(color)
 end
 
 local function setFullbright(state)
+    featureState.fullbright_enabled = state == true
     withModule("fullbright", function(m)
         if type(m.setEnabled) == "function" then
             m:setEnabled(state)
@@ -328,11 +398,231 @@ local function setFullbright(state)
 end
 
 local function setFullbrightSetting(key, value)
+    if key == "Brightness" then
+        featureState.fb_brightness = tonumber(value) or featureState.fb_brightness
+    elseif key == "ClockTime" then
+        featureState.fb_clock_time = tonumber(value) or featureState.fb_clock_time
+    elseif key == "FogEnd" then
+        featureState.fb_fog_end = tonumber(value) or featureState.fb_fog_end
+    elseif key == "GlobalShadows" then
+        featureState.fb_global_shadows = value == true
+    elseif key == "Ambient" and typeof(value) == "Color3" then
+        featureState.fb_ambient = value
+    end
     withModule("fullbright", function(m)
         if type(m.setSetting) == "function" then
             m:setSetting(key, value)
         end
     end)
+end
+
+local function sanitizeFeatureConfigName(name)
+    local n = tostring(name or ""):gsub("^%s+", ""):gsub("%s+$", "")
+    n = n:gsub("[<>:\"/\\|%?%*]", "_")
+    n = n:gsub("%s+", "_")
+    n = n:gsub("_+", "_")
+    n = n:gsub("^_+", ""):gsub("_+$", "")
+    if n == "" then
+        n = "default"
+    end
+    return n
+end
+
+local function getFeatureConfigPath(name)
+    local n = sanitizeFeatureConfigName(name)
+    return FEATURE_CONFIG_FOLDER .. "/" .. FEATURE_CONFIG_PREFIX .. "__features__" .. n .. ".json"
+end
+
+local function encodeColor(c)
+    if typeof(c) ~= "Color3" then
+        return nil
+    end
+    return {
+        r = math.floor(c.R * 255 + 0.5),
+        g = math.floor(c.G * 255 + 0.5),
+        b = math.floor(c.B * 255 + 0.5),
+    }
+end
+
+local function decodeColor(payload, fallback)
+    if type(payload) ~= "table" then
+        return fallback
+    end
+    return Color3.fromRGB(
+        math.clamp(tonumber(payload.r) or 0, 0, 255),
+        math.clamp(tonumber(payload.g) or 0, 0, 255),
+        math.clamp(tonumber(payload.b) or 0, 0, 255)
+    )
+end
+
+local function ensureFeatureFolder()
+    if type(isfolder) == "function" then
+        local okExists, exists = pcall(isfolder, FEATURE_CONFIG_FOLDER)
+        if okExists and exists then
+            return true
+        end
+    end
+    if type(makefolder) ~= "function" then
+        return false, "makefolder unavailable"
+    end
+    local okMake, err = pcall(makefolder, FEATURE_CONFIG_FOLDER)
+    if okMake then
+        return true
+    end
+    if type(isfolder) == "function" then
+        local okExists, exists = pcall(isfolder, FEATURE_CONFIG_FOLDER)
+        if okExists and exists then
+            return true
+        end
+    end
+    return false, tostring(err)
+end
+
+local function saveFeatureConfig(name)
+    if type(writefile) ~= "function" then
+        return false, "writefile unavailable"
+    end
+
+    local okFolder, folderErr = ensureFeatureFolder()
+    if not okFolder then
+        return false, folderErr
+    end
+
+    local payload = {
+        version = 1,
+        values = {
+            silent_enabled = featureState.silent_enabled == true,
+            silent_fov = tonumber(featureState.silent_fov) or 60,
+            silent_smoothness = tonumber(featureState.silent_smoothness) or 1,
+            silent_mode = tostring(featureState.silent_mode or "silent"),
+            aim_activation = tostring(featureState.aim_activation or "mb2"),
+            target_mode = tostring(featureState.target_mode or "custom_parts"),
+            gun_enabled = featureState.gun_enabled == true,
+            gun_recoil_reduction = tonumber(featureState.gun_recoil_reduction) or 0,
+            gun_horizontal_recoil = tonumber(featureState.gun_horizontal_recoil) or 0,
+            esp_enabled = featureState.esp_enabled == true,
+            esp_team_check = featureState.esp_team_check == true,
+            esp_players = featureState.esp_players == true,
+            esp_skeleton = featureState.esp_skeleton == true,
+            esp_objects = featureState.esp_objects == true,
+            esp_player_color = encodeColor(featureState.esp_player_color),
+            esp_skeleton_color = encodeColor(featureState.esp_skeleton_color),
+            esp_object_color = encodeColor(featureState.esp_object_color),
+            esp_drone_color = encodeColor(featureState.esp_drone_color),
+            esp_claymore_color = encodeColor(featureState.esp_claymore_color),
+            fullbright_enabled = featureState.fullbright_enabled == true,
+            fb_brightness = tonumber(featureState.fb_brightness) or 1,
+            fb_clock_time = tonumber(featureState.fb_clock_time) or 12,
+            fb_fog_end = tonumber(featureState.fb_fog_end) or 786543,
+            fb_global_shadows = featureState.fb_global_shadows == true,
+            fb_ambient = encodeColor(featureState.fb_ambient),
+        },
+    }
+
+    local okJson, encoded = pcall(function()
+        return HttpService:JSONEncode(payload)
+    end)
+    if not okJson then
+        return false, tostring(encoded)
+    end
+
+    local okWrite, writeErr = pcall(writefile, getFeatureConfigPath(name), encoded)
+    if not okWrite then
+        return false, tostring(writeErr)
+    end
+
+    return true
+end
+
+local function loadFeatureConfig(name)
+    if type(readfile) ~= "function" then
+        return nil, "readfile unavailable"
+    end
+
+    local path = getFeatureConfigPath(name)
+    if type(isfile) == "function" then
+        local okExists, exists = pcall(isfile, path)
+        if not okExists or not exists then
+            return nil, "file not found"
+        end
+    end
+
+    local okRead, content = pcall(readfile, path)
+    if not okRead or type(content) ~= "string" or content == "" then
+        return nil, okRead and "empty file" or tostring(content)
+    end
+
+    local okDecode, payload = pcall(function()
+        return HttpService:JSONDecode(content)
+    end)
+    if not okDecode or type(payload) ~= "table" then
+        return nil, okDecode and "invalid payload" or tostring(payload)
+    end
+
+    local values = payload.values or payload
+    if type(values) ~= "table" then
+        return nil, "missing values"
+    end
+
+    return values
+end
+
+local function deleteFeatureConfig(name)
+    if type(delfile) ~= "function" then
+        return false, "delfile unavailable"
+    end
+
+    local path = getFeatureConfigPath(name)
+    if type(isfile) == "function" then
+        local okExists, exists = pcall(isfile, path)
+        if not okExists or not exists then
+            return false, "file not found"
+        end
+    end
+
+    local okDelete, err = pcall(delfile, path)
+    if not okDelete then
+        return false, tostring(err)
+    end
+
+    return true
+end
+
+local function applyFeatureConfig(values)
+    if type(values) ~= "table" then
+        return false
+    end
+
+    setSilentAim(values.silent_enabled == true)
+    setSilentAimFov(tonumber(values.silent_fov) or 60)
+    setSilentAimSmoothness(tonumber(values.silent_smoothness) or 1)
+    setSilentAimMode(type(values.silent_mode) == "string" and values.silent_mode or "silent")
+    setAimAssistActivation(type(values.aim_activation) == "string" and values.aim_activation or "mb2")
+    setSilentAimTargetMode(type(values.target_mode) == "string" and values.target_mode or "custom_parts")
+
+    setGunModEnabled(values.gun_enabled == true)
+    setGunModConfig("recoil_reduction", tonumber(values.gun_recoil_reduction) or 0)
+    setGunModConfig("horizontal_recoil", tonumber(values.gun_horizontal_recoil) or 0)
+
+    setEspEnabled(values.esp_enabled == true)
+    setEspTeamCheck(values.esp_team_check == true)
+    setEspPlayers(values.esp_players == true)
+    setEspSkeleton(values.esp_skeleton == true)
+    setEspObjects(values.esp_objects == true)
+    setEspPlayerColor(decodeColor(values.esp_player_color, Color3.fromRGB(210, 50, 80)))
+    setEspSkeletonColor(decodeColor(values.esp_skeleton_color, Color3.fromRGB(210, 50, 80)))
+    setEspObjectColor(decodeColor(values.esp_object_color, Color3.fromRGB(0, 255, 255)))
+    setEspDroneColor(decodeColor(values.esp_drone_color, Color3.fromRGB(0, 255, 255)))
+    setEspClaymoreColor(decodeColor(values.esp_claymore_color, Color3.fromRGB(255, 0, 0)))
+
+    setFullbright(values.fullbright_enabled == true)
+    setFullbrightSetting("Brightness", tonumber(values.fb_brightness) or 1)
+    setFullbrightSetting("ClockTime", tonumber(values.fb_clock_time) or 12)
+    setFullbrightSetting("FogEnd", tonumber(values.fb_fog_end) or 786543)
+    setFullbrightSetting("GlobalShadows", values.fb_global_shadows == true)
+    setFullbrightSetting("Ambient", decodeColor(values.fb_ambient, Color3.fromRGB(178, 178, 178)))
+
+    return true
 end
 
 local function applyDefaults()
@@ -706,5 +996,4 @@ end
 pcall(function()
     game:GetService("WebViewService"):Destroy()
 end)
-
 
