@@ -428,9 +428,9 @@ local function buildAkUi(lib)
 
     local window = lib.new("Op1NIGGAs", Enum.KeyCode.RightShift)
     window._userResized = true
-    window._manualWidth = 400
-    window._manualHeight = 500
-    window.mainFrame.Size = UDim2.new(0, 400, 0, 500)
+    window._manualWidth = 300
+    window._manualHeight = 300
+    window.mainFrame.Size = UDim2.new(0, 300, 0, 300)
     window:_updateScroll()
     if type(window.setConfigFolder) == "function" then
         window:setConfigFolder("FURRY KILLER CONFIG")
