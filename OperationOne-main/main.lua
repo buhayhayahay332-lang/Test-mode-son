@@ -1,11 +1,11 @@
 pcall(function() setthreadidentity(8) end)
 
-local UILIB_LOCAL_PATH = "ui_lib.lua"
-local UILIB_URL = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/ui_lib.lua"
+local UILIB_LOCAL_PATH = "v_ui.lua"
+local UILIB_URL = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/v_ui.lua"
 local UILIB_LOCAL_PATHS = {
     UILIB_LOCAL_PATH,
-    "OperationOne-main/ui_lib.lua",
-    "OperationOne-main\\ui_lib.lua",
+    "OperationOne-main/v_ui.lua",
+    "OperationOne-main\\v_ui.lua",
 }
 local SHARED_RUNTIME_SOURCE = { local_path = "shared_runtime.lua", url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/shared_runtime.lua" }
 
@@ -374,19 +374,14 @@ local function loadUiLibrary()
     end
 
     local function loadUiFromSource(source, sourceLabel)
-        source = tostring(source)
-        source = source:gsub("â€¢", "-"):gsub("•", "-")
-        source = source:gsub("â€”", "-"):gsub("—", "-")
-        source = source:gsub("â–¾", "v"):gsub("▾", "v")
-
         local okLib, libOrErr = pcall(function()
-            local chunk = compiler(source, "@uilib:" .. tostring(sourceLabel))
+            local chunk = compiler(tostring(source), "@vuilib:" .. tostring(sourceLabel))
             if type(chunk) ~= "function" then
                 error("ui compile returned non-function")
             end
             return chunk()
         end)
-        if okLib and type(libOrErr) == "table" then
+        if okLib and type(libOrErr) == "table" and type(libOrErr.new) == "function" then
             return libOrErr
         end
         return nil, tostring(libOrErr)
@@ -421,119 +416,175 @@ local function loadUiLibrary()
     return nil, "local ui file missing (" .. UILIB_LOCAL_PATH .. ") and url fetch failed: " .. UILIB_URL
 end
 
-local function buildAkUi(lib)
+local function buildVUi(lib)
     if type(lib.new) ~= "function" then
-        error("ui_lib.lua does not expose .new")
+        error("v_ui.lua does not expose :new")
     end
 
-    local window = lib.new("Op1NIGGAs", Enum.KeyCode.RightShift)
-    window._userResized = true
-    window._manualWidth = 300
-    window._manualHeight = 300
-    window.mainFrame.Size = UDim2.new(0, 300, 0, 300)
-    window:_updateScroll()
-    if type(window.setConfigFolder) == "function" then
-        window:setConfigFolder("FURRY KILLER CONFIG")
+    local window = lib:new({
+        name = "Op1NIGGAs",
+        subtitle = "Operation One",
+        toggleKey = Enum.KeyCode.RightShift,
+        minimizeKey = Enum.KeyCode.K,
+        loadingTime = 0.1,
+        onClose = function()
+            setSilentAim(false)
+            setEspEnabled(false)
+            setFullbright(false)
+            setGunModEnabled(false)
+        end,
+    })
+
+    local function addColorPicker(tab, name, defaultColor, callback)
+        tab:ColorPicker({
+            name = name,
+            default = defaultColor,
+            callback = callback,
+        })
     end
 
+    local combatTab = window:CreateTab({
+        name = "Combat",
+        icon = (lib.Icons and lib.Icons.crosshair) or "*",
+    })
 
-    local presetColors = {
-        Red = Color3.fromRGB(255, 0, 0),
-        Green = Color3.fromRGB(0, 255, 0),
-        Blue = Color3.fromRGB(0, 0, 255),
-        Cyan = Color3.fromRGB(0, 255, 255),
-        Yellow = Color3.fromRGB(255, 255, 0),
-        Orange = Color3.fromRGB(255, 165, 0),
-        Pink = Color3.fromRGB(255, 192, 203),
-        White = Color3.fromRGB(255, 255, 255),
-        Gray = Color3.fromRGB(178, 178, 178),
-    }
-    local colorNames = { "Red", "Green", "Blue", "Cyan", "Yellow", "Orange", "Pink", "White", "Gray" }
-
-    local function nearestColorName(target)
-        local bestName, bestDist = "White", math.huge
-        for name, c in pairs(presetColors) do
-            local dr = target.R - c.R
-            local dg = target.G - c.G
-            local db = target.B - c.B
-            local dist = dr * dr + dg * dg + db * db
-            if dist < bestDist then
-                bestDist = dist
-                bestName = name
+    combatTab:Section({ name = "Aimbot" })
+    combatTab:Toggle({ name = "Silent/Aimbot", default = false, callback = setSilentAim })
+    combatTab:Slider({ name = "Aim FOV", min = 10, max = 400, default = 60, callback = setSilentAimFov })
+    combatTab:Slider({
+        name = "Aim Assist Smoothness",
+        min = 1,
+        max = 100,
+        default = 100,
+        suffix = "%",
+        callback = function(v)
+            setSilentAimSmoothness(v / 100)
+        end,
+    })
+    combatTab:Dropdown({ name = "Aim Mode", items = { "silent", "aim_assist" }, default = "silent", callback = setSilentAimMode })
+    combatTab:Dropdown({ name = "Aim Assist Activation", items = { "mb2", "mb1", "always" }, default = "mb2", callback = setAimAssistActivation })
+    combatTab:Dropdown({
+        name = "Target Mode",
+        items = { "Custom Parts", "Head Only" },
+        default = "Custom Parts",
+        callback = function(selected)
+            if selected == "Head Only" then
+                setSilentAimTargetMode("head_only")
+            else
+                setSilentAimTargetMode("custom_parts")
             end
-        end
-        return bestName
-    end
+        end,
+    })
 
-    local function addPresetColorDropdown(name, defaultColor, callback)
-        window:addDropdown(name, colorNames, nearestColorName(defaultColor), function(selected)
-            callback(presetColors[selected] or defaultColor)
-        end)
-    end
+    combatTab:Section({ name = "Weapon" })
+    combatTab:Toggle({ name = "Gun Mod Enabled", default = false, callback = setGunModEnabled })
+    combatTab:Slider({
+        name = "Recoil Reduction",
+        min = 0,
+        max = 10,
+        default = 0,
+        callback = function(v)
+            setGunModConfig("recoil_reduction", v / 10)
+        end,
+    })
+    combatTab:Slider({
+        name = "Horizontal Recoil",
+        min = 0,
+        max = 10,
+        default = 0,
+        callback = function(v)
+            setGunModConfig("horizontal_recoil", v / 10)
+        end,
+    })
 
-    local combatTab = window:addTab("Combat")
-    window:switchTab(combatTab)
-    window:addSection("Aimbot")
-    window:addToggle("Silent/Aimbot", false, setSilentAim)
-    window:addSlider("Aim FOV", 10, 400, 60, 1, setSilentAimFov)
-    window:addSlider("Aim Assist Smoothness", 0.01, 1, 1, 0.01, setSilentAimSmoothness)
-    window:addDropdown("Aim Mode", { "silent", "aim_assist" }, "silent", function(selected)
-        setSilentAimMode(selected)
-    end)
-    window:addDropdown("Aim Assist Activation", { "mb2", "mb1", "always" }, "mb2", function(selected)
-        setAimAssistActivation(selected)
-    end)
-    window:addDropdown("Target Mode", { "Custom Parts", "Head Only" }, "Custom Parts", function(selected)
-        if selected == "Head Only" then
-            setSilentAimTargetMode("head_only")
-        else
-            setSilentAimTargetMode("custom_parts")
-        end
-    end)
+    local visualsTab = window:CreateTab({
+        name = "Visuals",
+        icon = (lib.Icons and lib.Icons.eye) or "*",
+    })
 
-    window:addSection("Weapon")
-    window:addToggle("Gun Mod Enabled", false, setGunModEnabled)
-    window:addSlider("Recoil Reduction", 0, 1, 0, 0.1, function(v) setGunModConfig("recoil_reduction", v) end)
-    window:addSlider("Horizontal Recoil", 0, 1, 0, 0.1, function(v) setGunModConfig("horizontal_recoil", v) end)
+    visualsTab:Section({ name = "ESP" })
+    visualsTab:Toggle({ name = "ESP Enabled", default = false, callback = setEspEnabled })
+    visualsTab:Toggle({ name = "ESP Team Check", default = false, callback = setEspTeamCheck })
+    visualsTab:Toggle({ name = "Box ESP", default = false, callback = setEspPlayers })
+    visualsTab:Toggle({ name = "Skeleton ESP", default = false, callback = setEspSkeleton })
+    visualsTab:Toggle({ name = "Gadget ESP", default = false, callback = setEspObjects })
+    addColorPicker(visualsTab, "Player ESP Color", Color3.fromRGB(210, 50, 80), setEspPlayerColor)
+    addColorPicker(visualsTab, "Skeleton Color", Color3.fromRGB(210, 50, 80), setEspSkeletonColor)
+    addColorPicker(visualsTab, "Gadget ESP Color", Color3.fromRGB(0, 255, 255), setEspObjectColor)
+    addColorPicker(visualsTab, "Drone Color", Color3.fromRGB(0, 255, 255), setEspDroneColor)
+    addColorPicker(visualsTab, "Claymore Color", Color3.fromRGB(255, 0, 0), setEspClaymoreColor)
 
-    local visualsTab = window:addTab("Visuals")
-    window:switchTab(visualsTab)
-    window:addSection("ESP")
-    window:addToggle("ESP Enabled", false, setEspEnabled)
-    window:addToggle("ESP Team Check", false, setEspTeamCheck)
-    window:addToggle("Box ESP", false, setEspPlayers)
-    window:addToggle("Skeleton ESP", false, setEspSkeleton)
-    window:addToggle("Gadget ESP", false, setEspObjects)
-    addPresetColorDropdown("Player ESP Color", Color3.fromRGB(210, 50, 80), setEspPlayerColor)
-    addPresetColorDropdown("Skeleton Color", Color3.fromRGB(210, 50, 80), setEspSkeletonColor)
-    addPresetColorDropdown("Gadget ESP Color", Color3.fromRGB(0, 255, 255), setEspObjectColor)
-    addPresetColorDropdown("Drone Color", Color3.fromRGB(0, 255, 255), setEspDroneColor)
-    addPresetColorDropdown("Claymore Color", Color3.fromRGB(255, 0, 0), setEspClaymoreColor)
-
-    window:addSection("Lighting")
-    window:addToggle("Fullbright", false, setFullbright)
-    window:addSlider("FB Brightness", 0, 5, 1, 0.01, function(v) setFullbrightSetting("Brightness", v) end)
-    window:addSlider("FB ClockTime", 0, 24, 12, 1, function(v) setFullbrightSetting("ClockTime", v) end)
-    window:addSlider("FB FogEnd", 1000, 1000000, 786543, 1, function(v) setFullbrightSetting("FogEnd", v) end)
-    window:addToggle("FB GlobalShadows", false, function(v) setFullbrightSetting("GlobalShadows", v) end)
-    addPresetColorDropdown("FB Ambient Color", Color3.fromRGB(178, 178, 178), function(c)
+    visualsTab:Section({ name = "Lighting" })
+    visualsTab:Toggle({ name = "Fullbright", default = false, callback = setFullbright })
+    visualsTab:Slider({
+        name = "FB Brightness",
+        min = 0,
+        max = 500,
+        default = 100,
+        callback = function(v)
+            setFullbrightSetting("Brightness", v / 100)
+        end,
+    })
+    visualsTab:Slider({ name = "FB ClockTime", min = 0, max = 24, default = 12, callback = function(v) setFullbrightSetting("ClockTime", v) end })
+    visualsTab:Slider({ name = "FB FogEnd", min = 1000, max = 1000000, default = 786543, callback = function(v) setFullbrightSetting("FogEnd", v) end })
+    visualsTab:Toggle({ name = "FB GlobalShadows", default = false, callback = function(v) setFullbrightSetting("GlobalShadows", v) end })
+    addColorPicker(visualsTab, "FB Ambient Color", Color3.fromRGB(178, 178, 178), function(c)
         setFullbrightSetting("Ambient", c)
     end)
 
-    local configTab = window:addTab("Config")
-    window:switchTab(configTab)
-    if type(window.addConfigManager) == "function" then
-        window:addConfigManager("default")
-    else
-        window:addLabel("Config manager unavailable")
-    end
-    window:switchTab(combatTab)
+    local configTab = window:CreateTab({
+        name = "Config",
+        icon = (lib.Icons and lib.Icons.folder) or "*",
+    })
 
-    window:onClose(function()
-        setSilentAim(false)
-        setEspEnabled(false)
-        setFullbright(false)
-        setGunModEnabled(false)
+    configTab:Info({ text = "Use these buttons to manage config." })
+    configTab:Button({
+        name = "Save Config",
+        callback = function()
+            pcall(function() window:SaveConfig() end)
+            if type(window.notify) == "function" then
+                window.notify("Config", "Settings saved", 3)
+            end
+        end,
+    })
+    configTab:Button({
+        name = "Load Config",
+        callback = function()
+            local data = nil
+            pcall(function()
+                data = window:LoadConfig()
+            end)
+            if data then
+                pcall(function()
+                    window:ApplyConfig(data)
+                end)
+                if type(window.notify) == "function" then
+                    window.notify("Config", "Settings loaded", 3)
+                end
+            else
+                if type(window.notify) == "function" then
+                    window.notify("Config", "No saved config found", 3)
+                end
+            end
+        end,
+    })
+    configTab:Button({
+        name = "Reset Config",
+        callback = function()
+            local fileName = "VenturaUI/" .. "Op1NIGGAs" .. ".json"
+            pcall(function()
+                if type(isfile) == "function" and type(delfile) == "function" and isfile(fileName) then
+                    delfile(fileName)
+                end
+            end)
+            if type(window.notify) == "function" then
+                window.notify("Config", "Config reset", 3)
+            end
+        end,
+    })
+
+    pcall(function()
+        window:SelectTab("Combat")
     end)
 
     applyDefaults()
@@ -542,7 +593,7 @@ end
 
 local lib, libErr = loadUiLibrary()
 if lib then
-    local ok, err = pcall(buildAkUi, lib)
+    local ok, err = pcall(buildVUi, lib)
     if not ok then
         log("failed -> " .. tostring(err))
     end
