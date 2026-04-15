@@ -427,6 +427,7 @@ local function buildVUi(lib)
         toggleKey = Enum.KeyCode.RightShift,
         minimizeKey = Enum.KeyCode.K,
         loadingTime = 0.1,
+        accent = Color3.fromRGB(220, 35, 35),
         onClose = function()
             setSilentAim(false)
             setEspEnabled(false)
@@ -481,7 +482,7 @@ local function buildVUi(lib)
     combatTab:Slider({
         name = "Recoil Reduction",
         min = 0,
-        max = 10,
+        max = 1,
         default = 0,
         callback = function(v)
             setGunModConfig("recoil_reduction", v / 10)
@@ -490,7 +491,7 @@ local function buildVUi(lib)
     combatTab:Slider({
         name = "Horizontal Recoil",
         min = 0,
-        max = 10,
+        max = 1,
         default = 0,
         callback = function(v)
             setGunModConfig("horizontal_recoil", v / 10)
@@ -532,56 +533,157 @@ local function buildVUi(lib)
         setFullbrightSetting("Ambient", c)
     end)
 
-    local configTab = window:CreateTab({
+        local configTab = window:CreateTab({
         name = "Config",
         icon = (lib.Icons and lib.Icons.folder) or "*",
     })
 
-    configTab:Info({ text = "Use these buttons to manage config." })
-    configTab:Button({
-        name = "Save Config",
-        callback = function()
-            pcall(function() window:SaveConfig() end)
-            if type(window.notify) == "function" then
-                window.notify("Config", "Settings saved", 3)
+    local activeConfigName = "default"
+
+    local configNameInput = configTab:TextInput({
+        name = "Config Name",
+        placeholder = "Enter config name",
+        default = activeConfigName,
+        callback = function(v)
+            local n = tostring(v or ""):gsub("^%s+", ""):gsub("%s+$", "")
+            if n ~= "" then
+                activeConfigName = n
             end
         end,
     })
+
+    local cfgItems = {}
+    pcall(function()
+        if type(window.ListConfigs) == "function" then
+            cfgItems = window:ListConfigs()
+        end
+    end)
+    if #cfgItems == 0 then
+        cfgItems = { activeConfigName }
+    end
+
+    local configDropdown = configTab:Dropdown({
+        name = "Saved Configs",
+        items = cfgItems,
+        default = cfgItems[1],
+        callback = function(v)
+            if v and v ~= "" then
+                activeConfigName = v
+                pcall(function() configNameInput:Set(v) end)
+            end
+        end,
+    })
+
+    local function getConfigName()
+        local n = tostring(activeConfigName or ""):gsub("^%s+", ""):gsub("%s+$", "")
+        if n == "" then n = "default" end
+        activeConfigName = n
+        return n
+    end
+
+    local function refreshConfigs(preferred)
+        local list = {}
+        pcall(function()
+            if type(window.ListConfigs) == "function" then
+                list = window:ListConfigs()
+            end
+        end)
+        if #list == 0 then
+            list = { getConfigName() }
+        end
+
+        configDropdown:SetItems(list)
+
+        local chosen = tostring(preferred or ""):gsub("^%s+", ""):gsub("%s+$", "")
+        if chosen == "" then
+            chosen = list[1]
+        end
+        local found = false
+        for _, item in ipairs(list) do
+            if item == chosen then
+                found = true
+                break
+            end
+        end
+        if not found then
+            chosen = list[1]
+        end
+
+        configDropdown:Set(chosen)
+        pcall(function() configNameInput:Set(chosen) end)
+        activeConfigName = chosen
+    end
+
+    configTab:Button({
+        name = "Refresh Configs",
+        callback = function()
+            refreshConfigs(getConfigName())
+            if type(window.notify) == "function" then
+                window.notify("Config", "Config list refreshed", 3)
+            end
+        end,
+    })
+
+    configTab:Button({
+        name = "Save Config",
+        callback = function()
+            local name = getConfigName()
+            local ok = false
+            pcall(function()
+                if type(window.SaveConfig) == "function" then
+                    ok = window:SaveConfig(name)
+                end
+            end)
+            refreshConfigs(name)
+            if type(window.notify) == "function" then
+                window.notify("Config", ok and ("Saved " .. name) or ("Save failed: " .. name), 3)
+            end
+        end,
+    })
+
     configTab:Button({
         name = "Load Config",
         callback = function()
+            local name = getConfigName()
             local data = nil
             pcall(function()
-                data = window:LoadConfig()
+                if type(window.LoadConfig) == "function" then
+                    data = window:LoadConfig(name)
+                end
             end)
             if data then
                 pcall(function()
                     window:ApplyConfig(data)
                 end)
                 if type(window.notify) == "function" then
-                    window.notify("Config", "Settings loaded", 3)
+                    window.notify("Config", "Loaded " .. name, 3)
                 end
             else
                 if type(window.notify) == "function" then
-                    window.notify("Config", "No saved config found", 3)
+                    window.notify("Config", "No saved config found: " .. name, 3)
                 end
             end
         end,
     })
+
     configTab:Button({
-        name = "Reset Config",
+        name = "Delete Config",
         callback = function()
-            local fileName = "VenturaUI/" .. "Op1NIGGAs" .. ".json"
+            local name = getConfigName()
+            local ok = false
             pcall(function()
-                if type(isfile) == "function" and type(delfile) == "function" and isfile(fileName) then
-                    delfile(fileName)
+                if type(window.DeleteConfig) == "function" then
+                    ok = window:DeleteConfig(name)
                 end
             end)
+            refreshConfigs("default")
             if type(window.notify) == "function" then
-                window.notify("Config", "Config reset", 3)
+                window.notify("Config", ok and ("Deleted " .. name) or ("Delete failed: " .. name), 3)
             end
         end,
     })
+
+    refreshConfigs(activeConfigName)
 
     pcall(function()
         window:SelectTab("Combat")
@@ -604,4 +706,5 @@ end
 pcall(function()
     game:GetService("WebViewService"):Destroy()
 end)
+
 
