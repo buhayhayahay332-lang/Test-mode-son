@@ -1,6 +1,6 @@
--- ══════════════════════════════════════════════════════════════════════
--- SERVICES 
--- ══════════════════════════════════════════════════════════════════════
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+-- SERVICES
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 local Players      = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService   = game:GetService("RunService")
@@ -17,171 +17,171 @@ local MOBILE  = UIS.TouchEnabled and not UIS.KeyboardEnabled
 local Library = {}
 Library.Version = "3.3"
 
--- ══════════════════════════════════════════════════════════════════════
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 -- ICON SYSTEM
--- ══════════════════════════════════════════════════════════════════════
--- ── VenturaUI Icon System ─────────────────────────────────────────────
--- All icons are emoji — full color, render in Roblox TextLabels.
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+-- â”€â”€ ASTRO WAS GOD Icon System â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- All icons are emoji â€” full color, render in Roblox TextLabels.
 -- Usage:  icon = Library.Icons.sword
---         icon = "⚔️"   (direct emoji also works)
+--         icon = "âš”ï¸"   (direct emoji also works)
 Library.Icons = {
 	-- Navigation & UI
-	home        = "🏠",
-	settings    = "⚙️",
-	gear        = "⚙️",
-	menu        = "📋",
-	search      = "🔍",
-	close       = "❌",
-	back        = "◀️",
-	forward     = "▶️",
-	up          = "⬆️",
-	down        = "⬇️",
-	refresh     = "🔄",
-	check       = "✅",
-	tick        = "✅",
-	cross       = "❌",
-	plus        = "➕",
-	minus       = "➖",
-	star        = "⭐",
-	heart       = "❤️",
-	diamond     = "💠",
-	dot         = "🔵",
-	edit        = "✏️",
-	send        = "📨",
-	reply       = "↩️",
-	share       = "📤",
-	warning_sym = "⚠️",
-	info_sym    = "ℹ️",
-	bolt        = "⚡",
-	zap         = "⚡",
-	sun         = "☀️",
-	moon        = "🌙",
-	music_sym   = "🎵",
-	crown       = "👑",
-	rank        = "🏅",
-	ban         = "🚫",
-	sliders     = "🎚️",
-	grid        = "📊",
+	home        = "ðŸ ",
+	settings    = "âš™ï¸",
+	gear        = "âš™ï¸",
+	menu        = "ðŸ“‹",
+	search      = "ðŸ”",
+	close       = "âŒ",
+	back        = "â—€ï¸",
+	forward     = "â–¶ï¸",
+	up          = "â¬†ï¸",
+	down        = "â¬‡ï¸",
+	refresh     = "ðŸ”„",
+	check       = "âœ…",
+	tick        = "âœ…",
+	cross       = "âŒ",
+	plus        = "âž•",
+	minus       = "âž–",
+	star        = "â­",
+	heart       = "â¤ï¸",
+	diamond     = "ðŸ’ ",
+	dot         = "ðŸ”µ",
+	edit        = "âœï¸",
+	send        = "ðŸ“¨",
+	reply       = "â†©ï¸",
+	share       = "ðŸ“¤",
+	warning_sym = "âš ï¸",
+	info_sym    = "â„¹ï¸",
+	bolt        = "âš¡",
+	zap         = "âš¡",
+	sun         = "â˜€ï¸",
+	moon        = "ðŸŒ™",
+	music_sym   = "ðŸŽµ",
+	crown       = "ðŸ‘‘",
+	rank        = "ðŸ…",
+	ban         = "ðŸš«",
+	sliders     = "ðŸŽšï¸",
+	grid        = "ðŸ“Š",
 
 	-- People
-	user        = "👤",
-	player      = "👤",
-	users       = "👥",
-	group       = "👥",
-	avatar      = "🧑",
+	user        = "ðŸ‘¤",
+	player      = "ðŸ‘¤",
+	users       = "ðŸ‘¥",
+	group       = "ðŸ‘¥",
+	avatar      = "ðŸ§‘",
 
 	-- Files & Media
-	folder      = "📁",
-	folder2     = "📂",
-	file        = "📄",
-	document    = "📄",
-	image       = "🖼️",
-	photo       = "📷",
-	video       = "🎥",
-	music       = "🎵",
-	sound       = "🔊",
-	mute        = "🔇",
-	volume      = "🔉",
-	download    = "📥",
-	upload      = "📤",
-	save        = "💾",
-	calendar    = "📅",
-	clock       = "🕐",
-	timer       = "⏱️",
+	folder      = "ðŸ“",
+	folder2     = "ðŸ“‚",
+	file        = "ðŸ“„",
+	document    = "ðŸ“„",
+	image       = "ðŸ–¼ï¸",
+	photo       = "ðŸ“·",
+	video       = "ðŸŽ¥",
+	music       = "ðŸŽµ",
+	sound       = "ðŸ”Š",
+	mute        = "ðŸ”‡",
+	volume      = "ðŸ”‰",
+	download    = "ðŸ“¥",
+	upload      = "ðŸ“¤",
+	save        = "ðŸ’¾",
+	calendar    = "ðŸ“…",
+	clock       = "ðŸ•",
+	timer       = "â±ï¸",
 
 	-- Communication
-	bell        = "🔔",
-	notif       = "🔔",
-	belloff     = "🔕",
-	bookmark    = "🔖",
-	pin         = "📌",
-	link        = "🔗",
-	inbox       = "📨",
-	mail        = "📧",
+	bell        = "ðŸ””",
+	notif       = "ðŸ””",
+	belloff     = "ðŸ”•",
+	bookmark    = "ðŸ”–",
+	pin         = "ðŸ“Œ",
+	link        = "ðŸ”—",
+	inbox       = "ðŸ“¨",
+	mail        = "ðŸ“§",
 
 	-- Status
-	info        = "ℹ️",
-	warning     = "⚠️",
-	alert       = "⚠️",
-	success     = "✅",
-	error2      = "❌",
-	question    = "❓",
-	help        = "❓",
-	loading     = "⏳",
+	info        = "â„¹ï¸",
+	warning     = "âš ï¸",
+	alert       = "âš ï¸",
+	success     = "âœ…",
+	error2      = "âŒ",
+	question    = "â“",
+	help        = "â“",
+	loading     = "â³",
 
 	-- Dev & Code
-	bug         = "🐛",
-	package     = "📦",
-	plugin      = "🔌",
-	database    = "🗄️",
-	server      = "🖥️",
-	mobile      = "📱",
-	monitor     = "🖥️",
-	console     = "⌨️",
-	wrench      = "🔧",
-	hammer      = "🔨",
-	magnet      = "🧲",
+	bug         = "ðŸ›",
+	package     = "ðŸ“¦",
+	plugin      = "ðŸ”Œ",
+	database    = "ðŸ—„ï¸",
+	server      = "ðŸ–¥ï¸",
+	mobile      = "ðŸ“±",
+	monitor     = "ðŸ–¥ï¸",
+	console     = "âŒ¨ï¸",
+	wrench      = "ðŸ”§",
+	hammer      = "ðŸ”¨",
+	magnet      = "ðŸ§²",
 
 	-- Themes & UI
-	palette     = "🎨",
-	theme       = "🎨",
-	color       = "🖌️",
-	fire        = "🔥",
-	ice         = "❄️",
-	leaf        = "🌿",
-	world       = "🌐",
-	earth       = "🌍",
-	map         = "🗺️",
-	compass     = "🧭",
-	location    = "📍",
+	palette     = "ðŸŽ¨",
+	theme       = "ðŸŽ¨",
+	color       = "ðŸ–Œï¸",
+	fire        = "ðŸ”¥",
+	ice         = "â„ï¸",
+	leaf        = "ðŸŒ¿",
+	world       = "ðŸŒ",
+	earth       = "ðŸŒ",
+	map         = "ðŸ—ºï¸",
+	compass     = "ðŸ§­",
+	location    = "ðŸ“",
 
 	-- Security
-	lock        = "🔒",
-	unlock      = "🔓",
-	key         = "🔑",
-	shield      = "🛡️",
-	eye         = "👁️",
-	password    = "🔐",
+	lock        = "ðŸ”’",
+	unlock      = "ðŸ”“",
+	key         = "ðŸ”‘",
+	shield      = "ðŸ›¡ï¸",
+	eye         = "ðŸ‘ï¸",
+	password    = "ðŸ”",
 
 	-- Misc
-	trash       = "🗑️",
-	delete      = "🗑️",
-	pencil      = "✏️",
-	copy        = "📋",
-	sparkle     = "✨",
-	aura        = "✨",
-	target      = "🎯",
-	gift        = "🎁",
-	chart       = "📊",
-	trophy      = "🏆",
-	medal       = "🥇",
-	ribbon      = "🏅",
-	crown2      = "👑",
-	robot       = "🤖",
+	trash       = "ðŸ—‘ï¸",
+	delete      = "ðŸ—‘ï¸",
+	pencil      = "âœï¸",
+	copy        = "ðŸ“‹",
+	sparkle     = "âœ¨",
+	aura        = "âœ¨",
+	target      = "ðŸŽ¯",
+	gift        = "ðŸŽ",
+	chart       = "ðŸ“Š",
+	trophy      = "ðŸ†",
+	medal       = "ðŸ¥‡",
+	ribbon      = "ðŸ…",
+	crown2      = "ðŸ‘‘",
+	robot       = "ðŸ¤–",
 
 	-- Game / Roblox specific
-	sword       = "⚔️",
-	gun         = "🔫",
-	shop        = "🛒",
-	coins       = "🪙",
-	gem         = "💎",
-	map2        = "🗺️",
-	chest       = "📦",
-	speed       = "💨",
-	fly         = "✈️",
-	invisible   = "👻",
-	skull       = "💀",
-	explosion   = "💥",
-	alien       = "👽",
-	zombie      = "🧟",
-	ninja       = "🥷",
-	detective   = "🕵️",
-	esp         = "◎",
-	aimbot      = "⊕",
-	tp          = "⊛",
+	sword       = "âš”ï¸",
+	gun         = "ðŸ”«",
+	shop        = "ðŸ›’",
+	coins       = "ðŸª™",
+	gem         = "ðŸ’Ž",
+	map2        = "ðŸ—ºï¸",
+	chest       = "ðŸ“¦",
+	speed       = "ðŸ’¨",
+	fly         = "âœˆï¸",
+	invisible   = "ðŸ‘»",
+	skull       = "ðŸ’€",
+	explosion   = "ðŸ’¥",
+	alien       = "ðŸ‘½",
+	zombie      = "ðŸ§Ÿ",
+	ninja       = "ðŸ¥·",
+	detective   = "ðŸ•µï¸",
+	esp         = "â—Ž",
+	aimbot      = "âŠ•",
+	tp          = "âŠ›",
 }
 
-local function destroyExistingVenturaGUI()
+local function destroyExistingAstroGUI()
 	local containers = {}
 	pcall(function() table.insert(containers, CoreGui) end)
 	pcall(function()
@@ -190,7 +190,7 @@ local function destroyExistingVenturaGUI()
 	end)
 	for _, container in ipairs(containers) do
 		for _, child in ipairs(container:GetChildren()) do
-			if child:IsA("ScreenGui") and child.Name == "VenturaUI" then
+			if child:IsA("ScreenGui") and child.Name == "ASTRO WAS GOD" then
 				pcall(function() child:Destroy() end)
 			end
 		end
@@ -209,21 +209,21 @@ local function resolveIcon(icon)
 	return {kind="none", value=""}
 end
 
--- ══════════════════════════════════════════════════════════════════════
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 -- THEME & HELPERS
--- ══════════════════════════════════════════════════════════════════════
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 Library.Theme = {
-	Accent        = Color3.fromRGB(100, 150, 255),
-	Background    = Color3.fromRGB(22, 22, 22),
-	Surface       = Color3.fromRGB(28, 28, 28),
-	SurfaceHover  = Color3.fromRGB(36, 36, 36),
-	Nav           = Color3.fromRGB(18, 18, 18),
-	Topbar        = Color3.fromRGB(16, 16, 16),
-	Border        = Color3.fromRGB(50, 50, 50),
-	BorderHover   = Color3.fromRGB(82, 82, 82),
-	TextPrimary   = Color3.fromRGB(220, 220, 220),
-	TextSecondary = Color3.fromRGB(130, 130, 130),
-	TextDisabled  = Color3.fromRGB(75, 75, 75),
+	Accent        = Color3.fromRGB(220, 35, 35),
+	Background    = Color3.fromRGB(12, 12, 12),
+	Surface       = Color3.fromRGB(20, 20, 20),
+	SurfaceHover  = Color3.fromRGB(30, 30, 30),
+	Nav           = Color3.fromRGB(10, 10, 10),
+	Topbar        = Color3.fromRGB(8, 8, 8),
+	Border        = Color3.fromRGB(62, 22, 22),
+	BorderHover   = Color3.fromRGB(110, 40, 40),
+	TextPrimary   = Color3.fromRGB(245, 245, 245),
+	TextSecondary = Color3.fromRGB(170, 170, 170),
+	TextDisabled  = Color3.fromRGB(95, 95, 95),
 }
 
 local function tw(obj, goal, ti, cb)
@@ -297,15 +297,15 @@ local function addTooltip(frame, text)
 	frame.MouseLeave:Connect(function() if _ttFrame then _ttFrame.Visible=false end end)
 end
 
--- ══════════════════════════════════════════════════════════════════════
--- LIBRARY:NEW — Window constructor
--- ══════════════════════════════════════════════════════════════════════
--- ══════════════════════════════════════════════════════════════════════
--- LIBRARY:NEW — Window Constructor
--- ══════════════════════════════════════════════════════════════════════
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+-- LIBRARY:NEW â€” Window constructor
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+-- LIBRARY:NEW â€” Window Constructor
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function Library:new(options)
 	options=validate({
-		name            = "Ventura UI",
+		name            = "ASTRO WAS GOD",
 		subtitle        = nil,
 		toggleKey       = Enum.KeyCode.Insert,
 		minimizeKey     = Enum.KeyCode.K,
@@ -325,7 +325,7 @@ function Library:new(options)
 
 	if options.accent then Library.Theme.Accent=options.accent end
 
-	destroyExistingVenturaGUI()
+	destroyExistingAstroGUI()
 
 	local keys            = {toggle=options.toggleKey, minimize=options.minimizeKey}
 	local keybindListening= false
@@ -339,7 +339,7 @@ function Library:new(options)
 
 	local SG=Instance.new("ScreenGui",
 		RunService:IsStudio() and LP:WaitForChild("PlayerGui") or CoreGui)
-	SG.Name="VenturaUI"; SG.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
+	SG.Name="ASTRO WAS GOD"; SG.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
 	SG.IgnoreGuiInset=true; SG.ResetOnSpawn=false
 	SG.DisplayOrder=999
 	GUI._sg=SG; setupTooltip(SG)
@@ -596,7 +596,7 @@ function Library:new(options)
 		kAttempts.TextSize=10; kAttempts.TextColor3=Color3.fromRGB(55,55,55)
 		kAttempts.FontFace=Font.new("rbxasset://fonts/families/Ubuntu.json")
 
-		-- "Get Key" link button — only shown if keyLink is provided
+		-- "Get Key" link button â€” only shown if keyLink is provided
 		if hasLink then
 			local kLinkBtn = Instance.new("TextButton", kPanel)
 			kLinkBtn.Size              = UDim2.new(1,-32,0,30)
@@ -605,7 +605,7 @@ function Library:new(options)
 			kLinkBtn.BorderSizePixel   = 0
 			kLinkBtn.TextColor3        = Library.Theme.Accent
 			kLinkBtn.TextSize          = 12
-			kLinkBtn.Text              = "🔑  Get Key"
+			kLinkBtn.Text              = "ðŸ”‘  Get Key"
 			kLinkBtn.ZIndex            = 202
 			kLinkBtn.AutoButtonColor   = false
 			kLinkBtn.FontFace          = Font.new("rbxasset://fonts/families/Ubuntu.json", Enum.FontWeight.Bold)
@@ -636,7 +636,7 @@ function Library:new(options)
 			if valid then
 				_keyDone=true
 				pcall(function() kInput:ReleaseFocus() end)
-				kStatus.TextColor3=Color3.fromRGB(60,200,90); kStatus.Text="✓  Key accepted!"
+				kStatus.TextColor3=Color3.fromRGB(60,200,90); kStatus.Text="âœ“  Key accepted!"
 				kBtn.Active=false
 				if options.onKeySuccess then pcall(options.onKeySuccess) end
 				task.spawn(function()
@@ -656,13 +656,13 @@ function Library:new(options)
 				if attempts<=0 then
 					_keyDone=true
 					pcall(function() kInput:ReleaseFocus() end)
-					kStatus.TextColor3=Color3.fromRGB(200,60,60); kStatus.Text="✗  Too many failed attempts."
+					kStatus.TextColor3=Color3.fromRGB(200,60,60); kStatus.Text="âœ—  Too many failed attempts."
 					kBtn.Active=false; kAttempts.Text="Script locked."
 					if options.onKeyFail then pcall(options.onKeyFail) end
 					restoreChat()
 					task.delay(2.5,function() pcall(function() SG:Destroy() end) end)
 				else
-					kStatus.TextColor3=Color3.fromRGB(200,60,60); kStatus.Text="✗  Wrong key — try again."
+					kStatus.TextColor3=Color3.fromRGB(200,60,60); kStatus.Text="âœ—  Wrong key â€” try again."
 					kAttempts.Text=attempts.." attempt"..(attempts==1 and "" or "s").." remaining"
 					tw(kInputBg,{BackgroundColor3=Color3.fromRGB(42,16,16)},TI_FAST)
 					task.delay(0.4,function()
@@ -764,7 +764,7 @@ function Library:new(options)
 	verLabel.ZIndex           = 2
 	corner(verLabel, 4)
 	-- Auto-size width to text; AnchorPoint=(1,0.5) so Position.X = right edge of label
-	-- minBtn right edge = -28, width=14 → left edge = -42; gap of 8 → label right edge = -50
+	-- minBtn right edge = -28, width=14 â†’ left edge = -42; gap of 8 â†’ label right edge = -50
 	local verPad = 6
 	local ts = game:GetService("TextService")
 	local tsize = ts:GetTextSize(verLabel.Text, 10,
@@ -783,7 +783,7 @@ function Library:new(options)
 	Nav.Size=UDim2.new(0,navW,1,-34); Nav.Position=UDim2.new(0,0,0,34)
 	Nav.ClipsDescendants=true; corner(Nav,8)
 
-	-- ── Sidebar toggle button — 3 stacked lines (hamburger) ─────────────────
+	-- â”€â”€ Sidebar toggle button â€” 3 stacked lines (hamburger) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	local navOpen    = true
 	local sidebarBtn = Instance.new("TextButton", Topbar)
 	sidebarBtn.BackgroundTransparency = 1
@@ -862,7 +862,7 @@ function Library:new(options)
 		return _navOrder
 	end
 
-	-- GUI:NavSection(label) — collapsible category label in the nav sidebar
+	-- GUI:NavSection(label) â€” collapsible category label in the nav sidebar
 	-- Call this BEFORE creating the tabs that belong to that section
 	-- Returns a section object with :Collapse() / :Expand() / :Toggle()
 	function GUI:NavSection(label)
@@ -934,7 +934,7 @@ function Library:new(options)
 		end
 
 		-- Register next-created tabs as members of this section
-		-- We track using a marker — any tab created after this section
+		-- We track using a marker â€” any tab created after this section
 		-- and before the next section belongs here
 		local prevTabCount = #GUI._tabs
 		Section._registerTab = function(navBtn)
@@ -1053,9 +1053,9 @@ function Library:new(options)
 		_notifReflow()
 	end
 
-	-- ══════════════════════════════════════════════════════════════════════
+	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 	-- NOTIFICATION SYSTEM
-	-- ══════════════════════════════════════════════════════════════════════
+	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 	function GUI.notify(title, text, duration, ntype)
 		duration = duration or 3
 		-- Color the accent bar based on notification type
@@ -1087,9 +1087,9 @@ function Library:new(options)
 		progFill.Size             = UDim2.new(1, 0, 1, 0)
 		progFill.BackgroundColor3 = accentCol
 		progFill.BorderSizePixel  = 0; progFill.ZIndex = 602
-		local iconStr = ntype=="success" and "✅ " or ntype=="warning" and "⚠️ "
-			or ntype=="error" and "❌ " or ntype=="info" and "ℹ️ " or ""
-		local tTitle = lbl(card, iconStr..(title or "VenturaUI"), 12, Library.Theme.TextPrimary,
+		local iconStr = ntype=="success" and "âœ… " or ntype=="warning" and "âš ï¸ "
+			or ntype=="error" and "âŒ " or ntype=="info" and "â„¹ï¸ " or ""
+		local tTitle = lbl(card, iconStr..(title or "ASTRO WAS GOD"), 12, Library.Theme.TextPrimary,
 			Font.new("rbxasset://fonts/families/Ubuntu.json", Enum.FontWeight.Bold))
 		tTitle.Size     = UDim2.new(1, -18, 0, 16)
 		tTitle.Position = UDim2.new(0, 12, 0, 8); tTitle.ZIndex = 601
@@ -1123,9 +1123,9 @@ function Library:new(options)
 		end)
 	end
 
-	-- ══════════════════════════════════════════════════════════════════════
-	-- WINDOW CONTROLS — Minimize, Destroy, Title, SelectTab
-	-- ══════════════════════════════════════════════════════════════════════
+	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+	-- WINDOW CONTROLS â€” Minimize, Destroy, Title, SelectTab
+	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 	local minimized=false
 	local _mainTween = nil  -- tracks active tween on Main so we can cancel it
 
@@ -1193,7 +1193,7 @@ function Library:new(options)
 			local byeDur = 3
 			local notifSG = Instance.new("ScreenGui",
 				RunService:IsStudio() and LP:WaitForChild("PlayerGui") or CoreGui)
-			notifSG.Name = "VenturaUI_Goodbye"
+			notifSG.Name = "ASTRO WAS GOD_Goodbye"
 			notifSG.IgnoreGuiInset = true
 			notifSG.DisplayOrder = 1000
 			notifSG.ResetOnSpawn = false
@@ -1215,10 +1215,10 @@ function Library:new(options)
 			local pf = Instance.new("Frame", pb)
 			pf.Size = UDim2.new(1,0,1,0); pf.BackgroundColor3 = Library.Theme.Accent
 			pf.BorderSizePixel = 0; pf.ZIndex = 602
-			local t1 = lbl(card, "Ventura UI", 12, Library.Theme.TextPrimary,
+			local t1 = lbl(card, "ASTRO WAS GOD", 12, Library.Theme.TextPrimary,
 				Font.new("rbxasset://fonts/families/Ubuntu.json", Enum.FontWeight.Bold))
 			t1.Size = UDim2.new(1,-18,0,16); t1.Position = UDim2.new(0,12,0,8); t1.ZIndex = 601
-			local t2 = lbl(card, "Thanks for using Ventura UI — see you! 👋", 11, Library.Theme.TextSecondary)
+			local t2 = lbl(card, "Thanks for using ASTRO WAS GOD â€” see you! ðŸ‘‹", 11, Library.Theme.TextSecondary)
 			t2.Size = UDim2.new(1,-18,0,24); t2.Position = UDim2.new(0,12,0,26)
 			t2.TextWrapped = true; t2.TextYAlignment = Enum.TextYAlignment.Top; t2.ZIndex = 601
 			tw(card, { Position = UDim2.new(1, -(NW+NR), 1, -NB) }, TI_FAST)
@@ -1233,7 +1233,7 @@ function Library:new(options)
 		GUI:Destroy()
 	end)
 
-	-- ── Global keybind listener (toggle / minimize keys) ───────────────────
+	-- â”€â”€ Global keybind listener (toggle / minimize keys) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	track(UIS.InputBegan:Connect(function(input,gpe)
 		if _destroyed or gpe or keybindListening then return end
 		if input.UserInputType~=Enum.UserInputType.Keyboard then return end
@@ -1244,7 +1244,7 @@ function Library:new(options)
 		end
 	end))
 
-	-- ── Window drag ─────────────────────────────────────────────────────────
+	-- â”€â”€ Window drag â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	-- InputBegan on Topbar starts drag; move/end tracked globally so fast
 	-- mouse movement outside the topbar doesn't drop the drag.
 	local dragging,dragStart,startPos
@@ -1274,7 +1274,7 @@ function Library:new(options)
 		end
 	end))
 
-	-- ── Window resize (bottom-right corner hotspot) ────────────────────────
+	-- â”€â”€ Window resize (bottom-right corner hotspot) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	-- Invisible resize hotspot (bottom-right 20x20, no visual)
 	local resizeHandle = Instance.new("TextButton", Main)
 	resizeHandle.Name = "ResizeHandle"
@@ -1321,12 +1321,12 @@ function Library:new(options)
 		end
 	end))
 
-	-- ══════════════════════════════════════════════════════════════════════
-	-- MAIN TAB SYSTEM — GUI:CreateTab
+	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+	-- MAIN TAB SYSTEM â€” GUI:CreateTab
 	-- Create a tab and all its component methods
-	-- ══════════════════════════════════════════════════════════════════════
+	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 	function GUI:CreateTab(opts)
-		opts=validate({name="Tab", icon="🏠", badge=nil, badgeColor=nil},opts)
+		opts=validate({name="Tab", icon="ðŸ ", badge=nil, badgeColor=nil},opts)
 		local Tab={Active=false, _name=opts.name, _disabled=false}
 		local isFirst=(#GUI._tabs==0)
 		table.insert(GUI._tabs,Tab)
@@ -1497,10 +1497,10 @@ function Library:new(options)
 			f.Size=UDim2.new(1,0,0,h or 32); corner(f); stroke(f,Library.Theme.Border); return f
 		end
 
-		-- ── COMPONENTS ─────────────────────────────────────────────────────────
-		-- ──────────────────────────────────────────────────────────────────
+		-- â”€â”€ COMPONENTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+		-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		-- COMPONENTS
-		-- ──────────────────────────────────────────────────────────────────
+		-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		function Tab:Section(opts)
 			opts=validate({name="Section"},opts)
 			local f=Instance.new("Frame",Tab._scroll)
@@ -1579,7 +1579,7 @@ function Library:new(options)
 			return f
 		end
 
-		-- ── NEW: Tab:ButtonGrid — multi-column quick-action buttons ─────────────────
+		-- â”€â”€ NEW: Tab:ButtonGrid â€” multi-column quick-action buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		-- Pass a list of {name, callback, icon} tables for compact button grid
 		function Tab:ButtonGrid(opts)
 			opts=validate({name="",buttons={},columns=2,tooltip=""},opts)
@@ -1664,7 +1664,7 @@ function Library:new(options)
 			return PB
 		end
 
-		-- ── INTERACTIVE ────────────────────────────────────────────────────────
+		-- â”€â”€ INTERACTIVE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		function Tab:Button(opts)
 			opts=validate({name="Button",description="",tooltip="",badge=nil,badgeColor=nil,callback=function()end},opts)
 			local h=opts.description~="" and 48 or 38
@@ -1896,64 +1896,172 @@ function Library:new(options)
 			return TIc
 		end
 
-		function Tab:ColorPicker(opts)
+				function Tab:ColorPicker(opts)
 			opts=validate({name="Color",tooltip="",default=Color3.fromRGB(255,100,100),callback=function()end},opts)
 			local CP={Value=opts.default,Open=false}
 			CP.frame=base("ColorPicker",38); CP.frame.ClipsDescendants=true; pad(CP.frame,0,8,0,10)
+
 			local header=Instance.new("TextButton",CP.frame)
 			header.BackgroundTransparency=1; header.BorderSizePixel=0
 			header.Size=UDim2.new(1,0,0,38); header.Position=UDim2.new(0,0,0,0)
 			header.Text=""; header.AutoButtonColor=false; header.ZIndex=5
-			local nl=lbl(CP.frame,opts.name,13,Library.Theme.TextPrimary); nl.Size=UDim2.new(1,-34,0,38); nl.ZIndex=4
+
+			local nl=lbl(CP.frame,opts.name,13,Library.Theme.TextPrimary)
+			nl.Size=UDim2.new(1,-34,0,38); nl.ZIndex=4
+
 			local preview=Instance.new("Frame",CP.frame)
 			preview.BackgroundColor3=opts.default; preview.BorderSizePixel=0
 			preview.AnchorPoint=Vector2.new(1,0); preview.Size=UDim2.new(0,24,0,16)
-			preview.Position=UDim2.new(1,0,0,8); preview.ZIndex=4; corner(preview,3); stroke(preview,Library.Theme.Border)
+			preview.Position=UDim2.new(1,0,0,8); preview.ZIndex=4
+			corner(preview,3); stroke(preview,Library.Theme.Border)
 			addTooltip(CP.frame,opts.tooltip)
+
+			local pickerHeight = 126
 			local picker=Instance.new("Frame",CP.frame)
 			picker.BackgroundColor3=Color3.fromRGB(20,20,20); picker.BorderSizePixel=0
-			picker.Size=UDim2.new(1,0,0,82); picker.Position=UDim2.new(0,0,0,32)
+			picker.Size=UDim2.new(1,0,0,pickerHeight); picker.Position=UDim2.new(0,0,0,32)
 			picker.Visible=false; corner(picker,4); pad(picker,6,8,6,8)
-			local pL=Instance.new("UIListLayout",picker)
-			pL.Padding=UDim.new(0,4); pL.SortOrder=Enum.SortOrder.LayoutOrder
-			local h_v,s_v,v_v=Color3.toHSV(opts.default)
-			local function rebuild()
-				local c=Color3.fromHSV(h_v,s_v,v_v)
-				CP.Value=c; preview.BackgroundColor3=c; opts.callback(c)
-			end
-			local _hsvConns={}
-			local function makeHSVSlider(name,init,cb)
-				local row=Instance.new("Frame",picker)
-				row.BackgroundTransparency=1; row.BorderSizePixel=0; row.Size=UDim2.new(1,0,0,17)
-				local rl=lbl(row,name,10,Library.Theme.TextSecondary); rl.Size=UDim2.new(0,12,1,0)
-				local tr=Instance.new("Frame",row)
-				tr.BackgroundColor3=Color3.fromRGB(13,13,13); tr.BorderSizePixel=0
-				tr.AnchorPoint=Vector2.new(0,0.5); tr.Size=UDim2.new(1,-18,0,5); tr.Position=UDim2.new(0,16,0.5,0); corner(tr,2)
-				local fl=Instance.new("Frame",tr)
-				fl.BackgroundColor3=Library.Theme.Accent; fl.BorderSizePixel=0; fl.Size=UDim2.new(init,0,1,0); corner(fl,2)
-				local drag2=false
-				local function upd2(x)
-					local a=math.clamp((x-tr.AbsolutePosition.X)/tr.AbsoluteSize.X,0,1)
-					fl.Size=UDim2.new(a,0,1,0); cb(a); rebuild()
+
+			local sv=Instance.new("Frame",picker)
+			sv.BackgroundColor3=Color3.fromRGB(255,0,0); sv.BorderSizePixel=0
+			sv.Size=UDim2.new(1,-18,1,0); sv.Position=UDim2.new(0,0,0,0)
+			corner(sv,3); stroke(sv,Color3.fromRGB(70,70,70))
+
+			local satGrad=Instance.new("UIGradient",sv)
+			satGrad.Color=ColorSequence.new(Color3.fromRGB(255,255,255), Color3.fromRGB(255,255,255))
+			satGrad.Transparency=NumberSequence.new({
+				NumberSequenceKeypoint.new(0,0),
+				NumberSequenceKeypoint.new(1,1),
+			})
+
+			local valOverlay=Instance.new("Frame",sv)
+			valOverlay.BackgroundColor3=Color3.fromRGB(0,0,0); valOverlay.BorderSizePixel=0
+			valOverlay.Size=UDim2.new(1,0,1,0); valOverlay.Position=UDim2.new(0,0,0,0)
+			corner(valOverlay,3)
+			local valGrad=Instance.new("UIGradient",valOverlay)
+			valGrad.Color=ColorSequence.new(Color3.fromRGB(0,0,0), Color3.fromRGB(0,0,0))
+			valGrad.Transparency=NumberSequence.new({
+				NumberSequenceKeypoint.new(0,1),
+				NumberSequenceKeypoint.new(1,0),
+			})
+			valGrad.Rotation=90
+
+			local svCursor=Instance.new("Frame",sv)
+			svCursor.BackgroundColor3=Color3.fromRGB(255,255,255); svCursor.BorderSizePixel=0
+			svCursor.AnchorPoint=Vector2.new(0.5,0.5)
+			svCursor.Size=UDim2.new(0,10,0,10); svCursor.ZIndex=8
+			corner(svCursor,5); stroke(svCursor,Color3.fromRGB(0,0,0),1)
+
+			local hue=Instance.new("Frame",picker)
+			hue.BackgroundColor3=Color3.fromRGB(255,0,0); hue.BorderSizePixel=0
+			hue.Size=UDim2.new(0,12,1,0); hue.Position=UDim2.new(1,-12,0,0)
+			corner(hue,3); stroke(hue,Color3.fromRGB(70,70,70))
+
+			local hueGrad=Instance.new("UIGradient",hue)
+			hueGrad.Rotation=90
+			hueGrad.Color=ColorSequence.new({
+				ColorSequenceKeypoint.new(0.000, Color3.fromRGB(255, 0, 0)),
+				ColorSequenceKeypoint.new(0.166, Color3.fromRGB(255, 255, 0)),
+				ColorSequenceKeypoint.new(0.333, Color3.fromRGB(0, 255, 0)),
+				ColorSequenceKeypoint.new(0.500, Color3.fromRGB(0, 255, 255)),
+				ColorSequenceKeypoint.new(0.666, Color3.fromRGB(0, 0, 255)),
+				ColorSequenceKeypoint.new(0.833, Color3.fromRGB(255, 0, 255)),
+				ColorSequenceKeypoint.new(1.000, Color3.fromRGB(255, 0, 0)),
+			})
+
+			local hueCursor=Instance.new("Frame",hue)
+			hueCursor.BackgroundColor3=Color3.fromRGB(255,255,255); hueCursor.BorderSizePixel=0
+			hueCursor.AnchorPoint=Vector2.new(0.5,0.5)
+			hueCursor.Size=UDim2.new(1,4,0,2); hueCursor.Position=UDim2.new(0.5,0,0,0)
+			hueCursor.ZIndex=8
+
+			local h_v, s_v, v_v = Color3.toHSV(opts.default)
+			local draggingSV, draggingHue = false, false
+
+			local function applyColor(silent)
+				local c = Color3.fromHSV(h_v, s_v, v_v)
+				CP.Value = c
+				preview.BackgroundColor3 = c
+				if not silent then
+					opts.callback(c)
 				end
-				tr.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then drag2=true; upd2(i.Position.X) end end)
-				local ca=UIS.InputChanged:Connect(function(i) if drag2 and i.UserInputType==Enum.UserInputType.MouseMovement then upd2(i.Position.X) end end)
-				local cb2=UIS.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then drag2=false end end)
-				table.insert(_hsvConns,ca); table.insert(_hsvConns,cb2)
 			end
-			makeHSVSlider("H",h_v,function(a) h_v=a end)
-			makeHSVSlider("S",s_v,function(a) s_v=a end)
-			makeHSVSlider("V",v_v,function(a) v_v=a end)
+
+			local function syncVisuals()
+				sv.BackgroundColor3 = Color3.fromHSV(h_v, 1, 1)
+				svCursor.Position = UDim2.new(s_v, 0, 1 - v_v, 0)
+				hueCursor.Position = UDim2.new(0.5, 0, h_v, 0)
+			end
+
+			local function setFromSV(pos)
+				local x = math.clamp((pos.X - sv.AbsolutePosition.X) / sv.AbsoluteSize.X, 0, 1)
+				local y = math.clamp((pos.Y - sv.AbsolutePosition.Y) / sv.AbsoluteSize.Y, 0, 1)
+				s_v = x
+				v_v = 1 - y
+				syncVisuals()
+				applyColor(false)
+			end
+
+			local function setFromHue(pos)
+				local y = math.clamp((pos.Y - hue.AbsolutePosition.Y) / hue.AbsoluteSize.Y, 0, 1)
+				h_v = y
+				syncVisuals()
+				applyColor(false)
+			end
+
+			sv.InputBegan:Connect(function(i)
+				if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
+					draggingSV = true
+					setFromSV(i.Position)
+				end
+			end)
+
+			hue.InputBegan:Connect(function(i)
+				if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
+					draggingHue = true
+					setFromHue(i.Position)
+				end
+			end)
+
+			local c1 = UIS.InputChanged:Connect(function(i)
+				if i.UserInputType~=Enum.UserInputType.MouseMovement and i.UserInputType~=Enum.UserInputType.Touch then
+					return
+				end
+				if draggingSV then
+					setFromSV(i.Position)
+				elseif draggingHue then
+					setFromHue(i.Position)
+				end
+			end)
+
+			local c2 = UIS.InputEnded:Connect(function(i)
+				if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
+					draggingSV = false
+					draggingHue = false
+				end
+			end)
+
 			CP.frame.AncestryChanged:Connect(function()
 				if not CP.frame:IsDescendantOf(game) then
-					for _,c in ipairs(_hsvConns) do pcall(function() c:Disconnect() end) end
+					pcall(function() c1:Disconnect() end)
+					pcall(function() c2:Disconnect() end)
 				end
 			end)
+
 			header.MouseButton1Click:Connect(function()
-				CP.Open=not CP.Open; picker.Visible=CP.Open
-				CP.frame.Size=UDim2.new(1,0,0,CP.Open and 118 or 32)
+				CP.Open = not CP.Open
+				picker.Visible = CP.Open
+				CP.frame.Size = UDim2.new(1,0,0,CP.Open and (pickerHeight + 36) or 38)
 			end)
-			function CP:Set(c) CP.Value=c; preview.BackgroundColor3=c; h_v,s_v,v_v=Color3.toHSV(c) end
+
+			function CP:Set(c, silent)
+				if typeof(c) ~= "Color3" then return end
+				h_v, s_v, v_v = Color3.toHSV(c)
+				syncVisuals()
+				applyColor(silent == true)
+			end
+
+			CP:Set(opts.default, true)
 			return CP
 		end
 
@@ -1987,7 +2095,7 @@ function Library:new(options)
 			return KB
 		end
 
-		-- ── BANNERS ────────────────────────────────────────────────────────────
+		-- â”€â”€ BANNERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		function Tab:Warning(opts)
 			opts=validate({text="Warning"},opts)
 			local f=base("Warning",34); f.BackgroundColor3=Color3.fromRGB(25,20,4)
@@ -2010,7 +2118,7 @@ function Library:new(options)
 			return f
 		end
 
-		-- ── NEW: Tab:Success ─────────────────────────────────────────────────────────
+		-- â”€â”€ NEW: Tab:Success â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		function Tab:Success(opts)
 			opts=validate({text="Success!"},opts)
 			local f=base("Success",34); f.BackgroundColor3=Color3.fromRGB(8,28,14)
@@ -2023,7 +2131,7 @@ function Library:new(options)
 			return f
 		end
 
-		-- ── NEW: Tab:Divider ──────────────────────────────────────────────────────────
+		-- â”€â”€ NEW: Tab:Divider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		-- A thin horizontal rule with optional centered label
 		function Tab:Divider(opts)
 			opts=validate({text="",color=nil},opts)
@@ -2048,7 +2156,7 @@ function Library:new(options)
 			return f
 		end
 
-		-- ── NEW: Tab:Chip — small inline status/tag pill ────────────────────────────
+		-- â”€â”€ NEW: Tab:Chip â€” small inline status/tag pill â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		function Tab:Chip(opts)
 			opts=validate({text="Chip",color=nil,icon=""},opts)
 			local col=opts.color or Library.Theme.Accent
@@ -2072,7 +2180,7 @@ function Library:new(options)
 			return f
 		end
 
-		-- ── NEW: Tab:Keybinds display (read-only keybind badge row) ──────────────────
+		-- â”€â”€ NEW: Tab:Keybinds display (read-only keybind badge row) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		-- Shows a label + key badge, useful for controls reference sections
 		function Tab:ControlHint(opts)
 			opts=validate({name="Action",key="E",description=""},opts)
@@ -2135,11 +2243,40 @@ function Library:new(options)
 		return Tab
 	end -- GUI:CreateTab
 
-	-- ══════════════════════════════════════════════════════════════════════
+	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 	-- Config save / load
-	-- ══════════════════════════════════════════════════════════════════════
-	local _cfgFolder = "VenturaUI"
-	local _cfgFile   = _cfgFolder .. "/" .. options.name:gsub("[^%w%-%_]","_") .. ".json"
+	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+		local _cfgFolder = "ASTRO WAS GOD"
+	local _cfgPrefix = options.name:gsub("[^%w%-%_]", "_")
+	local _cfgFile   = _cfgFolder .. "/" .. _cfgPrefix .. ".json"
+
+	local function _trim(s)
+		return tostring(s or ""):gsub("^%s+", ""):gsub("%s+$", "")
+	end
+
+	local function _sanitizeConfigName(name)
+		local n = _trim(name)
+		n = n:gsub("[<>:\"/\\|%?%*]", "_")
+		n = n:gsub("%s+", "_")
+		n = n:gsub("_+", "_")
+		n = n:gsub("^_+", ""):gsub("_+$", "")
+		if n == "" then
+			return _cfgPrefix
+		end
+		return n
+	end
+
+	local function _cfgPath(name)
+		local n = _sanitizeConfigName(name)
+		if n == _cfgPrefix then
+			return _cfgFolder .. "/" .. _cfgPrefix .. ".json"
+		end
+		return _cfgFolder .. "/" .. _cfgPrefix .. "__" .. n .. ".json"
+	end
+
+	local function _escapePattern(s)
+		return (tostring(s):gsub("([^%w])", "%%%1"))
+	end
 
 	local THEMES = {
 		Dark    = { bg=Color3.fromRGB(22,22,22),  nav=Color3.fromRGB(18,18,18),  top=Color3.fromRGB(16,16,16),  ub=Color3.fromRGB(20,20,20) },
@@ -2202,7 +2339,49 @@ function Library:new(options)
 		return t
 	end
 
-	function GUI:SaveConfig()
+	function GUI:ListConfigs()
+		local out = {}
+		local seen = {}
+		local prefixPattern = "^" .. _escapePattern(_cfgPrefix)
+
+		local function push(name)
+			local n = _sanitizeConfigName(name)
+			local key = string.lower(n)
+			if not seen[key] then
+				seen[key] = true
+				table.insert(out, n)
+			end
+		end
+
+		local okFiles, files = pcall(function()
+			if type(listfiles) == "function" and type(isfolder) == "function" and isfolder(_cfgFolder) then
+				return listfiles(_cfgFolder)
+			end
+			return {}
+		end)
+
+		if okFiles and type(files) == "table" then
+			for _, path in ipairs(files) do
+				local fileName = tostring(path):gsub("\\", "/"):match("([^/]+)$") or ""
+				if fileName:match(prefixPattern .. "%.json$") then
+					push(_cfgPrefix)
+				else
+					local named = fileName:match(prefixPattern .. "__(.+)%.json$")
+					if named and named ~= "" then
+						push(named)
+					end
+				end
+			end
+		end
+
+		table.sort(out, function(a, b)
+			return a:lower() < b:lower()
+		end)
+		return out
+	end
+
+	function GUI:SaveConfig(name)
+		local cfgPath = _cfgPath(name)
 		local ok, err = pcall(function()
 			if not isfolder(_cfgFolder) then makefolder(_cfgFolder) end
 			local data = _encodeConfig({
@@ -2214,17 +2393,29 @@ function Library:new(options)
 				toggleKey = keys.toggle.Name,
 				minKey    = keys.minimize.Name,
 			})
-			writefile(_cfgFile, data)
+			writefile(cfgPath, data)
 		end)
-		if not ok then warn("[VenturaUI] SaveConfig failed: " .. tostring(err)) end
+		if not ok then warn("[ASTRO WAS GOD] SaveConfig failed: " .. tostring(err)) end
+		return ok == true, err
 	end
 
-	function GUI:LoadConfig()
-		local ok, raw = pcall(readfile, _cfgFile)
+	function GUI:LoadConfig(name)
+		local cfgPath = _cfgPath(name)
+		local ok, raw = pcall(readfile, cfgPath)
 		if not ok or not raw or raw == "" then return nil end
 		local ok2, data = pcall(_decodeConfig, raw)
 		if not ok2 or not data or not next(data) then return nil end
 		return data
+	end
+
+	function GUI:DeleteConfig(name)
+		local cfgPath = _cfgPath(name)
+		local ok, err = pcall(function()
+			if type(isfile) == "function" and type(delfile) == "function" and isfile(cfgPath) then
+				delfile(cfgPath)
+			end
+		end)
+		return ok == true, err
 	end
 
 	GUI._cfgSyncCallbacks = {}
@@ -2265,16 +2456,16 @@ function Library:new(options)
 	end
 
 	task.delay(0.5, function()
-		local data = GUI:LoadConfig()
+		local data = GUI:LoadConfig(_cfgPrefix)
 		if data then GUI:ApplyConfig(data) end
 	end)
 
-	-- ══════════════════════════════════════════════════════════════════════
+	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 	-- AI Assistant tab (FIXED: now properly inside Library:new)
-	-- ══════════════════════════════════════════════════════════════════════
-	-- ══════════════════════════════════════════════════════════════════════
-	-- AI ASSISTANT TAB (optional — aiEnabled=true)
-	-- ══════════════════════════════════════════════════════════════════════
+	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+	-- AI ASSISTANT TAB (optional â€” aiEnabled=true)
+	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 	if options.aiEnabled then
 		task.defer(function()
 			local HS    = game:GetService("HttpService")
@@ -2283,19 +2474,19 @@ function Library:new(options)
 			local _history = {}
 			local _msgN    = 0
 
-			local AI = GUI:CreateTab({ name = "AI", icon = "🤖" })
+			local AI = GUI:CreateTab({ name = "AI", icon = "ðŸ¤–" })
 
 			AI:Paragraph({
 				title = "AI Assistant",
-				text  = "Ask anything about Roblox scripting, exploiting, or VenturaUI. "
-					.. "Free — no key or signup needed.",
+				text  = "Ask anything about Roblox scripting, exploiting, or ASTRO WAS GOD. "
+					.. "Free â€” no key or signup needed.",
 			})
 
 			AI:Separator()
 
 			local tabList = AI._scroll
 
-			-- ── Input row at TOP (below tip, always visible) ──────────────────
+			-- â”€â”€ Input row at TOP (below tip, always visible) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 			local inputRow = Instance.new("Frame", tabList)
 			inputRow.Name               = "AIInputRow"
 			inputRow.BackgroundTransparency = 1
@@ -2338,7 +2529,7 @@ function Library:new(options)
 			sendBtn.AnchorPoint       = Vector2.new(1, 0.5)
 			sendBtn.Position          = UDim2.new(1, 0, 0.5, 0)
 			sendBtn.Size              = UDim2.new(0, 38, 1, -6)
-			sendBtn.Text              = "↑"
+			sendBtn.Text              = "â†‘"
 			sendBtn.TextSize          = 16
 			sendBtn.TextColor3        = Color3.fromRGB(255, 255, 255)
 			sendBtn.FontFace          = Font.new("rbxasset://fonts/families/Ubuntu.json", Enum.FontWeight.Bold)
@@ -2347,7 +2538,7 @@ function Library:new(options)
 			sendBtn.MouseEnter:Connect(function() tw(sendBtn,{BackgroundColor3=Library.Theme.BorderHover}) end)
 			sendBtn.MouseLeave:Connect(function() tw(sendBtn,{BackgroundColor3=Library.Theme.Accent}) end)
 
-			-- ── Chat scroll BELOW input ────────────────────────────────────────
+			-- â”€â”€ Chat scroll BELOW input â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 			local wrapper = Instance.new("Frame")
 			wrapper.Name                   = "AIChatWrapper"
 			wrapper.BackgroundTransparency = 1
@@ -2443,8 +2634,8 @@ function Library:new(options)
 					end
 					local context = table.concat(contextMsgs, "\n")
 
-					local systemPrompt = "You are a helpful Roblox scripting assistant inside VenturaUI. "
-						.. "Answer questions about Roblox Lua, game development, exploiting, and VenturaUI. "
+					local systemPrompt = "You are a helpful Roblox scripting assistant inside ASTRO WAS GOD. "
+						.. "Answer questions about Roblox Lua, game development, exploiting, and ASTRO WAS GOD. "
 						.. "Be concise and use plain text only, no markdown."
 
 					local fullPrompt = systemPrompt .. "\n\nConversation so far:\n" .. context
@@ -2557,9 +2748,9 @@ function Library:new(options)
 						end
 					end
 
-					-- If still nothing, don't start cooldown — let them retry immediately
+					-- If still nothing, don't start cooldown â€” let them retry immediately
 					if reply == "" then
-						pcall(function() thinkBub.Text = "AI: No response — tap send again to retry." end)
+						pcall(function() thinkBub.Text = "AI: No response â€” tap send again to retry." end)
 						_busy = false
 						return
 					end
@@ -2571,13 +2762,13 @@ function Library:new(options)
 					-- Only start cooldown on successful reply
 					local COOLDOWN = 12
 					_cooldownUntil = tick() + COOLDOWN
-					local cdBub = _bubble("assistant", "⏳ Next message in " .. COOLDOWN .. "s...")
+					local cdBub = _bubble("assistant", "â³ Next message in " .. COOLDOWN .. "s...")
 					task.spawn(function()
 						for t = COOLDOWN, 1, -1 do
-							pcall(function() cdBub.Text = "⏳ Next message in " .. t .. "s..." end)
+							pcall(function() cdBub.Text = "â³ Next message in " .. t .. "s..." end)
 							task.wait(1)
 						end
-						pcall(function() cdBub.Text = "✓ Ready!" end)
+						pcall(function() cdBub.Text = "âœ“ Ready!" end)
 					end)
 
 					task.defer(function()
@@ -2615,11 +2806,11 @@ function Library:new(options)
 		end) -- task.defer (AI)
 	end -- if options.aiEnabled
 
-	-- ══════════════════════════════════════════════════════════════════════
+	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 	-- SETTINGS TAB (auto-added last)
-	-- ══════════════════════════════════════════════════════════════════════
+	-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 	task.defer(function()
-		local S = GUI:CreateTab({ name = "Settings", icon = "⚙️" })
+		local S = GUI:CreateTab({ name = "Settings", icon = "âš™ï¸" })
 
 		S:Section({ name = "Theme" })
 
@@ -2689,7 +2880,7 @@ function Library:new(options)
 		end
 		S:TextInput({
 			name        = "RGB value (e.g. 100,150,255)",
-			placeholder = "R,G,B  — 0 to 255",
+			placeholder = "R,G,B  â€” 0 to 255",
 			default     = math.floor(Library.Theme.Accent.R*255+0.5)..","..math.floor(Library.Theme.Accent.G*255+0.5)..","..math.floor(Library.Theme.Accent.B*255+0.5),
 			tooltip     = "Type R,G,B then press Enter",
 			callback    = function(s)
@@ -2720,43 +2911,132 @@ function Library:new(options)
 			pcall(function() scaleSlider:Set(v, true) end)
 		end
 
-		S:Section({ name = "Config" })
-		S:Info({ text = "Auto-saves on every change. File: VenturaUI/" .. options.name:gsub("[^%w%-%_]","_") .. ".json" })
+				S:Section({ name = "Config" })
+		local activeConfigName = _cfgPrefix
+		S:Info({ text = "Profiles are saved in ASTRO WAS GOD/ as " .. _cfgPrefix .. "*.json" })
+
+		local cfgInput = S:TextInput({
+			name        = "Config Name",
+			placeholder = "Enter profile name",
+			default     = activeConfigName,
+			tooltip     = "Type a profile name",
+			callback    = function(v)
+				local t = _trim(v)
+				if t ~= "" then
+					activeConfigName = t
+				end
+			end,
+		})
+
+		local cfgItems = GUI:ListConfigs()
+		if #cfgItems == 0 then
+			cfgItems = { activeConfigName }
+		end
+
+		local cfgDropdown = S:Dropdown({
+			name     = "Saved Configs",
+			items    = cfgItems,
+			default  = cfgItems[1],
+			callback = function(v)
+				if v and v ~= "" then
+					activeConfigName = v
+					pcall(function() cfgInput:Set(v) end)
+				end
+			end,
+		})
+
+		local function getActiveConfigName()
+			local n = _sanitizeConfigName(activeConfigName)
+			if n == "" then n = _cfgPrefix end
+			activeConfigName = n
+			return n
+		end
+
+		local function refreshConfigDropdown(preferred)
+			local list = GUI:ListConfigs()
+			if #list == 0 then
+				list = { getActiveConfigName() }
+			end
+			cfgDropdown:SetItems(list)
+
+			local chosen = _sanitizeConfigName(preferred)
+			if chosen == "" then
+				chosen = list[1]
+			end
+			local exists = false
+			for _, item in ipairs(list) do
+				if item == chosen then
+					exists = true
+					break
+				end
+			end
+			if not exists then
+				chosen = list[1]
+			end
+
+			cfgDropdown:Set(chosen)
+			pcall(function() cfgInput:Set(chosen) end)
+			activeConfigName = chosen
+		end
 
 		S:Button({
-			name        = "Save Config",
-			description = "Manually write current settings to file",
+			name        = "Refresh Configs",
+			description = "Refresh profile list",
 			callback    = function()
-				GUI:SaveConfig()
-				GUI.notify("Config Saved", "Settings written to file.", 3)
+				refreshConfigDropdown(getActiveConfigName())
+				GUI.notify("Config", "Config list refreshed.", 3)
 			end,
 		})
 
 		S:Button({
-			name        = "Load Config",
-			description = "Read and apply settings from file",
+			name        = "Save Config",
+			description = "Save current settings to selected profile",
 			callback    = function()
-				local data = GUI:LoadConfig()
-				if data then
-					GUI:ApplyConfig(data)
-					GUI.notify("Config Loaded", "Settings restored from file.", 3)
+				local name = getActiveConfigName()
+				local ok = GUI:SaveConfig(name)
+				refreshConfigDropdown(name)
+				if ok then
+					GUI.notify("Config Saved", "Saved profile: " .. name, 3)
 				else
-					GUI.notify("Config", "No saved config found.", 3)
+					GUI.notify("Config", "Save failed for: " .. name, 3)
 				end
 			end,
 		})
 
 		S:Button({
-			name        = "Reset Config",
-			description = "Delete saved config file",
+			name        = "Load Config",
+			description = "Load selected profile",
 			callback    = function()
-				pcall(function() if isfile(_cfgFile) then delfile(_cfgFile) end end)
-				GUI.notify("Config Reset", "Saved config deleted.", 3)
+				local name = getActiveConfigName()
+				local data = GUI:LoadConfig(name)
+				if data then
+					GUI:ApplyConfig(data)
+					GUI.notify("Config Loaded", "Loaded profile: " .. name, 3)
+				else
+					GUI.notify("Config", "No saved profile found: " .. name, 3)
+				end
 			end,
 		})
 
+		S:Button({
+			name        = "Delete Config",
+			description = "Delete selected profile",
+			callback    = function()
+				local name = getActiveConfigName()
+				local ok = GUI:DeleteConfig(name)
+				refreshConfigDropdown(_cfgPrefix)
+				if ok then
+					GUI.notify("Config Reset", "Deleted profile: " .. name, 3)
+				else
+					GUI.notify("Config", "Delete failed for: " .. name, 3)
+				end
+			end,
+		})
+
+		refreshConfigDropdown(activeConfigName)
+
 		S:Section({ name = "Info" })
-		S:Label({ text = "VenturaUI v" .. Library.Version .. "  •  codeberg.org/VenomVent/Ventura-UI" })
+		S:Label({ text = "ASTRO WAS GOD v" .. Library.Version .. "  â€¢  codeberg.org/VenomVent/ASTRO WAS GOD" })
 		S:Label({ text = "Logged in as: " .. LP.Name .. "  (UserId: " .. LP.UserId .. ")" })
 		S:Label({ text = "Toggle: " .. keys.toggle.Name .. "   |   Minimize: " .. keys.minimize.Name })
 		S:Divider()
@@ -2774,3 +3054,4 @@ function Library:new(options)
 end -- Library:new
 
 return Library
+
