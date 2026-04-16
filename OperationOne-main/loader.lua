@@ -1,6 +1,6 @@
 local flag_name = "DebugRunParallelLuaOnMainThread"
 local main_url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/main.lua"
-local rejoin_msg = "Rejoin the game again."
+local rejoin_msg = "REJOIN THE GAME FUCK FURRY."
 
 local players = game:GetService("Players")
 local local_player = players.LocalPlayer
