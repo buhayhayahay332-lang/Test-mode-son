@@ -18,9 +18,9 @@ local MODULE_SOURCES = {
         local_path = "gun_modification.lua",
         url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/gun_modification.lua",
     },
-    player_esp_gadgets = {
-        local_path = "player_esp_gadgets.lua",
-        url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/player_esp_gadgets.lua",
+    EspLib = {
+        local_path = "EspLib.lua",
+        url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/EspLib.lua",
     },
     silent_aim = {
         local_path = "silent_aim.lua",
@@ -30,6 +30,7 @@ local MODULE_SOURCES = {
 
 local moduleCache = {}
 local sharedRuntimeCache = nil
+local ESP_MODULE_NAME = "EspLib"
 
 local function log(msg)
     print("[OP1] " .. tostring(msg))
@@ -254,81 +255,248 @@ local function setGunModConfig(key, value)
 end
 
 local function setEspEnabled(state)
-    withModule("player_esp_gadgets", function(m)
+    withModule(ESP_MODULE_NAME, function(m)
         if type(m.setEnabled) == "function" then
             m:setEnabled(state)
+        elseif m.Enabled ~= nil then
+            m.Enabled = state == true
         end
     end)
 end
 
 local function setEspTeamCheck(state)
-    withModule("player_esp_gadgets", function(m)
+    withModule(ESP_MODULE_NAME, function(m)
         if type(m.setTeamCheck) == "function" then
             m:setTeamCheck(state)
+        elseif m.Drawing and m.Drawing.TeamCheck then
+            m.Drawing.TeamCheck.Enabled = state == true
         end
     end)
 end
 
 local function setEspPlayers(state)
-    withModule("player_esp_gadgets", function(m)
+    withModule(ESP_MODULE_NAME, function(m)
         if type(m.setPlayerBoxEnabled) == "function" then
             m:setPlayerBoxEnabled(state)
+        elseif m.Drawing and m.Drawing.Boxes and m.Drawing.Boxes.Full then
+            m.Drawing.Boxes.Full.Enabled = state == true
+        end
+    end)
+end
+
+local function setEspCorners(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Boxes and m.Drawing.Boxes.Corner then
+            m.Drawing.Boxes.Corner.Enabled = state == true
+        end
+    end)
+end
+
+local function setEspFilled(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Boxes and m.Drawing.Boxes.Filled then
+            m.Drawing.Boxes.Filled.Enabled = state == true
+        end
+    end)
+end
+
+local function setEspBoxGradient(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Boxes then
+            m.Drawing.Boxes.Gradient = state == true
+        end
+    end)
+end
+
+local function setEspBoxAnimate(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Boxes then
+            m.Drawing.Boxes.Animate = state == true
         end
     end)
 end
 
 local function setEspSkeleton(state)
-    withModule("player_esp_gadgets", function(m)
+    withModule(ESP_MODULE_NAME, function(m)
         if type(m.setSkeletonEnabled) == "function" then
             m:setSkeletonEnabled(state)
+        elseif type(m.ToggleSkeleton) == "function" then
+            m.ToggleSkeleton(state)
+        elseif m.Drawing and m.Drawing.Skeleton then
+            m.Drawing.Skeleton.Enabled = state == true
         end
     end)
 end
 
-local function setEspObjects(state)
-    withModule("player_esp_gadgets", function(m)
-        if type(m.setObjectBoxEnabled) == "function" then
-            m:setObjectBoxEnabled(state)
+local function setEspNames(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Names then
+            m.Drawing.Names.Enabled = state == true
+        end
+    end)
+end
+
+local function setEspDistances(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Distances then
+            m.Drawing.Distances.Enabled = state == true
+        end
+    end)
+end
+
+local function setEspWeapons(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Weapons then
+            m.Drawing.Weapons.Enabled = state == true
+        end
+    end)
+end
+
+local function setEspChams(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Chams then
+            m.Drawing.Chams.Enabled = state == true
+        end
+    end)
+end
+
+local function setEspChamsThermal(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Chams then
+            m.Drawing.Chams.Thermal = state == true
+        end
+    end)
+end
+
+local function setEspChamsVisibleCheck(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Chams then
+            m.Drawing.Chams.VisibleCheck = state == true
+        end
+    end)
+end
+
+local function setEspMaxDistance(value)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.MaxDistance ~= nil then
+            m.MaxDistance = tonumber(value) or m.MaxDistance
+        end
+    end)
+end
+
+local function setEspFontSize(value)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.FontSize ~= nil then
+            m.FontSize = math.floor(tonumber(value) or m.FontSize)
+        end
+    end)
+end
+
+local function setEspCornerThickness(value)
+    withModule(ESP_MODULE_NAME, function(m)
+        if type(m.SetCornerThickness) == "function" then
+            m.SetCornerThickness(value)
+        elseif m.Drawing and m.Drawing.Boxes and m.Drawing.Boxes.Corner then
+            m.Drawing.Boxes.Corner.Thickness = tonumber(value) or m.Drawing.Boxes.Corner.Thickness
+        end
+    end)
+end
+
+local function setEspCornerLength(value)
+    withModule(ESP_MODULE_NAME, function(m)
+        if type(m.SetCornerLength) == "function" then
+            m.SetCornerLength(value)
+        elseif m.Drawing and m.Drawing.Boxes and m.Drawing.Boxes.Corner then
+            m.Drawing.Boxes.Corner.Length = tonumber(value) or m.Drawing.Boxes.Corner.Length
+        end
+    end)
+end
+
+local function setEspFilledTransparency(value)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Boxes and m.Drawing.Boxes.Filled then
+            m.Drawing.Boxes.Filled.Transparency = tonumber(value) or m.Drawing.Boxes.Filled.Transparency
+        end
+    end)
+end
+
+local function setEspChamsFillTransparency(value)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Chams then
+            m.Drawing.Chams.Fill_Transparency = tonumber(value) or m.Drawing.Chams.Fill_Transparency
+        end
+    end)
+end
+
+local function setEspChamsOutlineTransparency(value)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Chams then
+            m.Drawing.Chams.Outline_Transparency = tonumber(value) or m.Drawing.Chams.Outline_Transparency
         end
     end)
 end
 
 local function setEspPlayerColor(color)
-    withModule("player_esp_gadgets", function(m)
+    withModule(ESP_MODULE_NAME, function(m)
         if type(m.setPlayerColor) == "function" then
             m:setPlayerColor(color)
+        elseif m.Drawing and m.Drawing.Boxes then
+            if m.Drawing.Boxes.Corner then m.Drawing.Boxes.Corner.RGB = color end
+            if m.Drawing.Boxes.Full then m.Drawing.Boxes.Full.RGB = color end
+            m.Drawing.Boxes.GradientRGB1 = color
+            m.Drawing.Boxes.GradientFillRGB1 = color
         end
     end)
 end
 
 local function setEspSkeletonColor(color)
-    withModule("player_esp_gadgets", function(m)
+    withModule(ESP_MODULE_NAME, function(m)
         if type(m.setSkeletonColor) == "function" then
             m:setSkeletonColor(color)
+        elseif type(m.SetSkeletonColor) == "function" then
+            m.SetSkeletonColor(color)
+        elseif m.Drawing and m.Drawing.Skeleton then
+            m.Drawing.Skeleton.RGB = color
         end
     end)
 end
 
-local function setEspObjectColor(color)
-    withModule("player_esp_gadgets", function(m)
-        if type(m.setObjectColor) == "function" then
-            m:setObjectColor(color)
+local function setEspNameColor(color)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Names then
+            m.Drawing.Names.RGB = color
         end
     end)
 end
 
-local function setEspDroneColor(color)
-    withModule("player_esp_gadgets", function(m)
-        if type(m.setDroneColor) == "function" then
-            m:setDroneColor(color)
+local function setEspWeaponColor(color)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Weapons then
+            m.Drawing.Weapons.RGB = color
         end
     end)
 end
 
-local function setEspClaymoreColor(color)
-    withModule("player_esp_gadgets", function(m)
-        if type(m.setClaymoreColor) == "function" then
-            m:setClaymoreColor(color)
+local function setEspDistanceColor(color)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Distances then
+            m.Drawing.Distances.RGB = color
+        end
+    end)
+end
+
+local function setEspChamsFillColor(color)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Chams then
+            m.Drawing.Chams.FillRGB = color
+        end
+    end)
+end
+
+local function setEspChamsOutlineColor(color)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Chams then
+            m.Drawing.Chams.OutlineRGB = color
         end
     end)
 end
@@ -368,13 +536,31 @@ local function applyDefaults()
     setEspEnabled(false)
     setEspTeamCheck(false)
     setEspPlayers(false)
+    setEspCorners(false)
+    setEspFilled(false)
+    setEspBoxGradient(true)
+    setEspBoxAnimate(false)
     setEspSkeleton(false)
-    setEspObjects(false)
+    setEspNames(false)
+    setEspDistances(false)
+    setEspWeapons(false)
+    setEspChams(false)
+    setEspChamsThermal(false)
+    setEspChamsVisibleCheck(false)
+    setEspMaxDistance(1000)
+    setEspFontSize(11)
+    setEspCornerThickness(1)
+    setEspCornerLength(15)
+    setEspFilledTransparency(0.75)
+    setEspChamsFillTransparency(50)
+    setEspChamsOutlineTransparency(50)
     setEspPlayerColor(Color3.fromRGB(210, 50, 80))
     setEspSkeletonColor(Color3.fromRGB(210, 50, 80))
-    setEspObjectColor(Color3.fromRGB(0, 255, 255))
-    setEspDroneColor(Color3.fromRGB(0, 255, 255))
-    setEspClaymoreColor(Color3.fromRGB(255, 0, 0))
+    setEspNameColor(Color3.fromRGB(255, 255, 255))
+    setEspDistanceColor(Color3.fromRGB(255, 255, 255))
+    setEspWeaponColor(Color3.fromRGB(255, 255, 255))
+    setEspChamsFillColor(Color3.fromRGB(243, 116, 166))
+    setEspChamsOutlineColor(Color3.fromRGB(243, 116, 166))
 
     setFullbright(false)
     setFullbrightSetting("Brightness", 1)
@@ -521,14 +707,34 @@ local function buildAkUi(lib)
     window:addSection("ESP")
     window:addToggle("ESP Enabled", false, setEspEnabled)
     window:addToggle("ESP Team Check", false, setEspTeamCheck)
-    window:addToggle("Box ESP", false, setEspPlayers)
+    window:addToggle("Box ESP (Full)", false, setEspPlayers)
+    window:addToggle("Box ESP (Corner)", false, setEspCorners)
+    window:addToggle("Box Fill", false, setEspFilled)
+    window:addToggle("Box Gradient", true, setEspBoxGradient)
+    window:addToggle("Box Animate", false, setEspBoxAnimate)
     window:addToggle("Skeleton ESP", false, setEspSkeleton)
-    window:addToggle("Gadget ESP", false, setEspObjects)
+    window:addToggle("Name ESP", false, setEspNames)
+    window:addToggle("Distance ESP", false, setEspDistances)
+    window:addToggle("Weapon ESP", false, setEspWeapons)
+    window:addToggle("Chams", false, setEspChams)
+    window:addToggle("Chams Thermal", false, setEspChamsThermal)
+    window:addToggle("Chams Visible Check", false, setEspChamsVisibleCheck)
+
+    window:addSlider("ESP Max Distance", 100, 3000, 1000, 10, setEspMaxDistance)
+    window:addSlider("ESP Font Size", 8, 24, 11, 1, setEspFontSize)
+    window:addSlider("Corner Thickness", 1, 5, 1, 1, setEspCornerThickness)
+    window:addSlider("Corner Length", 5, 35, 15, 1, setEspCornerLength)
+    window:addSlider("Box Fill Transparency", 0, 1, 0.75, 0.01, setEspFilledTransparency)
+    window:addSlider("Chams Fill Transparency", 0, 100, 50, 1, setEspChamsFillTransparency)
+    window:addSlider("Chams Outline Transparency", 0, 100, 50, 1, setEspChamsOutlineTransparency)
+
     addPresetColorDropdown("Player ESP Color", Color3.fromRGB(210, 50, 80), setEspPlayerColor)
     addPresetColorDropdown("Skeleton Color", Color3.fromRGB(210, 50, 80), setEspSkeletonColor)
-    addPresetColorDropdown("Gadget ESP Color", Color3.fromRGB(0, 255, 255), setEspObjectColor)
-    addPresetColorDropdown("Drone Color", Color3.fromRGB(0, 255, 255), setEspDroneColor)
-    addPresetColorDropdown("Claymore Color", Color3.fromRGB(255, 0, 0), setEspClaymoreColor)
+    addPresetColorDropdown("Name Color", Color3.fromRGB(255, 255, 255), setEspNameColor)
+    addPresetColorDropdown("Distance Color", Color3.fromRGB(255, 255, 255), setEspDistanceColor)
+    addPresetColorDropdown("Weapon Color", Color3.fromRGB(255, 255, 255), setEspWeaponColor)
+    addPresetColorDropdown("Chams Fill Color", Color3.fromRGB(243, 116, 166), setEspChamsFillColor)
+    addPresetColorDropdown("Chams Outline Color", Color3.fromRGB(243, 116, 166), setEspChamsOutlineColor)
 
     window:addSection("Lighting")
     window:addToggle("Fullbright", false, setFullbright)
