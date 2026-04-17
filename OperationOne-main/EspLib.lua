@@ -171,7 +171,7 @@ local function updateNameLabel(character, label)
     label.Text = nameText
     label.TextColor3 = ESP.Drawing.Names.RGB
     label.TextSize = ESP.FontSize
-    label.Position = UDim2.new(0, screenPos.X - 50, 0, screenPos.Y - 30)
+    label.Position = UDim2.new(0, screenPos.X - 50, 0, screenPos.Y - 15)
     label.Size = UDim2.new(0, 100, 0, 20)
     label.Visible = ESP.Drawing.Names.Enabled
 end
