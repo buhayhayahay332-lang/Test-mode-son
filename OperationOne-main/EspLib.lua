@@ -383,7 +383,7 @@ local function ProcessESP(model, espData)
     local h = math.max(2, y1 - y0)
 
     local padX = math.max(2, w * 1)
-    local padY = math.max(2, h * 1)
+    local padY = math.max(2, h * 0.2)
     x0 = x0 - padX
     x1 = x1 + padX
     y0 = y0 - padY
