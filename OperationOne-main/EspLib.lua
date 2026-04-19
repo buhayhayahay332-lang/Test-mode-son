@@ -31,7 +31,7 @@ local ESP = {
             VisibleCheck         = false,
         },
         HealthBar = {
-            Enabled = false,
+            Enabled = true,
         },
         Names = {
             Enabled = false,
