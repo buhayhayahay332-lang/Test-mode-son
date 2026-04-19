@@ -176,7 +176,7 @@ local function rebuildProxyCache()
                     bestChar = cd.model
                 end
             end
-            if bestChar and bestDist < 10 then
+            if bestChar and bestDist < 5 then
                 VMtoChar[vm]       = bestChar
                 CharToVM[bestChar] = vm
             end
