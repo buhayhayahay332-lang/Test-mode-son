@@ -553,6 +553,56 @@ local function setEspChamsOutlineColor(color)
     end)
 end
 
+local function setEspGadgetsEnabled(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if type(m.SetGadgetsEnabled) == "function" then
+            m.SetGadgetsEnabled(state)
+        elseif m.Drawing and m.Drawing.Gadgets then
+            m.Drawing.Gadgets.Enabled = state == true
+        end
+    end)
+end
+
+local function setEspDroneEnabled(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if type(m.SetDroneEnabled) == "function" then
+            m.SetDroneEnabled(state)
+        elseif m.Drawing and m.Drawing.Gadgets and m.Drawing.Gadgets.Drone then
+            m.Drawing.Gadgets.Drone.Enabled = state == true
+        end
+    end)
+end
+
+local function setEspClaymoreEnabled(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if type(m.SetClaymoreEnabled) == "function" then
+            m.SetClaymoreEnabled(state)
+        elseif m.Drawing and m.Drawing.Gadgets and m.Drawing.Gadgets.Claymore then
+            m.Drawing.Gadgets.Claymore.Enabled = state == true
+        end
+    end)
+end
+
+local function setEspDroneColor(color)
+    withModule(ESP_MODULE_NAME, function(m)
+        if type(m.SetDroneColor) == "function" then
+            m.SetDroneColor(color)
+        elseif m.Drawing and m.Drawing.Gadgets and m.Drawing.Gadgets.Drone then
+            m.Drawing.Gadgets.Drone.RGB = color
+        end
+    end)
+end
+
+local function setEspClaymoreColor(color)
+    withModule(ESP_MODULE_NAME, function(m)
+        if type(m.SetClaymoreColor) == "function" then
+            m.SetClaymoreColor(color)
+        elseif m.Drawing and m.Drawing.Gadgets and m.Drawing.Gadgets.Claymore then
+            m.Drawing.Gadgets.Claymore.RGB = color
+        end
+    end)
+end
+
 local function setFullbright(state)
     withModule("fullbright", function(m)
         if type(m.setEnabled) == "function" then
@@ -619,6 +669,11 @@ local function applyDefaults()
     setEspWeaponColor(Color3.fromRGB(255, 255, 255))
     setEspChamsFillColor(Color3.fromRGB(255, 80, 80))
     setEspChamsOutlineColor(Color3.fromRGB(255, 255, 255))
+    setEspGadgetsEnabled(false)
+    setEspDroneEnabled(false)
+    setEspClaymoreEnabled(false)
+    setEspDroneColor(Color3.fromRGB(0, 255, 255))
+    setEspClaymoreColor(Color3.fromRGB(255, 0, 0))
 
     setFullbright(false)
     setFullbrightSetting("Brightness", 1)
@@ -809,6 +864,16 @@ local function buildAkUi(lib)
     addPresetColorDropdown("Chams Fill Color", Color3.fromRGB(243, 116, 166), setEspChamsFillColor)
     addPresetColorDropdown("Chams Outline Color", Color3.fromRGB(243, 116, 166), setEspChamsOutlineColor)
 
+    local gadgetTab = window:addTab("ESP Gadgets")
+    window:switchTab(gadgetTab)
+    window:addSection("Gadgets")
+    window:addToggle("Gadget ESP Enabled", false, setEspGadgetsEnabled)
+    window:addToggle("Drone Chams", false, setEspDroneEnabled)
+    window:addToggle("Claymore Chams", false, setEspClaymoreEnabled)
+    addPresetColorDropdown("Drone Color", Color3.fromRGB(0, 255, 255), setEspDroneColor)
+    addPresetColorDropdown("Claymore Color", Color3.fromRGB(255, 0, 0), setEspClaymoreColor)
+
+    window:switchTab(visualsTab)
     window:addSection("Lighting")
     window:addToggle("Fullbright", false, setFullbright)
     window:addSlider("FB Brightness", 0, 5, 1, 0.01, function(v) setFullbrightSetting("Brightness", v) end)

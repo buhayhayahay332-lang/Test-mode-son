@@ -1,3 +1,4 @@
+-- ============================================================
 pcall(function() setthreadidentity(8) end)
 pcall(function() game:GetService("WebViewService"):Destroy() end)
 
@@ -78,6 +79,17 @@ local ESP = {
         TeamCheck = {
             Enabled = false,
         },
+        Gadgets = {
+            Enabled = false,
+            Drone = {
+                Enabled = false,
+                RGB     = Color3.fromRGB(0, 255, 255),
+            },
+            Claymore = {
+                Enabled = false,
+                RGB     = Color3.fromRGB(255, 0, 0),
+            },
+        },
     },
 }
 
@@ -89,9 +101,13 @@ local BONE_CONNECTIONS = {
     { "hip1", "leg1" },       { "hip2", "leg2" },
 }
 
+-- ============================================================
+-- State
+-- ============================================================
 local ESPCounter         = 0
 local ActiveESPs         = {}
 local ActiveSkeletons    = {}
+local ActiveGadgetESPs   = {}
 local TeamHighlightCache = {}
 local MasterConnection   = nil
 
@@ -108,6 +124,8 @@ local _Viewmodels = nil
 -- Names pipeline
 local ActiveNames = {}
 
+-- Proximity cache: viewmodel <-> real character
+-- Rebuilt on add/remove events and every PROXY_REFRESH_INTERVAL frames
 local VMtoChar             = {}
 local CharToVM             = {}
 local _proxyCacheDirty     = true
@@ -115,11 +133,16 @@ local _frameCount          = 0
 local _lastCharRescan = 0
 local PROXY_REFRESH_INTERVAL = 30
 
+-- Real character set (avoids iterating all of Workspace every frame)
 local RealCharacterSet = {}
 
+-- Shared corners buffer to avoid allocating 8 Vector3s per part per frame
 local _cb = {}
 for i = 1, 8 do _cb[i] = Vector3.new() end
 
+-- ============================================================
+-- Helpers
+-- ============================================================
 local function getRealPlayerFromCharacter(character)
     local id = character:GetAttribute("UserId") or character:GetAttribute("ID")
     if typeof(id) == "number" then
@@ -146,6 +169,11 @@ local function markProxyCacheDirty()
     _proxyCacheDirty = true
 end
 
+-- ============================================================
+-- Proximity cache rebuild
+-- Matches each viewmodel to the closest real character by
+-- world-space distance between torso and HumanoidRootPart.
+-- ============================================================
 local function rebuildProxyCache()
     VMtoChar = {}
     CharToVM = {}
@@ -189,6 +217,10 @@ local function rebuildProxyCache()
     _proxyCacheDirty = false
 end
 
+-- ============================================================
+-- Projected model bounds
+-- Uses the shared corners buffer to avoid per-frame allocation.
+-- ============================================================
 local function getProjectedModelBounds(model)
     if not model then return nil end
     local minX, minY =  math.huge,  math.huge
@@ -252,6 +284,70 @@ local function getProjectedModelBounds(model)
     return minX, minY, maxX, maxY
 end
 
+local function isTrackedGadget(model)
+    if not model or not model:IsA("Model") then return false end
+    if model.Parent ~= Workspace then return false end
+    return model.Name == "Drone" or model.Name == "Claymore"
+end
+
+local function getGadgetConfig(name)
+    if not ESP.Drawing or not ESP.Drawing.Gadgets then return nil end
+    return ESP.Drawing.Gadgets[name]
+end
+
+local function isGadgetEnabled(name)
+    local gadgets = ESP.Drawing and ESP.Drawing.Gadgets
+    local cfg = getGadgetConfig(name)
+    return gadgets and gadgets.Enabled == true and cfg and cfg.Enabled == true
+end
+
+local function getGadgetColor(name)
+    local cfg = getGadgetConfig(name)
+    return cfg and cfg.RGB or Color3.fromRGB(255, 255, 255)
+end
+
+local function getGadgetWorldCenter(model)
+    if not model then return nil end
+    local cf = model:GetBoundingBox()
+    return cf.Position
+end
+
+local function ProcessGadgetESP(model, gadgetData)
+    local el = gadgetData.elements
+
+    local function Hide()
+        el.Highlight.Enabled = false
+    end
+
+    if not ESP.Enabled then Hide() return end
+    if not model or not model.Parent or not isTrackedGadget(model) then
+        task.defer(function()
+            if gadgetData.folder then gadgetData.folder:Destroy() end
+            ActiveGadgetESPs[model] = nil
+        end)
+        return
+    end
+
+    if not isGadgetEnabled(model.Name) then Hide() return end
+
+    local worldCenter = getGadgetWorldCenter(model)
+    if not worldCenter then Hide() return end
+
+    local Dist = (_CamPos - worldCenter).Magnitude / 3.5714285714
+    if Dist > ESP.MaxDistance then Hide() return end
+
+    el.Highlight.Adornee = model
+    el.Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    el.Highlight.FillColor = getGadgetColor(model.Name)
+    el.Highlight.OutlineColor = getGadgetColor(model.Name)
+    el.Highlight.FillTransparency = 0.55
+    el.Highlight.OutlineTransparency = 0
+    el.Highlight.Enabled = true
+end
+
+-- ============================================================
+-- Name label helpers
+-- ============================================================
 local function createNameLabel(character)
     if ActiveNames[character] then return end
     local label = Instance.new("TextLabel")
@@ -282,6 +378,7 @@ local function updateNameLabel(character, label)
     local dist = (_CamPos - root.Position).Magnitude
     if not OnScreen or dist > ESP.MaxDistance then label.Visible = false return end
 
+    -- Use cached viewmodel bounds for correct above-box positioning
     local centerX, topY
     local matchedVM = CharToVM[character]
     if matchedVM then
@@ -313,6 +410,9 @@ local function removeNameLabel(character)
     end
 end
 
+-- ============================================================
+-- Functions utility
+-- ============================================================
 local Functions = {}
 
 function Functions:Create(Class, Properties)
@@ -321,6 +421,9 @@ function Functions:Create(Class, Properties)
     return inst
 end
 
+-- ============================================================
+-- Team highlight (cached, color-specific: FillColor 0,150,0)
+-- ============================================================
 local function hasTeamHighlight(model)
     if not model then return false end
     if TeamHighlightCache[model] ~= nil then return TeamHighlightCache[model] end
@@ -340,6 +443,9 @@ local function hasTeamHighlight(model)
     return false
 end
 
+-- ============================================================
+-- Workspace events
+-- ============================================================
 Workspace.ChildAdded:Connect(function(child)
     if child:IsA("Highlight") then
         table.clear(TeamHighlightCache)
@@ -366,6 +472,9 @@ Workspace.ChildRemoved:Connect(function(child)
     end
 end)
 
+-- ============================================================
+-- Viewmodel validation
+-- ============================================================
 local function isValidPlayer(model)
     if not model or not model.Parent then return false end
     if model.Name == "LocalViewmodel" then return false end
@@ -375,6 +484,9 @@ local function isValidPlayer(model)
     return true
 end
 
+-- ============================================================
+-- Weapon detection
+-- ============================================================
 local function findWeaponInCharacter(character)
     if not character then return nil end
     for _, child in pairs(character:GetChildren()) do
@@ -385,6 +497,9 @@ local function findWeaponInCharacter(character)
     return nil
 end
 
+-- ============================================================
+-- Skeleton
+-- ============================================================
 local function createSkeletonESP(character)
     if not character or ActiveSkeletons[character] then return end
     if not isValidPlayer(character) then return end
@@ -464,6 +579,9 @@ local function ProcessSkeleton(character, skData)
     end
 end
 
+-- ============================================================
+-- ProcessESP
+-- ============================================================
 local function ProcessESP(model, espData)
     local el = espData.elements
 
@@ -629,6 +747,9 @@ local function ProcessESP(model, espData)
     end
 end
 
+-- ============================================================
+-- Main render loop
+-- ============================================================
 local function st()
     if MasterConnection then
         MasterConnection:Disconnect()
@@ -649,6 +770,7 @@ local function st()
             _GuiInsetY = 0
         end
 
+        -- Rebuild proximity cache if dirty or on interval
         if _proxyCacheDirty or (_frameCount % PROXY_REFRESH_INTERVAL == 0) then
             rebuildProxyCache()
         end
@@ -667,12 +789,16 @@ local function st()
             ProcessESP(model, espData)
         end
 
+        for model, gadgetData in pairs(ActiveGadgetESPs) do
+            ProcessGadgetESP(model, gadgetData)
+        end
+
         -- Skeletons
         for model, skData in pairs(ActiveSkeletons) do
             ProcessSkeleton(model, skData)
         end
 
-        -- Names
+        -- Names (uses RealCharacterSet — no full Workspace scan)
         if ESP.Enabled and ESP.Drawing.Names.Enabled then
             for character in pairs(RealCharacterSet) do
                 if not ActiveNames[character] then
@@ -688,6 +814,9 @@ local function st()
     end)
 end
 
+-- ============================================================
+-- GUI setup
+-- ============================================================
 local guiHideName = "ESP_" .. tostring(math.random(100000000, 999999999))
 local parentGui   = gethui and gethui() or CoreGui
 
@@ -717,6 +846,9 @@ pcall(function()
     elseif protect_gui then protect_gui(ScreenGui) end
 end)
 
+-- ============================================================
+-- CreateESP
+-- ============================================================
 local function CreateESP(CharacterModel)
     if not CharacterModel then return end
     if not isValidPlayer(CharacterModel) then return end
@@ -854,10 +986,48 @@ local function CreateESP(CharacterModel)
     }
 end
 
+local function CreateGadgetESP(model)
+    if not model then return end
+    if not isTrackedGadget(model) then return end
+    if ActiveGadgetESPs[model] then return end
+
+    ESPCounter = ESPCounter + 1
+    local folder = Functions:Create("Folder", { Parent = ScreenGui, Name = "G_" .. ESPCounter })
+    local highlight = Functions:Create("Highlight", {
+        Parent = folder,
+        Name = "GH",
+        Enabled = false,
+        FillTransparency = 0.55,
+        OutlineTransparency = 0,
+        DepthMode = Enum.HighlightDepthMode.AlwaysOnTop,
+        Adornee = model,
+    })
+
+    ActiveGadgetESPs[model] = {
+        folder = folder,
+        elements = {
+            Highlight = highlight,
+        },
+    }
+end
+
+local function CleanupGadgetESP(model)
+    local gadgetData = ActiveGadgetESPs[model]
+    if not gadgetData then return end
+    if gadgetData.folder then gadgetData.folder:Destroy() end
+    ActiveGadgetESPs[model] = nil
+end
+
+-- ============================================================
+-- Cleanup
+-- ============================================================
 function Functions:CleanAllESPs()
     for model, espData in pairs(ActiveESPs) do
         if espData.folder then espData.folder:Destroy() end
         ActiveESPs[model] = nil
+    end
+    for model in pairs(ActiveGadgetESPs) do
+        CleanupGadgetESP(model)
     end
     self:CleanAllSkeletons()
 end
@@ -870,10 +1040,18 @@ ESP.RefreshESPs = function()
             task.defer(CreateESP, model)
         end
     end
+    for _, child in pairs(Workspace:GetChildren()) do
+        if child:IsA("Model") then
+            task.defer(CreateGadgetESP, child)
+        end
+    end
 end
 
 ESP.CleanAllESPs = function() Functions:CleanAllESPs() end
 
+-- ============================================================
+-- Viewmodels watcher
+-- ============================================================
 local function mvm()
     _Viewmodels = Workspace:FindFirstChild("Viewmodels")
     if not _Viewmodels then return end
@@ -905,6 +1083,31 @@ local function mvm()
     end)
 end
 
+local function watchGadgets()
+    task.defer(function()
+        for _, child in pairs(Workspace:GetChildren()) do
+            if child:IsA("Model") then
+                CreateGadgetESP(child)
+            end
+        end
+    end)
+
+    Workspace.ChildAdded:Connect(function(child)
+        if child:IsA("Model") then
+            task.defer(CreateGadgetESP, child)
+        end
+    end)
+
+    Workspace.ChildRemoved:Connect(function(child)
+        if ActiveGadgetESPs[child] then
+            CleanupGadgetESP(child)
+        end
+    end)
+end
+
+-- ============================================================
+-- Real character watcher — populates RealCharacterSet
+-- ============================================================
 local function watchRealCharacters()
     task.defer(function()
         for _, child in pairs(Workspace:GetChildren()) do
@@ -916,6 +1119,9 @@ local function watchRealCharacters()
     end)
 end
 
+-- ============================================================
+-- Public API
+-- ============================================================
 ESP.ToggleSkeleton = function(enabled)
     ESP.Drawing.Skeleton.Enabled = enabled
     if not enabled then
@@ -954,9 +1160,18 @@ end
 ESP.SetCornerColor     = function(c) if typeof(c) == "Color3" then ESP.Drawing.Boxes.Corner.RGB = c end end
 ESP.SetCornerThickness = function(t) if type(t) == "number" and t > 0 then ESP.Drawing.Boxes.Corner.Thickness = t end end
 ESP.SetCornerLength    = function(l) if type(l) == "number" and l > 0 then ESP.Drawing.Boxes.Corner.Length    = l end end
+ESP.SetGadgetsEnabled  = function(enabled) ESP.Drawing.Gadgets.Enabled = enabled == true end
+ESP.SetDroneEnabled    = function(enabled) ESP.Drawing.Gadgets.Drone.Enabled = enabled == true end
+ESP.SetClaymoreEnabled = function(enabled) ESP.Drawing.Gadgets.Claymore.Enabled = enabled == true end
+ESP.SetDroneColor      = function(c) if typeof(c) == "Color3" then ESP.Drawing.Gadgets.Drone.RGB = c end end
+ESP.SetClaymoreColor   = function(c) if typeof(c) == "Color3" then ESP.Drawing.Gadgets.Claymore.RGB = c end end
 
+-- ============================================================
+-- Boot
+-- ============================================================
 watchRealCharacters()
 mvm()
+watchGadgets()
 st()
 
 return ESP
