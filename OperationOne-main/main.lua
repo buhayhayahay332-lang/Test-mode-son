@@ -553,10 +553,6 @@ local function setEspChamsOutlineColor(color)
     end)
 end
 
-local function setEspGadgetsEnabled(state)
-    setEspDroneEnabled(state)
-    setEspClaymoreEnabled(state)
-end
 
 local function setEspDroneEnabled(state)
     withModule(ESP_MODULE_NAME, function(m)
@@ -576,6 +572,12 @@ local function setEspClaymoreEnabled(state)
             m.ObjectChams.Claymores.Enabled = state == true
         end
     end)
+end
+
+
+local function setEspGadgetsEnabled(state)
+    setEspDroneEnabled(state)
+    setEspClaymoreEnabled(state)
 end
 
 local function setEspDroneColor(color)
