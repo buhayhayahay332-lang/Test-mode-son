@@ -505,13 +505,14 @@ function LibClass.new(title, hideKey)
 		Size = UDim2.new(1, -16, 1, -8),
 		Position = UDim2.new(0, 8, 0, 4),
 		BackgroundTransparency = 1,
-		ScrollBarThickness = 3,
+		ScrollBarThickness = 10,
 		ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255),
-		ScrollBarImageTransparency = 0.6,
+		ScrollBarImageTransparency = 0.2,
 		BorderSizePixel = 0,
 		ScrollingDirection = Enum.ScrollingDirection.Y,
 		CanvasSize = UDim2.new(0, 0, 0, 0),
 		Parent = self.contentFrame,
+		ScrollBarInset = Enum.ScrollBarInset.Always	
 	})
 
 	self.listLayout = make("UIListLayout", {
