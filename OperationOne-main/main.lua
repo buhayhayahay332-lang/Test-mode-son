@@ -829,7 +829,7 @@ local function buildAkUi(lib)
     window:addSlider("Recoil Reduction", 0, 1, 0, 0.1, function(v) setGunModConfig("recoil_reduction", v) end)
     window:addSlider("Horizontal Recoil", 0, 1, 0, 0.1, function(v) setGunModConfig("horizontal_recoil", v) end)
     window:addToggle("No Spread", false, function(v) setGunModConfig("no_spread", v) end)
-    window:addToggle("Force Auto", false, function(v) setGunModConfig("force_auto", v) end)
+    window:addToggle("Automatic", false, function(v) setGunModConfig("force_auto", v) end)
 
     local visualsTab = window:addTab("Visuals")
     window:switchTab(visualsTab)
