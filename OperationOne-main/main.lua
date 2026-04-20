@@ -316,6 +316,22 @@ local function setEspBoxAnimate(state)
     end)
 end
 
+local function setEspBoxGradientFill(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Boxes then
+            m.Drawing.Boxes.GradientFill = state == true
+        end
+    end)
+end
+
+local function setEspHealthBar(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.HealthBar then
+            m.Drawing.HealthBar.Enabled = state == true
+        end
+    end)
+end
+
 local function setEspSkeleton(state)
     withModule(ESP_MODULE_NAME, function(m)
         if type(m.setSkeletonEnabled) == "function" then
@@ -412,6 +428,26 @@ local function setEspCornerLength(value)
     end)
 end
 
+local function setEspSkeletonThickness(value)
+    withModule(ESP_MODULE_NAME, function(m)
+        if type(m.setSkeletonThickness) == "function" then
+            m:setSkeletonThickness(value)
+        elseif type(m.SetSkeletonThickness) == "function" then
+            m.SetSkeletonThickness(value)
+        elseif m.Drawing and m.Drawing.Skeleton then
+            m.Drawing.Skeleton.Thickness = tonumber(value) or m.Drawing.Skeleton.Thickness
+        end
+    end)
+end
+
+local function setEspBoxRotationSpeed(value)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Boxes then
+            m.Drawing.Boxes.RotationSpeed = tonumber(value) or m.Drawing.Boxes.RotationSpeed
+        end
+    end)
+end
+
 local function setEspFilledTransparency(value)
     withModule(ESP_MODULE_NAME, function(m)
         if m.Drawing and m.Drawing.Boxes and m.Drawing.Boxes.Filled then
@@ -436,6 +472,30 @@ local function setEspChamsOutlineTransparency(value)
     end)
 end
 
+local function setEspFadeOnDistance(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.FadeOut then
+            m.FadeOut.OnDistance = state == true
+        end
+    end)
+end
+
+local function setEspFadeOnDeath(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.FadeOut then
+            m.FadeOut.OnDeath = state == true
+        end
+    end)
+end
+
+local function setEspFadeOnLeave(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.FadeOut then
+            m.FadeOut.OnLeave = state == true
+        end
+    end)
+end
+
 local function setEspPlayerColor(color)
     withModule(ESP_MODULE_NAME, function(m)
         if type(m.setPlayerColor) == "function" then
@@ -445,6 +505,30 @@ local function setEspPlayerColor(color)
             if m.Drawing.Boxes.Full then m.Drawing.Boxes.Full.RGB = color end
             m.Drawing.Boxes.GradientRGB1 = color
             m.Drawing.Boxes.GradientFillRGB1 = color
+        end
+    end)
+end
+
+local function setEspGradientEndColor(color)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Boxes then
+            m.Drawing.Boxes.GradientRGB2 = color
+        end
+    end)
+end
+
+local function setEspFillGradientStartColor(color)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Boxes then
+            m.Drawing.Boxes.GradientFillRGB1 = color
+        end
+    end)
+end
+
+local function setEspFillGradientEndColor(color)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Boxes then
+            m.Drawing.Boxes.GradientFillRGB2 = color
         end
     end)
 end
@@ -540,6 +624,8 @@ local function applyDefaults()
     setEspFilled(false)
     setEspBoxGradient(true)
     setEspBoxAnimate(false)
+    setEspBoxGradientFill(true)
+    setEspHealthBar(false)
     setEspSkeleton(false)
     setEspNames(false)
     setEspDistances(false)
@@ -551,16 +637,24 @@ local function applyDefaults()
     setEspFontSize(11)
     setEspCornerThickness(1)
     setEspCornerLength(15)
+    setEspSkeletonThickness(1)
+    setEspBoxRotationSpeed(300)
     setEspFilledTransparency(0.75)
     setEspChamsFillTransparency(50)
     setEspChamsOutlineTransparency(50)
-    setEspPlayerColor(Color3.fromRGB(210, 50, 80))
-    setEspSkeletonColor(Color3.fromRGB(210, 50, 80))
+    setEspFadeOnDistance(true)
+    setEspFadeOnDeath(true)
+    setEspFadeOnLeave(true)
+    setEspPlayerColor(Color3.fromRGB(255, 255, 255))
+    setEspGradientEndColor(Color3.fromRGB(0, 0, 0))
+    setEspFillGradientStartColor(Color3.fromRGB(255, 255, 255))
+    setEspFillGradientEndColor(Color3.fromRGB(0, 0, 0))
+    setEspSkeletonColor(Color3.fromRGB(255, 255, 255))
     setEspNameColor(Color3.fromRGB(255, 255, 255))
     setEspDistanceColor(Color3.fromRGB(255, 255, 255))
     setEspWeaponColor(Color3.fromRGB(255, 255, 255))
-    setEspChamsFillColor(Color3.fromRGB(243, 116, 166))
-    setEspChamsOutlineColor(Color3.fromRGB(243, 116, 166))
+    setEspChamsFillColor(Color3.fromRGB(255, 80, 80))
+    setEspChamsOutlineColor(Color3.fromRGB(255, 255, 255))
 
     setFullbright(false)
     setFullbrightSetting("Brightness", 1)
@@ -712,6 +806,8 @@ local function buildAkUi(lib)
     window:addToggle("Box Fill", false, setEspFilled)
     window:addToggle("Box Gradient", true, setEspBoxGradient)
     window:addToggle("Box Animate", false, setEspBoxAnimate)
+    window:addToggle("Box Fill Gradient", true, setEspBoxGradientFill)
+    window:addToggle("Health Bar", false, setEspHealthBar)
     window:addToggle("Skeleton ESP", false, setEspSkeleton)
     window:addToggle("Name ESP", false, setEspNames)
     window:addToggle("Distance ESP", false, setEspDistances)
@@ -719,16 +815,24 @@ local function buildAkUi(lib)
     window:addToggle("Chams", false, setEspChams)
     window:addToggle("Chams Thermal", false, setEspChamsThermal)
     window:addToggle("Chams Visible Check", false, setEspChamsVisibleCheck)
+    window:addToggle("Fade On Distance", true, setEspFadeOnDistance)
+    window:addToggle("Fade On Death", true, setEspFadeOnDeath)
+    window:addToggle("Fade On Leave", true, setEspFadeOnLeave)
 
     window:addSlider("ESP Max Distance", 100, 3000, 1000, 10, setEspMaxDistance)
     window:addSlider("ESP Font Size", 8, 24, 11, 1, setEspFontSize)
     window:addSlider("Corner Thickness", 1, 5, 1, 1, setEspCornerThickness)
     window:addSlider("Corner Length", 5, 35, 15, 1, setEspCornerLength)
+    window:addSlider("Skeleton Thickness", 1, 5, 1, 1, setEspSkeletonThickness)
+    window:addSlider("Box Rotation Speed", 0, 1000, 300, 10, setEspBoxRotationSpeed)
     window:addSlider("Box Fill Transparency", 0, 1, 0.75, 0.01, setEspFilledTransparency)
     window:addSlider("Chams Fill Transparency", 0, 100, 50, 1, setEspChamsFillTransparency)
     window:addSlider("Chams Outline Transparency", 0, 100, 50, 1, setEspChamsOutlineTransparency)
 
     addPresetColorDropdown("Player ESP Color", Color3.fromRGB(210, 50, 80), setEspPlayerColor)
+    addPresetColorDropdown("Box Gradient End", Color3.fromRGB(0, 0, 0), setEspGradientEndColor)
+    addPresetColorDropdown("Fill Gradient Start", Color3.fromRGB(255, 255, 255), setEspFillGradientStartColor)
+    addPresetColorDropdown("Fill Gradient End", Color3.fromRGB(0, 0, 0), setEspFillGradientEndColor)
     addPresetColorDropdown("Skeleton Color", Color3.fromRGB(210, 50, 80), setEspSkeletonColor)
     addPresetColorDropdown("Name Color", Color3.fromRGB(255, 255, 255), setEspNameColor)
     addPresetColorDropdown("Distance Color", Color3.fromRGB(255, 255, 255), setEspDistanceColor)
