@@ -1,3 +1,4 @@
+  pcall(function() setthreadidentity(8) end)
     local cloneref    = cloneref or function(o) return o end
     local clonefunc   = clonefunction or function(f) return f end
     local newcclosure = newcclosure or function(f) return f end
