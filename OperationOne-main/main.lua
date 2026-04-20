@@ -554,51 +554,48 @@ local function setEspChamsOutlineColor(color)
 end
 
 local function setEspGadgetsEnabled(state)
-    withModule(ESP_MODULE_NAME, function(m)
-        if type(m.SetGadgetsEnabled) == "function" then
-            m.SetGadgetsEnabled(state)
-        elseif m.Drawing and m.Drawing.Gadgets then
-            m.Drawing.Gadgets.Enabled = state == true
-        end
-    end)
+    setEspDroneEnabled(state)
+    setEspClaymoreEnabled(state)
 end
 
 local function setEspDroneEnabled(state)
     withModule(ESP_MODULE_NAME, function(m)
-        if type(m.SetDroneEnabled) == "function" then
-            m.SetDroneEnabled(state)
-        elseif m.Drawing and m.Drawing.Gadgets and m.Drawing.Gadgets.Drone then
-            m.Drawing.Gadgets.Drone.Enabled = state == true
+        if type(m.ToggleDroneChams) == "function" then
+            m.ToggleDroneChams(state)
+        elseif m.ObjectChams and m.ObjectChams.Drones then
+            m.ObjectChams.Drones.Enabled = state == true
         end
     end)
 end
 
 local function setEspClaymoreEnabled(state)
     withModule(ESP_MODULE_NAME, function(m)
-        if type(m.SetClaymoreEnabled) == "function" then
-            m.SetClaymoreEnabled(state)
-        elseif m.Drawing and m.Drawing.Gadgets and m.Drawing.Gadgets.Claymore then
-            m.Drawing.Gadgets.Claymore.Enabled = state == true
+        if type(m.ToggleClaymoreChams) == "function" then
+            m.ToggleClaymoreChams(state)
+        elseif m.ObjectChams and m.ObjectChams.Claymores then
+            m.ObjectChams.Claymores.Enabled = state == true
         end
     end)
 end
 
 local function setEspDroneColor(color)
     withModule(ESP_MODULE_NAME, function(m)
-        if type(m.SetDroneColor) == "function" then
-            m.SetDroneColor(color)
-        elseif m.Drawing and m.Drawing.Gadgets and m.Drawing.Gadgets.Drone then
-            m.Drawing.Gadgets.Drone.RGB = color
+        if type(m.SetDroneChamsFill) == "function" then m.SetDroneChamsFill(color) end
+        if type(m.SetDroneChamsOutline) == "function" then m.SetDroneChamsOutline(color) end
+        if m.ObjectChams and m.ObjectChams.Drones then
+            m.ObjectChams.Drones.FillRGB = color
+            m.ObjectChams.Drones.OutlineRGB = color
         end
     end)
 end
 
 local function setEspClaymoreColor(color)
     withModule(ESP_MODULE_NAME, function(m)
-        if type(m.SetClaymoreColor) == "function" then
-            m.SetClaymoreColor(color)
-        elseif m.Drawing and m.Drawing.Gadgets and m.Drawing.Gadgets.Claymore then
-            m.Drawing.Gadgets.Claymore.RGB = color
+        if type(m.SetClaymoreChamsFill) == "function" then m.SetClaymoreChamsFill(color) end
+        if type(m.SetClaymoreChamsOutline) == "function" then m.SetClaymoreChamsOutline(color) end
+        if m.ObjectChams and m.ObjectChams.Claymores then
+            m.ObjectChams.Claymores.FillRGB = color
+            m.ObjectChams.Claymores.OutlineRGB = color
         end
     end)
 end
