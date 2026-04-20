@@ -396,6 +396,14 @@ local function setEspChamsVisibleCheck(state)
     end)
 end
 
+local function setEspFadeOut(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.FadeOut then
+            m.FadeOut.OnDistance = state == true
+        end
+    end)
+end
+
 local function setEspMaxDistance(value)
     withModule(ESP_MODULE_NAME, function(m)
         if m.MaxDistance ~= nil then
@@ -513,6 +521,14 @@ local function setEspFillGradientEndColor(color)
     end)
 end
 
+local function setEspNameColor(color)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Names then
+            m.Drawing.Names.RGB = color
+        end
+    end)
+end
+
 local function setEspSkeletonColor(color)
     withModule(ESP_MODULE_NAME, function(m)
         if type(m.setSkeletonColor) == "function" then
@@ -606,6 +622,24 @@ local function setEspClaymoreColor(color)
     end)
 end
 
+local function setEspDroneTransparency(value)
+    withModule(ESP_MODULE_NAME, function(m)
+        if type(m.SetDroneChamsFill) == "function" then m.SetDroneChamsFill(nil, value) end
+        if m.ObjectChams and m.ObjectChams.Drones then
+            m.ObjectChams.Drones.FillTrans = value
+        end
+    end)
+end
+
+local function setEspClaymoreTransparency(value)
+    withModule(ESP_MODULE_NAME, function(m)
+        if type(m.SetClaymoreChamsFill) == "function" then m.SetClaymoreChamsFill(nil, value) end
+        if m.ObjectChams and m.ObjectChams.Claymores then
+            m.ObjectChams.Claymores.FillTrans = value
+        end
+    end)
+end
+
 local function setFullbright(state)
     withModule("fullbright", function(m)
         if type(m.setEnabled) == "function" then
@@ -650,6 +684,7 @@ local function applyDefaults()
     setEspBoxGradientFill(true)
     setEspHealthBar(false)
     setEspSkeleton(false)
+    setEspFadeOut(false)
     setEspNames(false)
     setEspDistances(false)
     setEspWeapons(false)
@@ -670,6 +705,7 @@ local function applyDefaults()
     setEspFillGradientStartColor(Color3.fromRGB(255, 255, 255))
     setEspFillGradientEndColor(Color3.fromRGB(0, 0, 0))
     setEspSkeletonColor(Color3.fromRGB(255, 255, 255))
+    setEspNameColor(Color3.fromRGB(255, 255, 255))
     setEspDistanceColor(Color3.fromRGB(255, 255, 255))
     setEspWeaponColor(Color3.fromRGB(255, 255, 255))
     setEspChamsFillColor(Color3.fromRGB(255, 80, 80))
@@ -677,6 +713,8 @@ local function applyDefaults()
     setEspGadgetsEnabled(false)
     setEspDroneEnabled(false)
     setEspClaymoreEnabled(false)
+    setEspDroneTransparency(0.5)
+    setEspClaymoreTransparency(0.5)
     setEspDroneColor(Color3.fromRGB(0, 255, 255))
     setEspClaymoreColor(Color3.fromRGB(255, 0, 0))
 
@@ -852,6 +890,7 @@ local function buildAkUi(lib)
     window:addToggle("Chams Visible Check", false, setEspChamsVisibleCheck)
 
     window:addSlider("ESP Max Distance", 100, 3000, 1000, 10, setEspMaxDistance)
+    --window:addToggle("Fade Out (Distance)", false, setEspFadeOut)
     window:addSlider("ESP Font Size", 8, 24, 11, 1, setEspFontSize)
     window:addSlider("Corner Thickness", 1, 5, 1, 1, setEspCornerThickness)
     window:addSlider("Corner Length", 5, 35, 15, 1, setEspCornerLength)
@@ -865,6 +904,7 @@ local function buildAkUi(lib)
     addPresetColorDropdown("Box Gradient End", Color3.fromRGB(0, 0, 0), setEspGradientEndColor)
     addPresetColorDropdown("Fill Gradient Start", Color3.fromRGB(255, 255, 255), setEspFillGradientStartColor)
     addPresetColorDropdown("Fill Gradient End", Color3.fromRGB(0, 0, 0), setEspFillGradientEndColor)
+    addPresetColorDropdown("Name Color", Color3.fromRGB(255, 255, 255), setEspNameColor)
     addPresetColorDropdown("Skeleton Color", Color3.fromRGB(210, 50, 80), setEspSkeletonColor)
     addPresetColorDropdown("Distance Color", Color3.fromRGB(255, 255, 255), setEspDistanceColor)
     addPresetColorDropdown("Weapon Color", Color3.fromRGB(255, 255, 255), setEspWeaponColor)
@@ -876,6 +916,8 @@ local function buildAkUi(lib)
     window:addSection("Gadgets")
     window:addToggle("Drone Chams", false, setEspDroneEnabled)
     window:addToggle("Claymore Chams", false, setEspClaymoreEnabled)
+    window:addSlider("Drone Transparency", 0, 1, 0.5, 0.01, setEspDroneTransparency)
+    window:addSlider("Claymore Transparency", 0, 1, 0.5, 0.01, setEspClaymoreTransparency)
     addPresetColorDropdown("Drone Color", Color3.fromRGB(0, 255, 255), setEspDroneColor)
     addPresetColorDropdown("Claymore Color", Color3.fromRGB(255, 0, 0), setEspClaymoreColor)
 
