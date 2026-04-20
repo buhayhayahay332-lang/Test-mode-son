@@ -105,9 +105,7 @@ local BONE_CONNECTIONS = {
     { "hip1", "leg1" },       { "hip2", "leg2" },
 }
 
--- ============================================================
--- State
--- ============================================================
+
 local ESPCounter         = 0
 local ActiveESPs         = {}
 local ActiveSkeletons    = {}
@@ -138,9 +136,6 @@ local RealCharacterSet = {}
 local _cb = {}
 for i = 1, 8 do _cb[i] = Vector3.new() end
 
--- ============================================================
--- Helpers
--- ============================================================
 local function getRealPlayerFromCharacter(character)
     local id = character:GetAttribute("UserId") or character:GetAttribute("ID")
     if typeof(id) == "number" then
@@ -167,9 +162,6 @@ local function markProxyCacheDirty()
     _proxyCacheDirty = true
 end
 
--- ============================================================
--- Proximity cache
--- ============================================================
 local function rebuildProxyCache()
     VMtoChar = {}
     CharToVM = {}
@@ -213,9 +205,6 @@ local function rebuildProxyCache()
     _proxyCacheDirty = false
 end
 
--- ============================================================
--- Projected model bounds
--- ============================================================
 local function getProjectedModelBounds(model)
     if not model then return nil end
     local minX, minY =  math.huge,  math.huge
@@ -278,9 +267,6 @@ local function getProjectedModelBounds(model)
     return minX, minY, maxX, maxY
 end
 
--- ============================================================
--- Name labels
--- ============================================================
 local function createNameLabel(character)
     if ActiveNames[character] then return end
     local label = Instance.new("TextLabel")
@@ -342,9 +328,6 @@ local function removeNameLabel(character)
     end
 end
 
--- ============================================================
--- Functions utility
--- ============================================================
 local Functions = {}
 
 function Functions:Create(Class, Properties)
@@ -353,9 +336,6 @@ function Functions:Create(Class, Properties)
     return inst
 end
 
--- ============================================================
--- Team highlight
--- ============================================================
 local function hasTeamHighlight(model)
     if not model then return false end
     if TeamHighlightCache[model] ~= nil then return TeamHighlightCache[model] end
@@ -375,9 +355,6 @@ local function hasTeamHighlight(model)
     return false
 end
 
--- ============================================================
--- Workspace events
--- ============================================================
 Workspace.ChildAdded:Connect(function(child)
     if child:IsA("Highlight") then
         table.clear(TeamHighlightCache)
@@ -408,9 +385,6 @@ Workspace.ChildRemoved:Connect(function(child)
     end
 end)
 
--- ============================================================
--- Viewmodel validation
--- ============================================================
 local function isValidPlayer(model)
     if not model or not model.Parent then return false end
     if model.Name == "LocalViewmodel" then return false end
@@ -420,9 +394,6 @@ local function isValidPlayer(model)
     return true
 end
 
--- ============================================================
--- Weapon detection
--- ============================================================
 local function findWeaponInCharacter(character)
     if not character then return nil end
     for _, child in pairs(character:GetChildren()) do
@@ -433,9 +404,6 @@ local function findWeaponInCharacter(character)
     return nil
 end
 
--- ============================================================
--- Skeleton
--- ============================================================
 local function createSkeletonESP(character)
     if not character or ActiveSkeletons[character] then return end
     if not isValidPlayer(character) then return end
@@ -515,9 +483,6 @@ local function ProcessSkeleton(character, skData)
     end
 end
 
--- ============================================================
--- Object chams (Drones / Claymores)
--- ============================================================
 local function applyObjectChams(instance, config)
     if not instance or not instance.Parent then
         if ActiveObjectChams[instance] then
@@ -547,7 +512,6 @@ local function updateObjectChams()
     local claymoreEnabled = oc.Claymores.Enabled
 
     if not droneEnabled and not claymoreEnabled then
-        -- clean up all
         for instance, h in pairs(ActiveObjectChams) do
             h:Destroy()
             ActiveObjectChams[instance] = nil
@@ -564,7 +528,6 @@ local function updateObjectChams()
         end
     end
 
-    -- clean up stale or disabled entries
     for instance, h in pairs(ActiveObjectChams) do
         if not instance.Parent then
             h:Destroy()
@@ -579,9 +542,6 @@ local function updateObjectChams()
     end
 end
 
--- ============================================================
--- ProcessESP
--- ============================================================
 local function ProcessESP(model, espData)
     local el = espData.elements
 
@@ -738,9 +698,6 @@ local function ProcessESP(model, espData)
     end
 end
 
--- ============================================================
--- Render loop
--- ============================================================
 local function st()
     if MasterConnection then
         MasterConnection:Disconnect()
@@ -800,9 +757,6 @@ local function st()
     end)
 end
 
--- ============================================================
--- GUI setup
--- ============================================================
 local guiHideName = "ESP_" .. tostring(math.random(100000000, 999999999))
 local parentGui   = gethui and gethui() or CoreGui
 
@@ -832,9 +786,6 @@ pcall(function()
     elseif protect_gui then protect_gui(ScreenGui) end
 end)
 
--- ============================================================
--- CreateESP
--- ============================================================
 local function CreateESP(CharacterModel)
     if not CharacterModel then return end
     if not isValidPlayer(CharacterModel) then return end
@@ -972,9 +923,6 @@ local function CreateESP(CharacterModel)
     }
 end
 
--- ============================================================
--- Cleanup
--- ============================================================
 function Functions:CleanAllESPs()
     for model, espData in pairs(ActiveESPs) do
         if espData.folder then espData.folder:Destroy() end
@@ -995,9 +943,6 @@ end
 
 ESP.CleanAllESPs = function() Functions:CleanAllESPs() end
 
--- ============================================================
--- Viewmodels watcher
--- ============================================================
 local function mvm()
     _Viewmodels = Workspace:FindFirstChild("Viewmodels")
     if not _Viewmodels then return end
@@ -1029,9 +974,6 @@ local function mvm()
     end)
 end
 
--- ============================================================
--- Real character watcher
--- ============================================================
 local function watchRealCharacters()
     task.defer(function()
         for _, child in pairs(Workspace:GetChildren()) do
@@ -1043,9 +985,6 @@ local function watchRealCharacters()
     end)
 end
 
--- ============================================================
--- Public API — player ESP
--- ============================================================
 ESP.ToggleSkeleton = function(enabled)
     ESP.Drawing.Skeleton.Enabled = enabled
     if not enabled then
@@ -1085,9 +1024,6 @@ ESP.SetCornerColor     = function(c) if typeof(c) == "Color3" then ESP.Drawing.B
 ESP.SetCornerThickness = function(t) if type(t) == "number" and t > 0 then ESP.Drawing.Boxes.Corner.Thickness = t end end
 ESP.SetCornerLength    = function(l) if type(l) == "number" and l > 0 then ESP.Drawing.Boxes.Corner.Length    = l end end
 
--- ============================================================
--- Public API — Drone chams (independent)
--- ============================================================
 ESP.ToggleDroneChams = function(enabled)
     ESP.ObjectChams.Drones.Enabled = enabled
     if not enabled then
@@ -1110,9 +1046,6 @@ ESP.SetDroneChamsOutline = function(color, trans)
     if type(trans)  == "number"  then ESP.ObjectChams.Drones.OutlineTrans = trans end
 end
 
--- ============================================================
--- Public API — Claymore chams (independent)
--- ============================================================
 ESP.ToggleClaymoreChams = function(enabled)
     ESP.ObjectChams.Claymores.Enabled = enabled
     if not enabled then
@@ -1135,9 +1068,6 @@ ESP.SetClaymoreChamsOutline = function(color, trans)
     if type(trans)  == "number"  then ESP.ObjectChams.Claymores.OutlineTrans = trans end
 end
 
--- ============================================================
--- Boot
--- ============================================================
 watchRealCharacters()
 mvm()
 st()
