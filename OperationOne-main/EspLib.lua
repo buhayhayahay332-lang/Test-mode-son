@@ -645,6 +645,15 @@ local function ProcessESP(model, espData)
     el.Box.BackgroundTransparency = filled and ESP.Drawing.Boxes.Filled.Transparency or 1
     el.Outline.Enabled            = full and ESP.Drawing.Boxes.Gradient
 
+    el.Gradient1.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, ESP.Drawing.Boxes.GradientFillRGB1),
+        ColorSequenceKeypoint.new(1, ESP.Drawing.Boxes.GradientFillRGB2),
+    })
+    el.Gradient2.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, ESP.Drawing.Boxes.GradientRGB1),
+        ColorSequenceKeypoint.new(1, ESP.Drawing.Boxes.GradientRGB2),
+    })
+
     if ESP.Drawing.Boxes.Animate then
         local dt = _Tick - espData.lastTick
         espData.rotAngle = espData.rotAngle + dt * ESP.Drawing.Boxes.RotationSpeed * math.cos(math.pi / 4 * _Tick - math.pi / 2)
