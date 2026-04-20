@@ -512,7 +512,6 @@ function LibClass.new(title, hideKey)
 		ScrollingDirection = Enum.ScrollingDirection.Y,
 		CanvasSize = UDim2.new(0, 0, 0, 0),
 		Parent = self.contentFrame,
-		ScrollBarInset = Enum.ScrollBarInset.Always	
 	})
 
 	self.listLayout = make("UIListLayout", {
