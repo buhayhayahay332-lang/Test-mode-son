@@ -1,5 +1,6 @@
 local recoil_x = 0
 local recoil_y = 0
+local force_auto_enabled = false
 
 local Module = {
     _initialized = false,
@@ -9,6 +10,7 @@ local Module = {
     config = {
         recoil_reduction = 0,
         horizontal_recoil = 0,
+        force_auto = false,
     },
 }
 
@@ -29,9 +31,11 @@ function Module:_applyConfig()
     if self._enabled then
         recoil_x = tonumber(self.config.recoil_reduction) or 0
         recoil_y = tonumber(self.config.horizontal_recoil) or 0
+        force_auto_enabled = self.config.force_auto == true
     else
         recoil_x = 0
         recoil_y = 0
+        force_auto_enabled = false
     end
 end
 
@@ -45,9 +49,31 @@ function Module:_installHook()
         if dbg.info(3, "n") == "recoil_function" then
             sstack(3, 5, gstack(3, 5) * recoil_x)
             sstack(3, 6, gstack(3, 6) * recoil_y)
+
+            -- Reinforced Force Auto: Ensures the instance stays automatic while firing
+            if force_auto_enabled then
+                local obj = gstack(3, 1)
+                if type(obj) == "table" and obj.automatic == false then
+                    obj.automatic = true
+                end
+            end
         end
         return old_tweenInfo_new(...)
     end))
+
+    -- Constructor Hook: Sets new weapons to automatic upon creation
+    task.spawn(function()
+        local RS = game:GetService("ReplicatedStorage")
+        local GunModule = require(RS:WaitForChild("Modules"):WaitForChild("Items"):WaitForChild("Item"):WaitForChild("Gun"))
+        local old_new = GunModule.new
+        GunModule.new = function(...)
+            local inst = old_new(...)
+            if force_auto_enabled then
+                inst.automatic = true
+            end
+            return inst
+        end
+    end)
 
     self._hooked = true
     return true
