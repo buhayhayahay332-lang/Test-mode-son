@@ -472,30 +472,6 @@ local function setEspChamsOutlineTransparency(value)
     end)
 end
 
-local function setEspFadeOnDistance(state)
-    withModule(ESP_MODULE_NAME, function(m)
-        if m.FadeOut then
-            m.FadeOut.OnDistance = state == true
-        end
-    end)
-end
-
-local function setEspFadeOnDeath(state)
-    withModule(ESP_MODULE_NAME, function(m)
-        if m.FadeOut then
-            m.FadeOut.OnDeath = state == true
-        end
-    end)
-end
-
-local function setEspFadeOnLeave(state)
-    withModule(ESP_MODULE_NAME, function(m)
-        if m.FadeOut then
-            m.FadeOut.OnLeave = state == true
-        end
-    end)
-end
-
 local function setEspPlayerColor(color)
     withModule(ESP_MODULE_NAME, function(m)
         if type(m.setPlayerColor) == "function" then
@@ -541,14 +517,6 @@ local function setEspSkeletonColor(color)
             m.SetSkeletonColor(color)
         elseif m.Drawing and m.Drawing.Skeleton then
             m.Drawing.Skeleton.RGB = color
-        end
-    end)
-end
-
-local function setEspNameColor(color)
-    withModule(ESP_MODULE_NAME, function(m)
-        if m.Drawing and m.Drawing.Names then
-            m.Drawing.Names.RGB = color
         end
     end)
 end
@@ -642,15 +610,11 @@ local function applyDefaults()
     setEspFilledTransparency(0.75)
     setEspChamsFillTransparency(50)
     setEspChamsOutlineTransparency(50)
-    setEspFadeOnDistance(true)
-    setEspFadeOnDeath(true)
-    setEspFadeOnLeave(true)
     setEspPlayerColor(Color3.fromRGB(255, 255, 255))
     setEspGradientEndColor(Color3.fromRGB(0, 0, 0))
     setEspFillGradientStartColor(Color3.fromRGB(255, 255, 255))
     setEspFillGradientEndColor(Color3.fromRGB(0, 0, 0))
     setEspSkeletonColor(Color3.fromRGB(255, 255, 255))
-    setEspNameColor(Color3.fromRGB(255, 255, 255))
     setEspDistanceColor(Color3.fromRGB(255, 255, 255))
     setEspWeaponColor(Color3.fromRGB(255, 255, 255))
     setEspChamsFillColor(Color3.fromRGB(255, 80, 80))
@@ -663,6 +627,15 @@ local function applyDefaults()
     setFullbrightSetting("GlobalShadows", false)
     setFullbrightSetting("Ambient", Color3.fromRGB(178, 178, 178))
 
+end
+
+local function runStartupInit()
+    local initOrder = { "silent_aim", "gun_modification", ESP_MODULE_NAME, "fullbright" }
+    for _, name in ipairs(initOrder) do
+        initModule(name, false)
+    end
+    applyDefaults()
+    log("init complete")
 end
 
 local function loadUiLibrary()
@@ -815,9 +788,6 @@ local function buildAkUi(lib)
     window:addToggle("Chams", false, setEspChams)
     window:addToggle("Chams Thermal", false, setEspChamsThermal)
     window:addToggle("Chams Visible Check", false, setEspChamsVisibleCheck)
-    window:addToggle("Fade On Distance", true, setEspFadeOnDistance)
-    window:addToggle("Fade On Death", true, setEspFadeOnDeath)
-    window:addToggle("Fade On Leave", true, setEspFadeOnLeave)
 
     window:addSlider("ESP Max Distance", 100, 3000, 1000, 10, setEspMaxDistance)
     window:addSlider("ESP Font Size", 8, 24, 11, 1, setEspFontSize)
@@ -834,7 +804,6 @@ local function buildAkUi(lib)
     addPresetColorDropdown("Fill Gradient Start", Color3.fromRGB(255, 255, 255), setEspFillGradientStartColor)
     addPresetColorDropdown("Fill Gradient End", Color3.fromRGB(0, 0, 0), setEspFillGradientEndColor)
     addPresetColorDropdown("Skeleton Color", Color3.fromRGB(210, 50, 80), setEspSkeletonColor)
-    addPresetColorDropdown("Name Color", Color3.fromRGB(255, 255, 255), setEspNameColor)
     addPresetColorDropdown("Distance Color", Color3.fromRGB(255, 255, 255), setEspDistanceColor)
     addPresetColorDropdown("Weapon Color", Color3.fromRGB(255, 255, 255), setEspWeaponColor)
     addPresetColorDropdown("Chams Fill Color", Color3.fromRGB(243, 116, 166), setEspChamsFillColor)
@@ -866,12 +835,15 @@ local function buildAkUi(lib)
         setGunModEnabled(false)
     end)
 
-    applyDefaults()
-    log("init")
 end
 
 local lib, libErr = loadUiLibrary()
 if lib then
+    local okInit, initErr = pcall(runStartupInit)
+    if not okInit then
+        log("startup init failed -> " .. tostring(initErr))
+    end
+
     local ok, err = pcall(buildAkUi, lib)
     if not ok then
         log("failed -> " .. tostring(err))

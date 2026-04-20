@@ -17,9 +17,9 @@ local ESP = {
     MaxDistance = 1000,
     FontSize    = 11,
     FadeOut = {
-        OnDistance = true,
-        OnDeath    = true,
-        OnLeave    = true,
+        OnDistance = false,
+        OnDeath    = false,
+        OnLeave    = false,
     },
     Drawing = {
         Chams = {
