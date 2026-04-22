@@ -1,34 +1,34 @@
 pcall(function() setthreadidentity(8) end)
 
 local UILIB_LOCAL_PATH = "ui_lib.lua"
-local UILIB_URL = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/ui_lib.lua"
+local UILIB_URL = "https://github.com/PLU3t0/Meathead/raw/refs/heads/main/OperationOne-main/ui_lib.lua"
 local UILIB_LOCAL_PATHS = {
     UILIB_LOCAL_PATH,
     "OperationOne-main/ui_lib.lua",
     "OperationOne-main\\ui_lib.lua",
 }
-local SHARED_RUNTIME_SOURCE = { local_path = "shared_runtime.lua", url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/shared_runtime.lua" }
+local SHARED_RUNTIME_SOURCE = { local_path = "shared_runtime.lua", url = "https://github.com/PLU3t0/Meathead/raw/refs/heads/main/OperationOne-main/shared_runtime.lua" }
 
 local MODULE_SOURCES = {
     fullbright = {
         local_path = "fullbright.lua",
-        url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/fullbright.lua",
+        url = "https://github.com/PLU3t0/Meathead/raw/refs/heads/main/OperationOne-main/fullbright.lua",
     },
     gun_modification = {
         local_path = "gun_modification.lua",
-        url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/gun_modification.lua",
+        url = "https://github.com/PLU3t0/Meathead/raw/refs/heads/main/OperationOne-main/gun_modification.lua",
     },
     EspLib = {
         local_path = "EspLib.lua",
-        url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/EspLib.lua",
+        url = "https://github.com/d2o-lang/UILib/raw/refs/heads/main/EspLib.lua",
     },
     silent_aim = {
         local_path = "silent_aim.lua",
-        url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/silent_aim.lua",
+        url = "https://github.com/PLU3t0/Meathead/raw/refs/heads/main/OperationOne-main/silent_aim.lua",
     },
     yenofurry = {
         local_path = "yenofurry.lua",
-        url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/yenofurry.lua",
+        url = "https://github.com/d2o-lang/UILib/raw/refs/heads/main/yenofurry.lua",
     },
 }
 
@@ -236,6 +236,22 @@ local function setSilentAimTargetGadgets(state)
     withModule("silent_aim", function(m)
         if type(m.setTargetGadgets) == "function" then
             m:setTargetGadgets(state)
+        end
+    end)
+end
+
+local function setSilentAimVisibleCheck(state)
+    withModule("silent_aim", function(m)
+        if type(m.setVisibleCheck) == "function" then
+            m:setVisibleCheck(state)
+        end
+    end)
+end
+
+local function setSilentAimFovCircleVisual(state)
+    withModule("silent_aim", function(m)
+        if type(m.setFovCircleVisible) == "function" then
+            m:setFovCircleVisible(state)
         end
     end)
 end
@@ -667,6 +683,8 @@ local function applyDefaults()
     setAimAssistActivation("mb2")
     setSilentAimTargetMode("custom_parts")
     setSilentAimTargetGadgets(false)
+    setSilentAimVisibleCheck(false)
+    setSilentAimFovCircleVisual(true)
 
     setGunModEnabled(false)
     setGunModConfig("recoil_reduction", 0)
@@ -845,6 +863,8 @@ local function buildAkUi(lib)
     window:addSection("Aimbot")
     window:addToggle("Silent/Aimbot", false, setSilentAim)
     window:addToggle("Aim Team Check", true, setSilentAimTeamCheck)
+    window:addToggle("Aim Visible Check", false, setSilentAimVisibleCheck)
+    window:addToggle("FOV Circle Visual", true, setSilentAimFovCircleVisual)
     window:addSlider("Aim FOV", 10, 400, 60, 1, setSilentAimFov)
     window:addSlider("Aim Assist Smoothness", 0.01, 1, 1, 0.01, setSilentAimSmoothness)
     window:addDropdown("Aim Mode", { "silent", "aim_assist" }, "silent", function(selected)
