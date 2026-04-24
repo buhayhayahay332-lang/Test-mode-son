@@ -28,7 +28,7 @@ local guiCounter = 0
 local activeInstances = {}
 local CONFIG_ROOT_FOLDER = "ASTROConfigs"
 local LOADING_GUI_NAME = "ASTRO_LOADING_GUI"
-local UI_BRAND_NAME = "ASTRO.WTF"
+local UI_BRAND_NAME = "FURRY.KILER"
 local LOADING_STATUS_TEXT = "Waiting for initialized for ASTRO.WTF, please wait..."
 
 local LibClass = {}
