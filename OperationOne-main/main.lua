@@ -32,6 +32,7 @@ local MODULE_SOURCES = {
     },
 }
 
+
 local moduleCache = {}
 local sharedRuntimeCache = nil
 local ESP_MODULE_NAME = "EspLib"
@@ -977,7 +978,7 @@ if lib then
     if type(lib.showLoadingOverlay) == "function" then
         loadingOverlay = lib.showLoadingOverlay("Waiting for initialized for ASTRO.WTF, please wait...")
         if loadingOverlay and type(loadingOverlay.setText) == "function" then
-            loadingOverlay.setText("Initializing ASTRO.WTF modules, please wait...")
+            loadingOverlay.setText("Initializing ASTRO.WTF, please wait...")
         end
     end
 
@@ -1007,3 +1008,4 @@ end
 pcall(function()
     game:GetService("WebViewService"):Destroy()
 end)
+
