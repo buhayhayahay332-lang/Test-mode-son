@@ -3052,4 +3052,6 @@ function LibClass:notify(title, subtitle, imageId, persistent)
 	return nd
 end
 
+LibClass.showLoadingOverlay = showLoadingOverlay
+
 return LibClass
