@@ -144,14 +144,6 @@ local function showLoadingOverlay(message)
 		Parent = guiParent,
 	})
 
-	local shade = make("Frame", {
-		Size = UDim2.fromScale(1, 1),
-		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-		BackgroundTransparency = 0.35,
-		BorderSizePixel = 0,
-		Parent = loadingGui,
-	})
-
 	local card = make("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
@@ -159,7 +151,7 @@ local function showLoadingOverlay(message)
 		BackgroundColor3 = Color3.fromRGB(12, 12, 12),
 		BackgroundTransparency = 0.15,
 		BorderSizePixel = 0,
-		Parent = shade,
+		Parent = loadingGui,
 	})
 	addCorner(card, 12)
 	make("UIStroke", {
