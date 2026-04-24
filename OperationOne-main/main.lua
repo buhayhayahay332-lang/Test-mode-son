@@ -32,8 +32,6 @@ local MODULE_SOURCES = {
     },
 }
 
-
-
 local moduleCache = {}
 local sharedRuntimeCache = nil
 local ESP_MODULE_NAME = "EspLib"
@@ -975,14 +973,32 @@ end
 
 local lib, libErr = loadUiLibrary()
 if lib then
+    local loadingOverlay = nil
+    if type(lib.showLoadingOverlay) == "function" then
+        loadingOverlay = lib.showLoadingOverlay("Waiting for initialized for ASTRO.WTF, please wait...")
+        if loadingOverlay and type(loadingOverlay.setText) == "function" then
+            loadingOverlay.setText("Initializing ASTRO.WTF modules, please wait...")
+        end
+    end
+
     local okInit, initErr = pcall(runStartupInit)
     if not okInit then
         log("startup init failed -> " .. tostring(initErr))
+        if loadingOverlay and type(loadingOverlay.setText) == "function" then
+            loadingOverlay.setText("Initialization failed for ASTRO.WTF.")
+        end
+    elseif loadingOverlay and type(loadingOverlay.setText) == "function" then
+        loadingOverlay.setText("Initialization complete. Building ASTRO.WTF UI...")
     end
 
     local ok, err = pcall(buildAkUi, lib)
     if not ok then
         log("failed -> " .. tostring(err))
+        if loadingOverlay and type(loadingOverlay.setText) == "function" then
+            loadingOverlay.setText("Failed to build ASTRO.WTF UI.")
+        end
+    elseif loadingOverlay and type(loadingOverlay.dismiss) == "function" then
+        loadingOverlay.dismiss()
     end
 else
     log("failed -> " .. tostring(libErr))
