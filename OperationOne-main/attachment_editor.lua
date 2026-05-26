@@ -4,6 +4,9 @@ local Module = {
     _replicatedStorage = nil,
     _viewmodels = nil,
     _attachmentModules = {},
+    _viewmodelsAddedConn = nil,
+    _localViewmodelChildConn = nil,
+    _pendingAutoApply = false,
     config = {
         skin = "Default",
         charm = "Default",
@@ -100,6 +103,52 @@ function Module:_applyAttachment(moduleName, settingKey)
     return true
 end
 
+function Module:_shouldAutoApply()
+    return self.config.skin ~= "Default" or self.config.charm ~= "Default"
+end
+
+function Module:_scheduleAutoApply()
+    if not self:_shouldAutoApply() or self._pendingAutoApply then
+        return
+    end
+
+    self._pendingAutoApply = true
+    task.delay(0.2, function()
+        self._pendingAutoApply = false
+        if not self:_shouldAutoApply() then
+            return
+        end
+
+        pcall(function()
+            self:applyAll()
+        end)
+    end)
+end
+
+function Module:_bindLocalViewmodel(localViewmodel)
+    if self._localViewmodelChildConn then
+        self._localViewmodelChildConn:Disconnect()
+        self._localViewmodelChildConn = nil
+    end
+
+    if not localViewmodel then
+        return
+    end
+
+    self._localViewmodelChildConn = localViewmodel.ChildAdded:Connect(function(child)
+        if child:FindFirstChild("Gun") or child:FindFirstChild("Shield") then
+            self:_scheduleAutoApply()
+        end
+    end)
+
+    for _, child in ipairs(localViewmodel:GetChildren()) do
+        if child:FindFirstChild("Gun") or child:FindFirstChild("Shield") then
+            self:_scheduleAutoApply()
+            break
+        end
+    end
+end
+
 function Module:init(force)
     if self._initialized and not force then
         return true
@@ -119,6 +168,17 @@ function Module:init(force)
     end
 
     self._attachmentModules = loadedModules
+
+    if not self._viewmodelsAddedConn then
+        self._viewmodelsAddedConn = self._viewmodels.ChildAdded:Connect(function(child)
+            if child.Name == "LocalViewmodel" then
+                self:_bindLocalViewmodel(child)
+                self:_scheduleAutoApply()
+            end
+        end)
+    end
+
+    self:_bindLocalViewmodel(self._viewmodels:FindFirstChild("LocalViewmodel"))
     self._initialized = true
     return true
 end
