@@ -1,5 +1,3 @@
-pcall(function() setthreadidentity(8) end)
-
 local UILIB_LOCAL_PATH = "ui_lib.lua"
 local UILIB_URL = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/ui_lib.lua"
 local UILIB_LOCAL_PATHS = {
