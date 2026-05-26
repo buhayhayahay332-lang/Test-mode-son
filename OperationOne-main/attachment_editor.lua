@@ -132,7 +132,22 @@ function Module:setOption(key, value)
         return false, "unknown attachment key: " .. tostring(key)
     end
 
+    local okInit, initErr = self:init(false)
+    if not okInit then
+        return false, initErr
+    end
+
     self.config[key] = tostring(value)
+
+    local moduleMap = {
+        skin = "Skin",
+        charm = "Charm",
+    }
+
+    if self.config[key] ~= "Default" then
+        return self:_applyAttachment(moduleMap[key], key)
+    end
+
     return true
 end
 
