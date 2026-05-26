@@ -26,6 +26,10 @@ local MODULE_SOURCES = {
         local_path = "silent_aim.lua",
         url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/silent_aim.lua",
     },
+    attachment_editor = {
+        local_path = "attachment_editor.lua",
+            url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/attachment_editor.lua",
+    },
 }
 
 
@@ -671,6 +675,27 @@ local function setFullbrightSetting(key, value)
     end)
 end
 
+local function setAttachmentEditorOption(key, value)
+    withModule("attachment_editor", function(m)
+        if type(m.setOption) == "function" then
+            m:setOption(key, value)
+        elseif type(m.updateConfig) == "function" then
+            m:updateConfig({ [key] = value })
+        end
+    end)
+end
+
+local function applyAttachmentEditor()
+    withModule("attachment_editor", function(m)
+        if type(m.applyAll) == "function" then
+            local okApply, errApply = m:applyAll()
+            if okApply == false then
+                error(errApply)
+            end
+        end
+    end)
+end
+
 local function applyDefaults()
     setSilentAim(false)
     setSilentAimFov(60)
@@ -740,10 +765,13 @@ local function applyDefaults()
     setFullbrightSetting("GlobalShadows", false)
     setFullbrightSetting("Ambient", Color3.fromRGB(178, 178, 178))
 
+    setAttachmentEditorOption("skin", "Default")
+    setAttachmentEditorOption("charm", "Default")
+
 end
 
 local function runStartupInit()
-    local initOrder = { "silent_aim", "gun_modification", ESP_MODULE_NAME, "fullbright"}
+    local initOrder = { "silent_aim", "gun_modification", ESP_MODULE_NAME, "fullbright", "yenofurry" }
     for _, name in ipairs(initOrder) do
         initModule(name, false)
     end
@@ -948,6 +976,17 @@ local function buildAkUi(lib)
     addPresetColorDropdown("FB Ambient Color", Color3.fromRGB(178, 178, 178), function(c)
         setFullbrightSetting("Ambient", c)
     end)
+
+    local localTab = window:addTab("Local")
+    window:switchTab(localTab)
+    window:addSection("Skin Changer")
+    window:addDropdown("Skin", { "Default", "BlackCamo", "BlackIce", "Blue", "CandyCane", "CandyCaneCrowbar", "CarbonFiber", "Cardboard", "CheckeredSkin", "ClassicAA12", "CrackedEarth", "DarkRedCamo", "DeepRed", "DesertCamo", "Diamond", "FestiveLightsM4", "ForestCamo", "FrenchSticker", "Ghillie", "GhostShipSkin", "GhostSkin", "GhostStickerSkin", "Golden", "Green", "HalloweenParty", "HazardMP7", "HazardSkin", "HotRedL85", "IceDrone", "Kalash", "Karambit", "MakeshiftBeretta", "MedievalShield", "NeonShapesM249", "OilSpill", "OrnamentBall", "PumpkinBomb", "PurpleFadeC775", "Red", "RustyAUG", "ScytheHammer", "Skulls", "SnowCamo", "Space", "SpiderHookSkin", "SpiderWebSkin", "Splattered", "Steyr", "Tan", "Toxic", "WastelandRSh12", "White", "Yellow" }, "Default", function(selected)
+        setAttachmentEditorOption("skin", selected)
+    end)
+    window:addDropdown("Charm", { "Default", "8BallCharm", "AceCard", "BananaCharm", "BellCharm", "BlueBall", "BulletCharm", "ChristmasTreeCharm", "ColorfulSquares", "DiamondCharm", "DogTagCharm", "EyeballCharm", "GhostCharm", "LoveHeart", "LuckyCharm", "PumpkinCharm", "S1Bronze", "S1Champion", "S1Diamond", "S1Gold", "S1Platinum", "S1Silver", "S2Bronze", "S2Champion", "S2Diamond", "S2Gold", "S2Platinum", "S2Silver", "SnowGlobeCharm", "SnowflakeCharm", "TargetPracticeCharm" }, "Default", function(selected)
+        setAttachmentEditorOption("charm", selected)
+    end)
+    window:addButton("Apply Skin/Charm", applyAttachmentEditor)
 
     local configTab = window:addTab("Config")
     window:switchTab(configTab)
