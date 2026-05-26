@@ -1968,10 +1968,12 @@ function LibClass:addDropdown(name, options, default, callback)
 		return visibleHeight, openBelow
 	end
 
+	local updatePanelPosition
+
 	self._conn(panelLayout:GetPropertyChangedSignal("AbsoluteContentSize"), function()
 		if not panel.Parent then return end
 		refreshPanelMetrics()
-		if isOpen then
+		if isOpen and updatePanelPosition then
 			updatePanelPosition()
 		end
 	end)
@@ -1995,7 +1997,7 @@ function LibClass:addDropdown(name, options, default, callback)
 		end
 	end
 
-	local function updatePanelPosition()
+	updatePanelPosition = function()
 		local ap = dropBtn.AbsolutePosition
 		local as = dropBtn.AbsoluteSize
 		local vp = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1920, 1080)
