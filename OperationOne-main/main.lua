@@ -769,7 +769,7 @@ local function applyDefaults()
 end
 
 local function runStartupInit()
-    local initOrder = { "silent_aim", "gun_modification", ESP_MODULE_NAME, "fullbright", "yenofurry" }
+    local initOrder = { "silent_aim", "gun_modification", ESP_MODULE_NAME, "fullbright"}
     for _, name in ipairs(initOrder) do
         initModule(name, false)
     end
