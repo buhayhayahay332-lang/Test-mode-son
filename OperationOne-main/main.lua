@@ -1,11 +1,7 @@
-local UILIB_LOCAL_PATH = "ui_lib.lua"
-local UILIB_URL = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/ui_lib.lua"
-local UILIB_LOCAL_PATHS = {
-    UILIB_LOCAL_PATH,
-    "OperationOne-main/ui_lib.lua",
-    "OperationOne-main\\ui_lib.lua",
+local SHARED_RUNTIME_SOURCE = {
+    local_path = "shared_runtime.lua",
+    url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/shared_runtime.lua",
 }
-local SHARED_RUNTIME_SOURCE = { local_path = "shared_runtime.lua", url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/shared_runtime.lua" }
 
 local MODULE_SOURCES = {
     fullbright = {
@@ -26,14 +22,13 @@ local MODULE_SOURCES = {
     },
     attachment_editor = {
         local_path = "attachment_editor.lua",
-            url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/attachment_editor.lua",
+        url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/attachment_editor.lua",
     },
 }
 
-
-local moduleCache = {}
+local moduleCache        = {}
 local sharedRuntimeCache = nil
-local ESP_MODULE_NAME = "EspLib"
+local ESP_MODULE_NAME    = "EspLib"
 
 local function log(msg)
     print("[OP1] " .. tostring(msg))
@@ -41,228 +36,153 @@ end
 
 local function compile(source, chunkName)
     local compiler = loadstring or load
-    if type(compiler) ~= "function" then
-        return nil, "loadstring/load unavailable"
-    end
-
+    if type(compiler) ~= "function" then return nil, "loadstring/load unavailable" end
     local okLoad, chunkOrErr = pcall(compiler, source, "@" .. tostring(chunkName))
     if not okLoad or type(chunkOrErr) ~= "function" then
         return nil, "compile error: " .. tostring(chunkOrErr)
     end
-
     local okRun, resultOrErr = pcall(chunkOrErr)
-    if not okRun then
-        return nil, "runtime error: " .. tostring(resultOrErr)
-    end
-
-    if type(resultOrErr) == "table" then
-        return resultOrErr
-    end
-
+    if not okRun then return nil, "runtime error: " .. tostring(resultOrErr) end
+    if type(resultOrErr) == "table" then return resultOrErr end
     return { load = function() return true end }
 end
 
 local function readSource(spec)
     if type(readfile) == "function" and spec.local_path then
-        local okLocal, localData = pcall(readfile, spec.local_path)
-        if okLocal and type(localData) == "string" and localData ~= "" then
-            return localData, "local:" .. spec.local_path
+        local ok, data = pcall(readfile, spec.local_path)
+        if ok and type(data) == "string" and data ~= "" then
+            return data, "local:" .. spec.local_path
         end
     end
-
     if spec.url and spec.url ~= "" then
-        local okUrl, remoteData = pcall(function()
-            return game:HttpGet(spec.url)
-        end)
-        if okUrl and type(remoteData) == "string" and remoteData ~= "" then
-            return remoteData, "url:" .. spec.url
+        local ok, data = pcall(function() return game:HttpGet(spec.url) end)
+        if ok and type(data) == "string" and data ~= "" then
+            return data, "url:" .. spec.url
         end
     end
-
     return nil, "no source available"
 end
 
 local function loadSharedRuntime()
-    if type(sharedRuntimeCache) == "table" then
-        return sharedRuntimeCache
-    end
-
-    local source, sourceInfo = readSource(SHARED_RUNTIME_SOURCE)
-    if not source then
-        log("shared runtime source error -> " .. tostring(sourceInfo))
-        return nil
-    end
-
-    local sharedObj, sharedErr = compile(source, "shared_runtime")
-    if not sharedObj or type(sharedObj) ~= "table" then
-        log("shared runtime load error -> " .. tostring(sharedErr))
-        return nil
-    end
-
-    sharedRuntimeCache = sharedObj
-    if type(sharedObj.applyToEnv) == "function" then
-        pcall(function()
-            sharedObj:applyToEnv()
-        end)
-    end
+    if type(sharedRuntimeCache) == "table" then return sharedRuntimeCache end
+    local source, info = readSource(SHARED_RUNTIME_SOURCE)
+    if not source then log("shared runtime source error -> " .. tostring(info)) return nil end
+    local obj, err = compile(source, "shared_runtime")
+    if not obj then log("shared runtime load error -> " .. tostring(err)) return nil end
+    sharedRuntimeCache = obj
+    if type(obj.applyToEnv) == "function" then pcall(function() obj:applyToEnv() end) end
     return sharedRuntimeCache
 end
 
 local function initModule(name, forceReload)
     local cached = moduleCache[name]
-    if cached and cached.initialized and not forceReload then
-        return cached.module
-    end
-
+    if cached and cached.initialized and not forceReload then return cached.module end
     local sharedRuntime = loadSharedRuntime()
-
     local spec = MODULE_SOURCES[name]
-    if not spec then
-        log("unknown module: " .. tostring(name))
-        return nil
-    end
-
-    local source, sourceInfo = readSource(spec)
-    if not source then
-        log(name .. " source error -> " .. tostring(sourceInfo))
-        return nil
-    end
-
+    if not spec then log("unknown module: " .. tostring(name)) return nil end
+    local source, info = readSource(spec)
+    if not source then log(name .. " source error -> " .. tostring(info)) return nil end
     local moduleObj, loadErr = compile(source, name)
-    if not moduleObj then
-        log(name .. " load error -> " .. tostring(loadErr))
-        return nil
-    end
-
+    if not moduleObj then log(name .. " load error -> " .. tostring(loadErr)) return nil end
     if sharedRuntime then
         if type(moduleObj.setShared) == "function" then
-            pcall(function()
-                moduleObj:setShared(sharedRuntime)
-            end)
+            pcall(function() moduleObj:setShared(sharedRuntime) end)
         elseif type(moduleObj) == "table" and moduleObj.shared == nil then
             moduleObj.shared = sharedRuntime
         end
     end
-
     local okInit, initErr = true, nil
     if type(moduleObj.load) == "function" then
         okInit, initErr = moduleObj:load(forceReload == true)
     elseif type(moduleObj.init) == "function" then
         okInit, initErr = moduleObj:init(forceReload == true)
     end
-
-    if okInit == false then
-        log(name .. " init failed -> " .. tostring(initErr))
-        return nil
-    end
-
+    if okInit == false then log(name .. " init failed -> " .. tostring(initErr)) return nil end
     moduleCache[name] = { initialized = true, module = moduleObj }
     return moduleObj
 end
 
 local function withModule(name, callback)
     local moduleObj = initModule(name, false)
-    if not moduleObj then
-        return false
-    end
-
+    if not moduleObj then return false end
     local ok, result = pcall(callback, moduleObj)
-    if not ok then
-        log(name .. " callback error -> " .. tostring(result))
-        return false
-    end
-
+    if not ok then log(name .. " callback error -> " .. tostring(result)) return false end
     return result ~= false
+end
+
+local function withModuleRetry(name, callback, retries)
+    retries = retries or 3
+    local function attempt(n)
+        local moduleObj = initModule(name, false)
+        if moduleObj then
+            local ok, result = pcall(callback, moduleObj)
+            if ok and result ~= false then return end
+        end
+        if n > 1 then
+            task.delay(0.5, function() attempt(n - 1) end)
+        else
+            log(name .. " withModuleRetry gave up after retries")
+        end
+    end
+    attempt(retries)
 end
 
 local function setSilentAim(state)
     withModule("silent_aim", function(m)
-        if type(m.setEnabled) == "function" then
-            m:setEnabled(state)
-        end
+        if type(m.setEnabled) == "function" then m:setEnabled(state) end
     end)
 end
-
 local function setSilentAimFov(value)
     withModule("silent_aim", function(m)
-        if type(m.setFov) == "function" then
-            m:setFov(value)
-        end
+        if type(m.setFov) == "function" then m:setFov(value) end
     end)
 end
-
 local function setSilentAimSmoothness(value)
     withModule("silent_aim", function(m)
-        if type(m.setSmoothness) == "function" then
-            m:setSmoothness(value)
-        end
+        if type(m.setSmoothness) == "function" then m:setSmoothness(value) end
     end)
 end
-
 local function setSilentAimMode(mode)
     withModule("silent_aim", function(m)
-        if type(m.setMode) == "function" then
-            m:setMode(mode)
-        end
+        if type(m.setMode) == "function" then m:setMode(mode) end
     end)
 end
-
 local function setAimAssistActivation(mode)
     withModule("silent_aim", function(m)
-        if type(m.setAimAssistActivation) == "function" then
-            m:setAimAssistActivation(mode)
-        end
+        if type(m.setAimAssistActivation) == "function" then m:setAimAssistActivation(mode) end
     end)
 end
-
 local function setSilentAimTargetMode(mode)
     withModule("silent_aim", function(m)
-        if type(m.setTargetMode) == "function" then
-            m:setTargetMode(mode)
-        end
+        if type(m.setTargetMode) == "function" then m:setTargetMode(mode) end
     end)
 end
-
 local function setSilentAimTeamCheck(state)
     withModule("silent_aim", function(m)
-        if type(m.setTeamCheck) == "function" then
-            m:setTeamCheck(state)
-        end
+        if type(m.setTeamCheck) == "function" then m:setTeamCheck(state) end
     end)
 end
-
 local function setSilentAimTargetGadgets(state)
     withModule("silent_aim", function(m)
-        if type(m.setTargetGadgets) == "function" then
-            m:setTargetGadgets(state)
-        end
+        if type(m.setTargetGadgets) == "function" then m:setTargetGadgets(state) end
     end)
 end
-
 local function setSilentAimVisibleCheck(state)
     withModule("silent_aim", function(m)
-        if type(m.setVisibleCheck) == "function" then
-            m:setVisibleCheck(state)
-        end
+        if type(m.setVisibleCheck) == "function" then m:setVisibleCheck(state) end
     end)
 end
-
 local function setSilentAimFovCircleVisual(state)
     withModule("silent_aim", function(m)
-        if type(m.setFovCircleVisible) == "function" then
-            m:setFovCircleVisible(state)
-        end
+        if type(m.setFovCircleVisible) == "function" then m:setFovCircleVisible(state) end
     end)
 end
 
 local function setGunModEnabled(state)
     withModule("gun_modification", function(m)
-        if type(m.setEnabled) == "function" then
-            m:setEnabled(state)
-        end
+        if type(m.setEnabled) == "function" then m:setEnabled(state) end
     end)
 end
-
 local function setGunModConfig(key, value)
     withModule("gun_modification", function(m)
         if type(m.updateConfig) == "function" then
@@ -275,34 +195,24 @@ end
 
 local function setEspEnabled(state)
     withModule(ESP_MODULE_NAME, function(m)
-        if type(m.setEnabled) == "function" then
-            m:setEnabled(state)
-        elseif m.Enabled ~= nil then
-            m.Enabled = state == true
-        end
+        if type(m.setEnabled) == "function" then m:setEnabled(state)
+        elseif m.Enabled ~= nil then m.Enabled = state == true end
     end)
 end
-
 local function setEspTeamCheck(state)
     withModule(ESP_MODULE_NAME, function(m)
-        if type(m.setTeamCheck) == "function" then
-            m:setTeamCheck(state)
-        elseif m.Drawing and m.Drawing.TeamCheck then
-            m.Drawing.TeamCheck.Enabled = state == true
-        end
+        if type(m.setTeamCheck) == "function" then m:setTeamCheck(state)
+        elseif m.Drawing and m.Drawing.TeamCheck then m.Drawing.TeamCheck.Enabled = state == true end
     end)
 end
-
 local function setEspPlayers(state)
     withModule(ESP_MODULE_NAME, function(m)
-        if type(m.setPlayerBoxEnabled) == "function" then
-            m:setPlayerBoxEnabled(state)
+        if type(m.setPlayerBoxEnabled) == "function" then m:setPlayerBoxEnabled(state)
         elseif m.Drawing and m.Drawing.Boxes and m.Drawing.Boxes.Full then
             m.Drawing.Boxes.Full.Enabled = state == true
         end
     end)
 end
-
 local function setEspCorners(state)
     withModule(ESP_MODULE_NAME, function(m)
         if m.Drawing and m.Drawing.Boxes and m.Drawing.Boxes.Corner then
@@ -310,7 +220,6 @@ local function setEspCorners(state)
         end
     end)
 end
-
 local function setEspFilled(state)
     withModule(ESP_MODULE_NAME, function(m)
         if m.Drawing and m.Drawing.Boxes and m.Drawing.Boxes.Filled then
@@ -318,155 +227,103 @@ local function setEspFilled(state)
         end
     end)
 end
-
 local function setEspBoxGradient(state)
     withModule(ESP_MODULE_NAME, function(m)
-        if m.Drawing and m.Drawing.Boxes then
-            m.Drawing.Boxes.Gradient = state == true
-        end
+        if m.Drawing and m.Drawing.Boxes then m.Drawing.Boxes.Gradient = state == true end
     end)
 end
-
 local function setEspBoxAnimate(state)
     withModule(ESP_MODULE_NAME, function(m)
-        if m.Drawing and m.Drawing.Boxes then
-            m.Drawing.Boxes.Animate = state == true
-        end
+        if m.Drawing and m.Drawing.Boxes then m.Drawing.Boxes.Animate = state == true end
     end)
 end
-
 local function setEspBoxGradientFill(state)
     withModule(ESP_MODULE_NAME, function(m)
-        if m.Drawing and m.Drawing.Boxes then
-            m.Drawing.Boxes.GradientFill = state == true
-        end
+        if m.Drawing and m.Drawing.Boxes then m.Drawing.Boxes.GradientFill = state == true end
     end)
 end
-
 local function setEspHealthBar(state)
     withModule(ESP_MODULE_NAME, function(m)
-        if m.Drawing and m.Drawing.HealthBar then
-            m.Drawing.HealthBar.Enabled = state == true
-        end
+        if m.Drawing and m.Drawing.HealthBar then m.Drawing.HealthBar.Enabled = state == true end
     end)
 end
-
 local function setEspSkeleton(state)
     withModule(ESP_MODULE_NAME, function(m)
-        if type(m.setSkeletonEnabled) == "function" then
-            m:setSkeletonEnabled(state)
-        elseif type(m.ToggleSkeleton) == "function" then
-            m.ToggleSkeleton(state)
-        elseif m.Drawing and m.Drawing.Skeleton then
-            m.Drawing.Skeleton.Enabled = state == true
-        end
+        if type(m.setSkeletonEnabled) == "function" then m:setSkeletonEnabled(state)
+        elseif type(m.ToggleSkeleton) == "function" then m.ToggleSkeleton(state)
+        elseif m.Drawing and m.Drawing.Skeleton then m.Drawing.Skeleton.Enabled = state == true end
     end)
 end
-
 local function setEspNames(state)
     withModule(ESP_MODULE_NAME, function(m)
-        if m.Drawing and m.Drawing.Names then
-            m.Drawing.Names.Enabled = state == true
-        end
+        if m.Drawing and m.Drawing.Names then m.Drawing.Names.Enabled = state == true end
     end)
 end
-
 local function setEspDistances(state)
     withModule(ESP_MODULE_NAME, function(m)
-        if m.Drawing and m.Drawing.Distances then
-            m.Drawing.Distances.Enabled = state == true
-        end
+        if m.Drawing and m.Drawing.Distances then m.Drawing.Distances.Enabled = state == true end
     end)
 end
-
 local function setEspWeapons(state)
     withModule(ESP_MODULE_NAME, function(m)
-        if m.Drawing and m.Drawing.Weapons then
-            m.Drawing.Weapons.Enabled = state == true
-        end
+        if m.Drawing and m.Drawing.Weapons then m.Drawing.Weapons.Enabled = state == true end
     end)
 end
-
 local function setEspChams(state)
     withModule(ESP_MODULE_NAME, function(m)
-        if m.Drawing and m.Drawing.Chams then
-            m.Drawing.Chams.Enabled = state == true
-        end
+        if m.Drawing and m.Drawing.Chams then m.Drawing.Chams.Enabled = state == true end
     end)
 end
-
 local function setEspChamsThermal(state)
     withModule(ESP_MODULE_NAME, function(m)
-        if m.Drawing and m.Drawing.Chams then
-            m.Drawing.Chams.Thermal = state == true
-        end
+        if m.Drawing and m.Drawing.Chams then m.Drawing.Chams.Thermal = state == true end
     end)
 end
-
 local function setEspChamsVisibleCheck(state)
     withModule(ESP_MODULE_NAME, function(m)
-        if m.Drawing and m.Drawing.Chams then
-            m.Drawing.Chams.VisibleCheck = state == true
-        end
+        if m.Drawing and m.Drawing.Chams then m.Drawing.Chams.VisibleCheck = state == true end
     end)
 end
-
 local function setEspFadeOut(state)
     withModule(ESP_MODULE_NAME, function(m)
-        if m.FadeOut then
-            m.FadeOut.OnDistance = state == true
-        end
+        if m.FadeOut then m.FadeOut.OnDistance = state == true end
     end)
 end
-
 local function setEspMaxDistance(value)
     withModule(ESP_MODULE_NAME, function(m)
-        if m.MaxDistance ~= nil then
-            m.MaxDistance = tonumber(value) or m.MaxDistance
-        end
+        if m.MaxDistance ~= nil then m.MaxDistance = tonumber(value) or m.MaxDistance end
     end)
 end
-
 local function setEspFontSize(value)
     withModule(ESP_MODULE_NAME, function(m)
-        if m.FontSize ~= nil then
-            m.FontSize = math.floor(tonumber(value) or m.FontSize)
-        end
+        if m.FontSize ~= nil then m.FontSize = math.floor(tonumber(value) or m.FontSize) end
     end)
 end
-
 local function setEspCornerThickness(value)
     withModule(ESP_MODULE_NAME, function(m)
-        if type(m.SetCornerThickness) == "function" then
-            m.SetCornerThickness(value)
+        if type(m.SetCornerThickness) == "function" then m.SetCornerThickness(value)
         elseif m.Drawing and m.Drawing.Boxes and m.Drawing.Boxes.Corner then
             m.Drawing.Boxes.Corner.Thickness = tonumber(value) or m.Drawing.Boxes.Corner.Thickness
         end
     end)
 end
-
 local function setEspCornerLength(value)
     withModule(ESP_MODULE_NAME, function(m)
-        if type(m.SetCornerLength) == "function" then
-            m.SetCornerLength(value)
+        if type(m.SetCornerLength) == "function" then m.SetCornerLength(value)
         elseif m.Drawing and m.Drawing.Boxes and m.Drawing.Boxes.Corner then
             m.Drawing.Boxes.Corner.Length = tonumber(value) or m.Drawing.Boxes.Corner.Length
         end
     end)
 end
-
 local function setEspSkeletonThickness(value)
     withModule(ESP_MODULE_NAME, function(m)
-        if type(m.setSkeletonThickness) == "function" then
-            m:setSkeletonThickness(value)
-        elseif type(m.SetSkeletonThickness) == "function" then
-            m.SetSkeletonThickness(value)
+        if type(m.setSkeletonThickness) == "function" then m:setSkeletonThickness(value)
+        elseif type(m.SetSkeletonThickness) == "function" then m.SetSkeletonThickness(value)
         elseif m.Drawing and m.Drawing.Skeleton then
             m.Drawing.Skeleton.Thickness = tonumber(value) or m.Drawing.Skeleton.Thickness
         end
     end)
 end
-
 local function setEspBoxRotationSpeed(value)
     withModule(ESP_MODULE_NAME, function(m)
         if m.Drawing and m.Drawing.Boxes then
@@ -474,7 +331,6 @@ local function setEspBoxRotationSpeed(value)
         end
     end)
 end
-
 local function setEspFilledTransparency(value)
     withModule(ESP_MODULE_NAME, function(m)
         if m.Drawing and m.Drawing.Boxes and m.Drawing.Boxes.Filled then
@@ -482,7 +338,6 @@ local function setEspFilledTransparency(value)
         end
     end)
 end
-
 local function setEspChamsFillTransparency(value)
     withModule(ESP_MODULE_NAME, function(m)
         if m.Drawing and m.Drawing.Chams then
@@ -490,7 +345,6 @@ local function setEspChamsFillTransparency(value)
         end
     end)
 end
-
 local function setEspChamsOutlineTransparency(value)
     withModule(ESP_MODULE_NAME, function(m)
         if m.Drawing and m.Drawing.Chams then
@@ -501,797 +355,732 @@ end
 
 local function setEspPlayerColor(color)
     withModule(ESP_MODULE_NAME, function(m)
-        if type(m.setPlayerColor) == "function" then
-            m:setPlayerColor(color)
+        if type(m.setPlayerColor) == "function" then m:setPlayerColor(color)
         elseif m.Drawing and m.Drawing.Boxes then
             if m.Drawing.Boxes.Corner then m.Drawing.Boxes.Corner.RGB = color end
-            if m.Drawing.Boxes.Full then m.Drawing.Boxes.Full.RGB = color end
-            m.Drawing.Boxes.GradientRGB1 = color
+            if m.Drawing.Boxes.Full   then m.Drawing.Boxes.Full.RGB   = color end
+            m.Drawing.Boxes.GradientRGB1     = color
             m.Drawing.Boxes.GradientFillRGB1 = color
         end
     end)
 end
-
 local function setEspGradientEndColor(color)
     withModule(ESP_MODULE_NAME, function(m)
-        if m.Drawing and m.Drawing.Boxes then
-            m.Drawing.Boxes.GradientRGB2 = color
-        end
+        if m.Drawing and m.Drawing.Boxes then m.Drawing.Boxes.GradientRGB2 = color end
     end)
 end
-
 local function setEspFillGradientStartColor(color)
     withModule(ESP_MODULE_NAME, function(m)
-        if m.Drawing and m.Drawing.Boxes then
-            m.Drawing.Boxes.GradientFillRGB1 = color
-        end
+        if m.Drawing and m.Drawing.Boxes then m.Drawing.Boxes.GradientFillRGB1 = color end
     end)
 end
-
 local function setEspFillGradientEndColor(color)
     withModule(ESP_MODULE_NAME, function(m)
-        if m.Drawing and m.Drawing.Boxes then
-            m.Drawing.Boxes.GradientFillRGB2 = color
-        end
+        if m.Drawing and m.Drawing.Boxes then m.Drawing.Boxes.GradientFillRGB2 = color end
     end)
 end
-
 local function setEspNameColor(color)
     withModule(ESP_MODULE_NAME, function(m)
-        if m.Drawing and m.Drawing.Names then
-            m.Drawing.Names.RGB = color
-        end
+        if m.Drawing and m.Drawing.Names then m.Drawing.Names.RGB = color end
     end)
 end
-
 local function setEspSkeletonColor(color)
     withModule(ESP_MODULE_NAME, function(m)
-        if type(m.setSkeletonColor) == "function" then
-            m:setSkeletonColor(color)
-        elseif type(m.SetSkeletonColor) == "function" then
-            m.SetSkeletonColor(color)
-        elseif m.Drawing and m.Drawing.Skeleton then
-            m.Drawing.Skeleton.RGB = color
-        end
+        if type(m.setSkeletonColor) == "function" then m:setSkeletonColor(color)
+        elseif type(m.SetSkeletonColor) == "function" then m.SetSkeletonColor(color)
+        elseif m.Drawing and m.Drawing.Skeleton then m.Drawing.Skeleton.RGB = color end
     end)
 end
-
 local function setEspWeaponColor(color)
     withModule(ESP_MODULE_NAME, function(m)
-        if m.Drawing and m.Drawing.Weapons then
-            m.Drawing.Weapons.RGB = color
-        end
+        if m.Drawing and m.Drawing.Weapons then m.Drawing.Weapons.RGB = color end
     end)
 end
-
 local function setEspDistanceColor(color)
     withModule(ESP_MODULE_NAME, function(m)
-        if m.Drawing and m.Drawing.Distances then
-            m.Drawing.Distances.RGB = color
-        end
+        if m.Drawing and m.Drawing.Distances then m.Drawing.Distances.RGB = color end
     end)
 end
-
 local function setEspChamsFillColor(color)
     withModule(ESP_MODULE_NAME, function(m)
-        if m.Drawing and m.Drawing.Chams then
-            m.Drawing.Chams.FillRGB = color
-        end
+        if m.Drawing and m.Drawing.Chams then m.Drawing.Chams.FillRGB = color end
     end)
 end
-
 local function setEspChamsOutlineColor(color)
     withModule(ESP_MODULE_NAME, function(m)
-        if m.Drawing and m.Drawing.Chams then
-            m.Drawing.Chams.OutlineRGB = color
-        end
-    end)
-end
-
-
-local function setEspDroneEnabled(state)
-    withModule(ESP_MODULE_NAME, function(m)
-        if type(m.ToggleDroneChams) == "function" then
-            m.ToggleDroneChams(state)
-        elseif m.ObjectChams and m.ObjectChams.Drones then
-            m.ObjectChams.Drones.Enabled = state == true
-        end
-    end)
-end
-
-local function setEspClaymoreEnabled(state)
-    withModule(ESP_MODULE_NAME, function(m)
-        if type(m.ToggleClaymoreChams) == "function" then
-            m.ToggleClaymoreChams(state)
-        elseif m.ObjectChams and m.ObjectChams.Claymores then
-            m.ObjectChams.Claymores.Enabled = state == true
-        end
+        if m.Drawing and m.Drawing.Chams then m.Drawing.Chams.OutlineRGB = color end
     end)
 end
 
 local function setEspObjectEnabled(key, state)
-    withModule(ESP_MODULE_NAME, function(m)
-        local fn = m and m["Toggle" .. key .. "Chams"]
-        if type(fn) == "function" then
-            fn(state)
-            return
-        end
-        if m and m.ObjectChams and m.ObjectChams[key] then
+    withModuleRetry(ESP_MODULE_NAME, function(m)
+        local fn = m["Toggle" .. key .. "Chams"]
+        if type(fn) == "function" then fn(state) return end
+        if m.ObjectChams and m.ObjectChams[key] then
             m.ObjectChams[key].Enabled = state == true
+            return true
         end
+        return false  
     end)
 end
 
+local function setEspObjectColor(key, color)
+    withModuleRetry(ESP_MODULE_NAME, function(m)
+        local fillFn    = m["Set" .. key .. "ChamsFill"]
+        local outlineFn = m["Set" .. key .. "ChamsOutline"]
+        if type(fillFn)    == "function" then fillFn(color) end
+        if type(outlineFn) == "function" then outlineFn(color) end
+        if m.ObjectChams and m.ObjectChams[key] then
+            m.ObjectChams[key].FillRGB    = color
+            m.ObjectChams[key].OutlineRGB = color
+            return true
+        end
+        return false
+    end)
+end
+
+local function setEspObjectTransparency(key, value)
+    withModuleRetry(ESP_MODULE_NAME, function(m)
+        if m.ObjectChams and m.ObjectChams[key] then
+            m.ObjectChams[key].FillTrans    = tonumber(value) or 0.5
+            m.ObjectChams[key].OutlineTrans = tonumber(value) or 0.5
+            return true
+        end
+        return false
+    end)
+end
+
+local function setEspObjectNamesEnabled(state)
+    withModuleRetry(ESP_MODULE_NAME, function(m)
+        if m.ObjectChams and m.ObjectChams.Names then
+            m.ObjectChams.Names.Enabled = state == true
+            return true
+        end
+        return false
+    end)
+end
+
+local function setEspDroneEnabled(state)
+    withModuleRetry(ESP_MODULE_NAME, function(m)
+        if type(m.ToggleDroneChams) == "function" then m.ToggleDroneChams(state) return true end
+        if m.ObjectChams and m.ObjectChams.Drones then
+            m.ObjectChams.Drones.Enabled = state == true
+            return true
+        end
+        return false
+    end)
+end
+
+local function setEspClaymoreEnabled(state)
+    withModuleRetry(ESP_MODULE_NAME, function(m)
+        if type(m.ToggleClaymoreChams) == "function" then m.ToggleClaymoreChams(state) return true end
+        if m.ObjectChams and m.ObjectChams.Claymores then
+            m.ObjectChams.Claymores.Enabled = state == true
+            return true
+        end
+        return false
+    end)
+end
+
+local function setEspDroneColor(color)
+    withModuleRetry(ESP_MODULE_NAME, function(m)
+        if type(m.SetDroneChamsFill)    == "function" then m.SetDroneChamsFill(color) end
+        if type(m.SetDroneChamsOutline) == "function" then m.SetDroneChamsOutline(color) end
+        if m.ObjectChams and m.ObjectChams.Drones then
+            m.ObjectChams.Drones.FillRGB    = color
+            m.ObjectChams.Drones.OutlineRGB = color
+            return true
+        end
+        return false
+    end)
+end
+
+local function setEspClaymoreColor(color)
+    withModuleRetry(ESP_MODULE_NAME, function(m)
+        if type(m.SetClaymoreChamsFill)    == "function" then m.SetClaymoreChamsFill(color) end
+        if type(m.SetClaymoreChamsOutline) == "function" then m.SetClaymoreChamsOutline(color) end
+        if m.ObjectChams and m.ObjectChams.Claymores then
+            m.ObjectChams.Claymores.FillRGB    = color
+            m.ObjectChams.Claymores.OutlineRGB = color
+            return true
+        end
+        return false
+    end)
+end
+
+local function setEspDroneTransparency(value)
+    withModuleRetry(ESP_MODULE_NAME, function(m)
+        if m.ObjectChams and m.ObjectChams.Drones then
+            m.ObjectChams.Drones.FillTrans    = tonumber(value) or 0.5
+            m.ObjectChams.Drones.OutlineTrans = tonumber(value) or 0.5
+            return true
+        end
+        return false
+    end)
+end
+
+local function setEspClaymoreTransparency(value)
+    withModuleRetry(ESP_MODULE_NAME, function(m)
+        if m.ObjectChams and m.ObjectChams.Claymores then
+            m.ObjectChams.Claymores.FillTrans    = tonumber(value) or 0.5
+            m.ObjectChams.Claymores.OutlineTrans = tonumber(value) or 0.5
+            return true
+        end
+        return false
+    end)
+end
 
 local function setEspGadgetsEnabled(state)
     setEspDroneEnabled(state)
     setEspClaymoreEnabled(state)
     for _, key in ipairs({
-        "ProximityAlarm",
-        "StickyCamera",
-        "RemoteC4",
-        "ThermiteCharge",
-        "ToxicCharge",
-        "BreachCharge",
-        "HardBreachCharge",
-        "ShockBattery",
-        "DeployableShield",
-        "BarbedWire",
-        "SignalDisruptor",
-        "BulletproofCamera",
+        "ProximityAlarm","StickyCamera","RemoteC4","ThermiteCharge","ToxicCharge",
+        "BreachCharge","HardBreachCharge","ShockBattery","DeployableShield",
+        "BarbedWire","SignalDisruptor","BulletproofCamera",
     }) do
         setEspObjectEnabled(key, state)
     end
 end
 
-local function setEspDroneColor(color)
-    withModule(ESP_MODULE_NAME, function(m)
-        if type(m.SetDroneChamsFill) == "function" then m.SetDroneChamsFill(color) end
-        if type(m.SetDroneChamsOutline) == "function" then m.SetDroneChamsOutline(color) end
-        if m.ObjectChams and m.ObjectChams.Drones then
-            m.ObjectChams.Drones.FillRGB = color
-            m.ObjectChams.Drones.OutlineRGB = color
-        end
-    end)
-end
-
-local function setEspClaymoreColor(color)
-    withModule(ESP_MODULE_NAME, function(m)
-        if type(m.SetClaymoreChamsFill) == "function" then m.SetClaymoreChamsFill(color) end
-        if type(m.SetClaymoreChamsOutline) == "function" then m.SetClaymoreChamsOutline(color) end
-        if m.ObjectChams and m.ObjectChams.Claymores then
-            m.ObjectChams.Claymores.FillRGB = color
-            m.ObjectChams.Claymores.OutlineRGB = color
-        end
-    end)
-end
-
-local function setEspObjectColor(key, color)
-    withModule(ESP_MODULE_NAME, function(m)
-        local fillFn = m and m["Set" .. key .. "ChamsFill"]
-        local outlineFn = m and m["Set" .. key .. "ChamsOutline"]
-        if type(fillFn) == "function" then
-            fillFn(color)
-        end
-        if type(outlineFn) == "function" then
-            outlineFn(color)
-        end
-        if m and m.ObjectChams and m.ObjectChams[key] then
-            m.ObjectChams[key].FillRGB = color
-            m.ObjectChams[key].OutlineRGB = color
-        end
-    end)
-end
-
-local function setEspDroneTransparency(value)
-    withModule(ESP_MODULE_NAME, function(m)
-        if type(m.SetDroneChamsFill) == "function" then m.SetDroneChamsFill(nil, value) end
-        if m.ObjectChams and m.ObjectChams.Drones then
-            m.ObjectChams.Drones.FillTrans = value
-        end
-    end)
-end
-
-local function setEspClaymoreTransparency(value)
-    withModule(ESP_MODULE_NAME, function(m)
-        if type(m.SetClaymoreChamsFill) == "function" then m.SetClaymoreChamsFill(nil, value) end
-        if m.ObjectChams and m.ObjectChams.Claymores then
-            m.ObjectChams.Claymores.FillTrans = value
-        end
-    end)
-end
-
-local function setEspObjectNamesEnabled(state)
-    withModule(ESP_MODULE_NAME, function(m)
-        if m.ObjectChams and m.ObjectChams.Names then
-            m.ObjectChams.Names.Enabled = state == true
-        end
-    end)
-end
-
 local function setRadarFlag(key, state)
-    withModule(ESP_MODULE_NAME, function(m)
+    withModuleRetry(ESP_MODULE_NAME, function(m)
         if m.Radar and m.Radar[key] ~= nil then
             m.Radar[key] = state == true
+            return true
         end
+        return false
     end)
 end
 
 local function setRadarNumber(key, value)
-    withModule(ESP_MODULE_NAME, function(m)
+    withModuleRetry(ESP_MODULE_NAME, function(m)
         if m.Radar and type(m.Radar[key]) == "number" then
             m.Radar[key] = value
+            return true
         end
+        return false
     end)
 end
 
 local function setRadarPositionX(value)
-    withModule(ESP_MODULE_NAME, function(m)
-        if m.Radar and m.Radar.Position and type(value) == "number" then
+    withModuleRetry(ESP_MODULE_NAME, function(m)
+        if m.Radar and m.Radar.Position then
             m.Radar.Position = Vector2.new(value, m.Radar.Position.Y)
+            return true
         end
+        return false
     end)
 end
 
 local function setRadarPositionY(value)
-    withModule(ESP_MODULE_NAME, function(m)
-        if m.Radar and m.Radar.Position and type(value) == "number" then
+    withModuleRetry(ESP_MODULE_NAME, function(m)
+        if m.Radar and m.Radar.Position then
             m.Radar.Position = Vector2.new(m.Radar.Position.X, value)
+            return true
         end
+        return false
     end)
 end
 
 local function setRadarThemeColor(key, color)
-    withModule(ESP_MODULE_NAME, function(m)
+    withModuleRetry(ESP_MODULE_NAME, function(m)
         if m.Radar and m.Radar.Theme and typeof(color) == "Color3" then
             m.Radar.Theme[key] = color
+            return true
         end
+        return false
     end)
-end
-
-local RadarControls = {
-    setObjectNamesEnabled = setEspObjectNamesEnabled,
-    setFlag = setRadarFlag,
-    setNumber = setRadarNumber,
-    setPositionX = setRadarPositionX,
-    setPositionY = setRadarPositionY,
-    setThemeColor = setRadarThemeColor,
-}
-
-local function makeRadarFlagHandler(key)
-    return function(v)
-        RadarControls.setFlag(key, v)
-    end
-end
-
-local function makeRadarNumberHandler(key)
-    return function(v)
-        RadarControls.setNumber(key, v)
-    end
-end
-
-local function makeRadarThemeHandler(key)
-    return function(c)
-        RadarControls.setThemeColor(key, c)
-    end
-end
-
-local function makeObjectEnabledHandler(key)
-    return function(state)
-        setEspObjectEnabled(key, state)
-    end
-end
-
-local function makeObjectColorHandler(key)
-    return function(c)
-        setEspObjectColor(key, c)
-    end
-end
-
-local function buildEspGadgetAndRadarTabs(window, addPresetColorDropdown)
-    local gadgetTab = window:addTab("ESP Gadgets")
-    window:switchTab(gadgetTab)
-    window:addSection("Gadgets")
-    window:addToggle("Drone Chams", false, setEspDroneEnabled)
-    window:addToggle("Claymore Chams", false, setEspClaymoreEnabled)
-    window:addToggle("Proximity Alarm Chams", false, makeObjectEnabledHandler("ProximityAlarm"))
-    window:addToggle("Sticky Camera Chams", false, makeObjectEnabledHandler("StickyCamera"))
-    window:addToggle("Remote C4 Chams", false, makeObjectEnabledHandler("RemoteC4"))
-    window:addToggle("Thermite Charge Chams", false, makeObjectEnabledHandler("ThermiteCharge"))
-    window:addToggle("Toxic Charge Chams", false, makeObjectEnabledHandler("ToxicCharge"))
-    window:addToggle("Breach Charge Chams", false, makeObjectEnabledHandler("BreachCharge"))
-    window:addToggle("Hard Breach Chams", false, makeObjectEnabledHandler("HardBreachCharge"))
-    window:addToggle("Shock Battery Chams", false, makeObjectEnabledHandler("ShockBattery"))
-    window:addToggle("Deployable Shield Chams", false, makeObjectEnabledHandler("DeployableShield"))
-    window:addToggle("Barbed Wire Chams", false, makeObjectEnabledHandler("BarbedWire"))
-    window:addToggle("Signal Disruptor Chams", false, makeObjectEnabledHandler("SignalDisruptor"))
-    window:addToggle("Bulletproof Camera Chams", false, makeObjectEnabledHandler("BulletproofCamera"))
-    window:addSlider("Drone Transparency", 0, 1, 0.5, 0.01, setEspDroneTransparency)
-    window:addSlider("Claymore Transparency", 0, 1, 0.5, 0.01, setEspClaymoreTransparency)
-    addPresetColorDropdown("Drone Color", Color3.fromRGB(0, 255, 255), setEspDroneColor)
-    addPresetColorDropdown("Claymore Color", Color3.fromRGB(255, 0, 0), setEspClaymoreColor)
-    window:addSection("Object Colors")
-    addPresetColorDropdown("Proximity Alarm Color", Color3.fromRGB(255, 150, 0), makeObjectColorHandler("ProximityAlarm"))
-    addPresetColorDropdown("Sticky Camera Color", Color3.fromRGB(0, 200, 255), makeObjectColorHandler("StickyCamera"))
-    addPresetColorDropdown("Remote C4 Color", Color3.fromRGB(255, 50, 50), makeObjectColorHandler("RemoteC4"))
-    addPresetColorDropdown("Thermite Charge Color", Color3.fromRGB(255, 120, 0), makeObjectColorHandler("ThermiteCharge"))
-    addPresetColorDropdown("Toxic Charge Color", Color3.fromRGB(80, 255, 80), makeObjectColorHandler("ToxicCharge"))
-    addPresetColorDropdown("Breach Charge Color", Color3.fromRGB(255, 80, 80), makeObjectColorHandler("BreachCharge"))
-    addPresetColorDropdown("Hard Breach Color", Color3.fromRGB(200, 80, 255), makeObjectColorHandler("HardBreachCharge"))
-    addPresetColorDropdown("Shock Battery Color", Color3.fromRGB(255, 255, 0), makeObjectColorHandler("ShockBattery"))
-    addPresetColorDropdown("Deployable Shield Color", Color3.fromRGB(100, 180, 255), makeObjectColorHandler("DeployableShield"))
-    addPresetColorDropdown("Barbed Wire Color", Color3.fromRGB(180, 140, 80), makeObjectColorHandler("BarbedWire"))
-    addPresetColorDropdown("Signal Disruptor Color", Color3.fromRGB(80, 80, 255), makeObjectColorHandler("SignalDisruptor"))
-    addPresetColorDropdown("Bulletproof Camera Color", Color3.fromRGB(0, 255, 200), makeObjectColorHandler("BulletproofCamera"))
-    window:addSection("Object Names")
-    window:addToggle("Object Names", false, RadarControls.setObjectNamesEnabled)
-
-    local radarTab = window:addTab("Radar")
-    window:switchTab(radarTab)
-    window:addSection("Radar Core")
-    window:addToggle("Radar Enabled", false, makeRadarFlagHandler("Enabled"))
-    window:addToggle("Radar Lines", true, makeRadarFlagHandler("Lines"))
-    window:addToggle("Radar Rotation", false, makeRadarFlagHandler("Rotation"))
-    window:addToggle("Radar Smooth Rot", true, makeRadarFlagHandler("SmoothRot"))
-    window:addToggle("Radar Cardinal Display", true, makeRadarFlagHandler("CardinalDisplay"))
-    window:addToggle("Radar Show Offscreen", true, makeRadarFlagHandler("ShowOffscreen"))
-    window:addToggle("Radar Display Teammates", false, makeRadarFlagHandler("DisplayTeammates"))
-    window:addToggle("Radar Display Team Colors", true, makeRadarFlagHandler("DisplayTeamColors"))
-    window:addToggle("Radar Display Friend Colors", true, makeRadarFlagHandler("DisplayFriendColors"))
-    window:addToggle("Radar Display RGB Colors", false, makeRadarFlagHandler("DisplayRGBColors"))
-    window:addToggle("Radar Marker Falloff", true, makeRadarFlagHandler("MarkerFalloff"))
-    window:addToggle("Radar Use Fallback", false, makeRadarFlagHandler("UseFallback"))
-    window:addToggle("Radar Use Quads", true, makeRadarFlagHandler("UseQuads"))
-    window:addToggle("Radar Use Team Colors", false, makeRadarFlagHandler("UseTeamColors"))
-    window:addToggle("Radar Visibility Check", false, makeRadarFlagHandler("VisibilityCheck"))
-
-    window:addSection("Radar Scale")
-    window:addSlider("Radar Line Distance", 1, 200, 50, 1, makeRadarNumberHandler("LineDistance"))
-    window:addSlider("Radar Scale", 0.1, 5, 1, 0.05, makeRadarNumberHandler("Scale"))
-    window:addSlider("Radar Radius", 50, 400, 120, 1, makeRadarNumberHandler("Radius"))
-    window:addSlider("Radar Range", 50, 1000, 300, 10, makeRadarNumberHandler("Range"))
-    window:addSlider("Radar Pos X", 0, 2000, 170, 1, function(v) RadarControls.setPositionX(v) end)
-    window:addSlider("Radar Pos Y", 0, 1200, 170, 1, function(v) RadarControls.setPositionY(v) end)
-    window:addSlider("Radar Smooth Rot Amount", 0, 100, 30, 1, makeRadarNumberHandler("SmoothRotAmnt"))
-
-    window:addSection("Radar Markers")
-    window:addSlider("Radar Marker Size", 1, 20, 2, 1, makeRadarNumberHandler("MarkerSize"))
-    window:addSlider("Radar Marker Scale Base", 0.1, 5, 1, 0.05, makeRadarNumberHandler("MarkerScaleBase"))
-    window:addSlider("Radar Marker Scale Min", 0.1, 5, 0.75, 0.05, makeRadarNumberHandler("MarkerScaleMin"))
-    window:addSlider("Radar Marker Scale Max", 0.1, 5, 1, 0.05, makeRadarNumberHandler("MarkerScaleMax"))
-    window:addSlider("Radar Marker Falloff Amount", 1, 500, 125, 1, makeRadarNumberHandler("MarkerFalloffAmnt"))
-    window:addSlider("Radar Offscreen Transparency", 0, 1, 0.3, 0.01, makeRadarNumberHandler("OffscreenTransparency"))
-    window:addSlider("Radar Self Dot Size", 1, 20, 2, 1, makeRadarNumberHandler("SelfDotSize"))
-
-    window:addSection("Radar Theme")
-    addPresetColorDropdown("Radar Outline", Color3.fromRGB(35, 35, 45), makeRadarThemeHandler("Outline"))
-    addPresetColorDropdown("Radar Background", Color3.fromRGB(25, 25, 35), makeRadarThemeHandler("Background"))
-    addPresetColorDropdown("Radar Drag Handle", Color3.fromRGB(50, 50, 255), makeRadarThemeHandler("DragHandle"))
-    addPresetColorDropdown("Radar Cardinal Lines", Color3.fromRGB(110, 110, 120), makeRadarThemeHandler("Cardinal_Lines"))
-    addPresetColorDropdown("Radar Distance Lines", Color3.fromRGB(65, 65, 75), makeRadarThemeHandler("Distance_Lines"))
-    addPresetColorDropdown("Radar Generic Marker", Color3.fromRGB(255, 25, 115), makeRadarThemeHandler("Generic_Marker"))
-    addPresetColorDropdown("Radar Local Marker", Color3.fromRGB(115, 25, 255), makeRadarThemeHandler("Local_Marker"))
-    addPresetColorDropdown("Radar Team Marker", Color3.fromRGB(25, 115, 255), makeRadarThemeHandler("Team_Marker"))
-    addPresetColorDropdown("Radar Friend Marker", Color3.fromRGB(25, 255, 115), makeRadarThemeHandler("Friend_Marker"))
 end
 
 local function setFullbright(state)
     withModule("fullbright", function(m)
-        if type(m.setEnabled) == "function" then
-            m:setEnabled(state)
-        elseif type(m.toggle) == "function" then
-            m:toggle()
-        end
+        if type(m.setEnabled) == "function" then m:setEnabled(state)
+        elseif type(m.toggle) == "function" then m:toggle() end
     end)
 end
-
 local function setFullbrightSetting(key, value)
     withModule("fullbright", function(m)
-        if type(m.setSetting) == "function" then
-            m:setSetting(key, value)
-        end
+        if type(m.setSetting) == "function" then m:setSetting(key, value) end
     end)
 end
 
 local function setAttachmentEditorOption(key, value)
     withModule("attachment_editor", function(m)
-        if type(m.setOption) == "function" then
-            m:setOption(key, value)
-        elseif type(m.updateConfig) == "function" then
-            m:updateConfig({ [key] = value })
-        end
+        if type(m.setOption) == "function" then m:setOption(key, value)
+        elseif type(m.updateConfig) == "function" then m:updateConfig({ [key] = value }) end
     end)
 end
-
 local function applyAttachmentEditor()
     withModule("attachment_editor", function(m)
         if type(m.applyAll) == "function" then
-            local okApply, errApply = m:applyAll()
-            if okApply == false then
-                error(errApply)
-            end
+            local ok, err = m:applyAll()
+            if ok == false then error(err) end
         end
     end)
 end
 
 local function applyDefaults()
-    setSilentAim(false)
-    setSilentAimFov(60)
-    setSilentAimSmoothness(1)
-    setSilentAimMode("silent")
-    setSilentAimTeamCheck(true)
-    setAimAssistActivation("mb2")
-    setSilentAimTargetMode("custom_parts")
-    setSilentAimTargetGadgets(false)
-    setSilentAimVisibleCheck(false)
+    setSilentAim(false); setSilentAimFov(60); setSilentAimSmoothness(1)
+    setSilentAimMode("silent"); setSilentAimTeamCheck(true)
+    setAimAssistActivation("mb2"); setSilentAimTargetMode("custom_parts")
+    setSilentAimTargetGadgets(false); setSilentAimVisibleCheck(false)
     setSilentAimFovCircleVisual(true)
 
-    setGunModEnabled(false)
-    setGunModConfig("recoil_reduction", 0)
-    setGunModConfig("horizontal_recoil", 0)
-    setGunModConfig("no_spread", false)
+    setGunModEnabled(false); setGunModConfig("recoil_reduction", 0)
+    setGunModConfig("horizontal_recoil", 0); setGunModConfig("no_spread", false)
     setGunModConfig("force_auto", false)
 
-    setEspEnabled(false)
-    setEspTeamCheck(false)
-    setEspPlayers(false)
-    setEspCorners(false)
-    setEspFilled(false)
-    setEspBoxGradient(true)
-    setEspBoxAnimate(false)
-    setEspBoxGradientFill(true)
-    setEspHealthBar(false)
-    setEspSkeleton(false)
-    setEspFadeOut(false)
-    setEspNames(false)
-    setEspDistances(false)
-    setEspWeapons(false)
-    setEspChams(false)
-    setEspChamsThermal(false)
-    setEspChamsVisibleCheck(false)
-    setEspMaxDistance(1000)
-    setEspFontSize(11)
-    setEspCornerThickness(1)
-    setEspCornerLength(15)
-    setEspSkeletonThickness(1)
-    setEspBoxRotationSpeed(300)
-    setEspFilledTransparency(0.75)
-    setEspChamsFillTransparency(50)
+    setEspEnabled(false); setEspTeamCheck(false); setEspPlayers(false)
+    setEspCorners(false); setEspFilled(false); setEspBoxGradient(true)
+    setEspBoxAnimate(false); setEspBoxGradientFill(true); setEspHealthBar(false)
+    setEspSkeleton(false); setEspFadeOut(false); setEspNames(false)
+    setEspDistances(false); setEspWeapons(false); setEspChams(false)
+    setEspChamsThermal(false); setEspChamsVisibleCheck(false)
+    setEspMaxDistance(1000); setEspFontSize(11); setEspCornerThickness(1)
+    setEspCornerLength(15); setEspSkeletonThickness(1); setEspBoxRotationSpeed(300)
+    setEspFilledTransparency(0.75); setEspChamsFillTransparency(50)
     setEspChamsOutlineTransparency(50)
-    setEspPlayerColor(Color3.fromRGB(255, 255, 255))
-    setEspGradientEndColor(Color3.fromRGB(0, 0, 0))
-    setEspFillGradientStartColor(Color3.fromRGB(255, 255, 255))
-    setEspFillGradientEndColor(Color3.fromRGB(0, 0, 0))
-    setEspSkeletonColor(Color3.fromRGB(255, 255, 255))
-    setEspNameColor(Color3.fromRGB(255, 255, 255))
-    setEspDistanceColor(Color3.fromRGB(255, 255, 255))
-    setEspWeaponColor(Color3.fromRGB(255, 255, 255))
-    setEspChamsFillColor(Color3.fromRGB(255, 80, 80))
-    setEspChamsOutlineColor(Color3.fromRGB(255, 255, 255))
-    setEspGadgetsEnabled(false)
-    RadarControls.setObjectNamesEnabled(false)
-    RadarControls.setFlag("Enabled", false)
-    RadarControls.setFlag("Lines", true)
-    RadarControls.setFlag("Rotation", false)
-    RadarControls.setFlag("SmoothRot", true)
-    RadarControls.setFlag("CardinalDisplay", true)
-    RadarControls.setFlag("ShowOffscreen", true)
-    RadarControls.setFlag("DisplayTeammates", false)
-    RadarControls.setFlag("DisplayTeamColors", true)
-    RadarControls.setFlag("DisplayFriendColors", true)
-    RadarControls.setFlag("DisplayRGBColors", false)
-    RadarControls.setFlag("MarkerFalloff", true)
-    RadarControls.setFlag("UseFallback", false)
-    RadarControls.setFlag("UseQuads", true)
-    RadarControls.setFlag("UseTeamColors", false)
-    RadarControls.setFlag("VisibilityCheck", false)
-    RadarControls.setNumber("LineDistance", 50)
-    RadarControls.setNumber("Scale", 1)
-    RadarControls.setNumber("Radius", 120)
-    RadarControls.setNumber("Range", 300)
-    RadarControls.setPositionX(170)
-    RadarControls.setPositionY(170)
-    RadarControls.setNumber("SmoothRotAmnt", 30)
-    RadarControls.setNumber("MarkerSize", 2)
-    RadarControls.setNumber("MarkerScaleBase", 1)
-    RadarControls.setNumber("MarkerScaleMax", 1)
-    RadarControls.setNumber("MarkerScaleMin", 0.75)
-    RadarControls.setNumber("MarkerFalloffAmnt", 125)
-    RadarControls.setNumber("OffscreenTransparency", 0.3)
-    RadarControls.setNumber("SelfDotSize", 2)
-    RadarControls.setThemeColor("Outline", Color3.fromRGB(35, 35, 45))
-    RadarControls.setThemeColor("Background", Color3.fromRGB(25, 25, 35))
-    RadarControls.setThemeColor("DragHandle", Color3.fromRGB(50, 50, 255))
-    RadarControls.setThemeColor("Cardinal_Lines", Color3.fromRGB(110, 110, 120))
-    RadarControls.setThemeColor("Distance_Lines", Color3.fromRGB(65, 65, 75))
-    RadarControls.setThemeColor("Generic_Marker", Color3.fromRGB(255, 25, 115))
-    RadarControls.setThemeColor("Local_Marker", Color3.fromRGB(115, 25, 255))
-    RadarControls.setThemeColor("Team_Marker", Color3.fromRGB(25, 115, 255))
-    RadarControls.setThemeColor("Friend_Marker", Color3.fromRGB(25, 255, 115))
-    setEspDroneEnabled(false)
-    setEspClaymoreEnabled(false)
-    setEspDroneTransparency(0.5)
-    setEspClaymoreTransparency(0.5)
-    setEspDroneColor(Color3.fromRGB(0, 255, 255))
-    setEspClaymoreColor(Color3.fromRGB(255, 0, 0))
 
-    setFullbright(false)
-    setFullbrightSetting("Brightness", 1)
-    setFullbrightSetting("ClockTime", 12)
-    setFullbrightSetting("FogEnd", 786543)
+    setEspPlayerColor(Color3.fromRGB(255,255,255))
+    setEspGradientEndColor(Color3.fromRGB(0,0,0))
+    setEspFillGradientStartColor(Color3.fromRGB(255,255,255))
+    setEspFillGradientEndColor(Color3.fromRGB(0,0,0))
+    setEspSkeletonColor(Color3.fromRGB(255,255,255))
+    setEspNameColor(Color3.fromRGB(255,255,255))
+    setEspDistanceColor(Color3.fromRGB(255,255,255))
+    setEspWeaponColor(Color3.fromRGB(255,255,255))
+    setEspChamsFillColor(Color3.fromRGB(255,80,80))
+    setEspChamsOutlineColor(Color3.fromRGB(255,255,255))
+
+    setEspGadgetsEnabled(false); setEspObjectNamesEnabled(false)
+    setEspDroneTransparency(0.5); setEspClaymoreTransparency(0.5)
+    setEspDroneColor(Color3.fromRGB(0,255,255))
+    setEspClaymoreColor(Color3.fromRGB(255,0,0))
+
+    setRadarFlag("Enabled", false); setRadarFlag("Lines", true)
+    setRadarFlag("Rotation", false); setRadarFlag("SmoothRot", true)
+    setRadarFlag("CardinalDisplay", true); setRadarFlag("ShowOffscreen", true)
+    setRadarFlag("DisplayTeammates", false); setRadarFlag("DisplayTeamColors", true)
+    setRadarFlag("DisplayFriendColors", true); setRadarFlag("DisplayRGBColors", false)
+    setRadarFlag("MarkerFalloff", true); setRadarFlag("UseFallback", false)
+    setRadarFlag("UseQuads", true); setRadarFlag("UseTeamColors", false)
+    setRadarFlag("VisibilityCheck", false)
+    setRadarNumber("LineDistance", 50); setRadarNumber("Scale", 1)
+    setRadarNumber("Radius", 120); setRadarNumber("Range", 300)
+    setRadarNumber("SmoothRotAmnt", 30); setRadarNumber("MarkerSize", 2)
+    setRadarNumber("MarkerScaleBase", 1); setRadarNumber("MarkerScaleMax", 1)
+    setRadarNumber("MarkerScaleMin", 0.75); setRadarNumber("MarkerFalloffAmnt", 125)
+    setRadarNumber("OffscreenTransparency", 0.3); setRadarNumber("SelfDotSize", 2)
+    setRadarPositionX(170); setRadarPositionY(170)
+    setRadarThemeColor("Outline",        Color3.fromRGB(35,35,45))
+    setRadarThemeColor("Background",     Color3.fromRGB(25,25,35))
+    setRadarThemeColor("DragHandle",     Color3.fromRGB(50,50,255))
+    setRadarThemeColor("Cardinal_Lines", Color3.fromRGB(110,110,120))
+    setRadarThemeColor("Distance_Lines", Color3.fromRGB(65,65,75))
+    setRadarThemeColor("Generic_Marker", Color3.fromRGB(255,25,115))
+    setRadarThemeColor("Local_Marker",   Color3.fromRGB(115,25,255))
+    setRadarThemeColor("Team_Marker",    Color3.fromRGB(25,115,255))
+    setRadarThemeColor("Friend_Marker",  Color3.fromRGB(25,255,115))
+
+    setFullbright(false); setFullbrightSetting("Brightness", 1)
+    setFullbrightSetting("ClockTime", 12); setFullbrightSetting("FogEnd", 786543)
     setFullbrightSetting("GlobalShadows", false)
-    setFullbrightSetting("Ambient", Color3.fromRGB(178, 178, 178))
+    setFullbrightSetting("Ambient", Color3.fromRGB(178,178,178))
 
     setAttachmentEditorOption("skin", "Default")
     setAttachmentEditorOption("charm", "Default")
-
 end
 
 local function runStartupInit()
-    local initOrder = { "silent_aim", "gun_modification", ESP_MODULE_NAME, "fullbright"}
-    for _, name in ipairs(initOrder) do
-        initModule(name, false)
-    end
+    local initOrder = { "silent_aim", "gun_modification", ESP_MODULE_NAME, "fullbright" }
+    for _, name in ipairs(initOrder) do initModule(name, false) end
     applyDefaults()
     log("init complete")
 end
 
-local function loadUiLibrary()
-    local compiler = loadstring or load
-    if type(compiler) ~= "function" then
-        return nil, "loadstring/load unavailable"
-    end
+local repo         = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+local Library      = loadstring(game:HttpGet(repo .. "Library.lua"))()
+local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
+local SaveManager  = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
+local Options      = Library.Options
+local Toggles      = Library.Toggles
 
-    local function loadUiFromSource(source, sourceLabel)
-        source = tostring(source)
-        source = source:gsub("â€¢", "-"):gsub("•", "-")
-        source = source:gsub("â€”", "-"):gsub("—", "-")
-        source = source:gsub("â–¾", "v"):gsub("▾", "v")
+local function buildObsidianUi()
+    local Window = Library:CreateWindow({
+        Title            = "ASTRO.WTF",
+        Footer           = "discord.gg/NtBMqWXySm",
+        NotifySide       = "Right",
+        ShowCustomCursor = true,
+        Center           = true,
+        AutoShow         = true,
+    })
 
-        local okLib, libOrErr = pcall(function()
-            local chunk = compiler(source, "@uilib:" .. tostring(sourceLabel))
-            if type(chunk) ~= "function" then
-                error("ui compile returned non-function")
-            end
-            return chunk()
-        end)
-        if okLib and type(libOrErr) == "table" then
-            return libOrErr
-        end
-        return nil, tostring(libOrErr)
-    end
-
-    if type(readfile) == "function" then
-        for _, localPath in ipairs(UILIB_LOCAL_PATHS) do
-            local okRead, source = pcall(readfile, localPath)
-            if okRead and type(source) == "string" and source ~= "" then
-                local lib, err = loadUiFromSource(source, "local:" .. localPath)
-                if lib then
-                    log("UI loaded from local file: " .. localPath)
-                    return lib
-                end
-                log("UI local load failed (" .. tostring(localPath) .. ") -> " .. tostring(err))
-            end
-        end
-    end
-
-    local okHttp, httpSource = pcall(function()
-        return game:HttpGet(UILIB_URL)
-    end)
-    if okHttp and type(httpSource) == "string" and httpSource ~= "" then
-        local lib, err = loadUiFromSource(httpSource, "url:" .. UILIB_URL)
-        if lib then
-            log("UI loaded from url: " .. UILIB_URL)
-            return lib
-        end
-        return nil, "ui url compile/runtime error: " .. tostring(err)
-    end
-
-    return nil, "local ui file missing (" .. UILIB_LOCAL_PATH .. ") and url fetch failed: " .. UILIB_URL
-end
-
-local function buildAkUi(lib)
-    if type(lib.new) ~= "function" then
-        error("ui_lib.lua does not expose .new")
-    end
-
-    local window = lib.new("ASTRO.WTF", Enum.KeyCode.RightShift)
-    window._userResized = true
-    window._manualWidth = 400
-    window._manualHeight = 200
-    window.mainFrame.Size = UDim2.new(0, 400, 0, 200)
-    window:_updateScroll()
-    if type(window.setConfigFolder) == "function" then
-        window:setConfigFolder("ASTROConfigs")
-    end
-
-
-    local presetColors = {
-        Red = Color3.fromRGB(255, 0, 0),
-        Green = Color3.fromRGB(0, 255, 0),
-        Blue = Color3.fromRGB(0, 0, 255),
-        Cyan = Color3.fromRGB(0, 255, 255),
-        Yellow = Color3.fromRGB(255, 255, 0),
-        Orange = Color3.fromRGB(255, 165, 0),
-        Pink = Color3.fromRGB(255, 192, 203),
-        White = Color3.fromRGB(255, 255, 255),
-        Gray = Color3.fromRGB(178, 178, 178),
+    local Tabs = {
+        Combat   = Window:AddTab("Combat",      "crosshair"),
+        Visuals  = Window:AddTab("Visuals",     "eye"),
+        Gadgets  = Window:AddTab("ESP Gadgets", "box"),
+        Radar    = Window:AddTab("Radar",       "radio"),
+        Local    = Window:AddTab("Local",       "user"),
+        Settings = Window:AddTab("UI Settings", "settings"),
     }
-    local colorNames = { "Red", "Green", "Blue", "Cyan", "Yellow", "Orange", "Pink", "White", "Gray" }
 
-    local function nearestColorName(target)
-        local bestName, bestDist = "White", math.huge
-        for name, c in pairs(presetColors) do
-            local dr = target.R - c.R
-            local dg = target.G - c.G
-            local db = target.B - c.B
-            local dist = dr * dr + dg * dg + db * db
-            if dist < bestDist then
-                bestDist = dist
-                bestName = name
+    local function cp(box, label, idx, default, cb)
+        box:AddLabel(label):AddColorPicker(idx, { Default = default, Callback = cb })
+    end
+
+    local AimL = Tabs.Combat:AddLeftGroupbox("Aimbot")
+    local AimR = Tabs.Combat:AddRightGroupbox("Weapon")
+
+    AimL:AddToggle("SA_Enabled", {
+        Text = "Silent Aim / Aimbot", Default = false, Risky = true,
+        Tooltip = "Redirect bullets to nearest enemy in FOV",
+        Callback = setSilentAim,
+    })
+    AimL:AddToggle("SA_TeamCheck", {
+        Text = "Team Check", Default = true,
+        Tooltip = "Skip teammates",
+        Callback = setSilentAimTeamCheck,
+    })
+    AimL:AddToggle("SA_VisCheck", {
+        Text = "Visible Check", Default = false,
+        Tooltip = "Only lock visible players",
+        Callback = setSilentAimVisibleCheck,
+    })
+    AimL:AddToggle("SA_FOVCircle", {
+        Text = "FOV Circle", Default = true,
+        Tooltip = "Draw FOV boundary on screen",
+        Callback = setSilentAimFovCircleVisual,
+    })
+    AimL:AddSlider("SA_FOV", {
+        Text = "FOV Radius", Default = 60, Min = 10, Max = 400, Rounding = 0,
+        Callback = setSilentAimFov,
+    })
+    AimL:AddSlider("SA_Smooth", {
+        Text = "Smoothness", Default = 100, Min = 1, Max = 100, Rounding = 0, Suffix = "%",
+        Callback = function(v) setSilentAimSmoothness(v / 100) end,
+    })
+    AimL:AddDropdown("SA_Mode", {
+        Values = { "silent", "aim_assist" }, Default = 1,
+        Text = "Aim Mode",
+        Callback = setSilentAimMode,
+    })
+    AimL:AddDropdown("SA_Activation", {
+        Values = { "mb2", "mb1", "always", "mobile" }, Default = 1,
+        Text = "Activation",
+        Callback = setAimAssistActivation,
+    })
+    AimL:AddDropdown("SA_TargetMode", {
+        Values = { "custom_parts", "head_only" }, Default = 1,
+        Text = "Target Mode",
+        Callback = setSilentAimTargetMode,
+    })
+    AimL:AddToggle("SA_TargetGadgets", {
+        Text = "Target Gadgets", Default = false,
+        Callback = setSilentAimTargetGadgets,
+    })
+
+    AimR:AddToggle("GM_Enabled", {
+        Text = "Gun Mod Enabled", Default = false, Risky = true,
+        Callback = setGunModEnabled,
+    })
+    AimR:AddSlider("GM_Recoil", {
+        Text = "Recoil Reduction", Default = 0, Min = 0, Max = 100, Rounding = 0, Suffix = "%",
+        Callback = function(v) setGunModConfig("recoil_reduction", v / 100) end,
+    })
+    AimR:AddSlider("GM_HRecoil", {
+        Text = "Horizontal Recoil", Default = 0, Min = 0, Max = 100, Rounding = 0, Suffix = "%",
+        Callback = function(v) setGunModConfig("horizontal_recoil", v / 100) end,
+    })
+    AimR:AddToggle("GM_NoSpread", {
+        Text = "No Spread", Default = false,
+        Callback = function(v) setGunModConfig("no_spread", v) end,
+    })
+    AimR:AddToggle("GM_ForceAuto", {
+        Text = "Force Automatic", Default = false,
+        Callback = function(v) setGunModConfig("force_auto", v) end,
+    })
+
+    local EspCoreL  = Tabs.Visuals:AddLeftGroupbox("ESP")
+    local EspStyleR = Tabs.Visuals:AddRightGroupbox("ESP Style")
+
+    EspCoreL:AddToggle("ESP_On",      { Text = "ESP Enabled",       Default = false, Risky = true, Callback = setEspEnabled })
+    EspCoreL:AddToggle("ESP_Team",    { Text = "Team Check",        Default = false, Callback = setEspTeamCheck })
+    EspCoreL:AddToggle("ESP_BoxFull", { Text = "Box ESP (Full)",    Default = false, Callback = setEspPlayers })
+    EspCoreL:AddToggle("ESP_BoxCorn", { Text = "Box ESP (Corner)",  Default = false, Callback = setEspCorners })
+    EspCoreL:AddToggle("ESP_BoxFill", { Text = "Box Fill",          Default = false, Callback = setEspFilled })
+    EspCoreL:AddToggle("ESP_BoxGrad", { Text = "Box Gradient",      Default = true,  Callback = setEspBoxGradient })
+    EspCoreL:AddToggle("ESP_BoxAnim", { Text = "Box Animate",       Default = false, Callback = setEspBoxAnimate })
+    EspCoreL:AddToggle("ESP_FillGrad",{ Text = "Box Fill Gradient", Default = true,  Callback = setEspBoxGradientFill })
+    EspCoreL:AddToggle("ESP_HP",      { Text = "Health Bar",        Default = false, Callback = setEspHealthBar })
+    EspCoreL:AddToggle("ESP_Skel",    { Text = "Skeleton ESP",      Default = false, Callback = setEspSkeleton })
+    EspCoreL:AddToggle("ESP_Names",   { Text = "Name ESP",          Default = false, Callback = setEspNames })
+    EspCoreL:AddToggle("ESP_Dist",    { Text = "Distance ESP",      Default = false, Callback = setEspDistances })
+    EspCoreL:AddToggle("ESP_Weps",    { Text = "Weapon ESP",        Default = false, Callback = setEspWeapons })
+    EspCoreL:AddToggle("ESP_Chams",   { Text = "Chams",             Default = false, Callback = setEspChams })
+    EspCoreL:AddToggle("ESP_Thermal", { Text = "Chams Thermal",     Default = false, Callback = setEspChamsThermal })
+    EspCoreL:AddToggle("ESP_ChamsVC", { Text = "Chams Visible Chk", Default = false, Callback = setEspChamsVisibleCheck })
+
+    EspStyleR:AddSlider("ESP_MaxDist",  { Text = "Max Distance",           Default = 1000, Min = 100,  Max = 3000, Rounding = 0, Callback = setEspMaxDistance })
+    EspStyleR:AddSlider("ESP_FontSz",   { Text = "Font Size",              Default = 11,   Min = 8,    Max = 24,   Rounding = 0, Callback = setEspFontSize })
+    EspStyleR:AddSlider("ESP_CornThk",  { Text = "Corner Thickness",       Default = 1,    Min = 1,    Max = 5,    Rounding = 0, Callback = setEspCornerThickness })
+    EspStyleR:AddSlider("ESP_CornLen",  { Text = "Corner Length",          Default = 15,   Min = 5,    Max = 35,   Rounding = 0, Callback = setEspCornerLength })
+    EspStyleR:AddSlider("ESP_SkelThk",  { Text = "Skeleton Thickness",     Default = 1,    Min = 1,    Max = 5,    Rounding = 0, Callback = setEspSkeletonThickness })
+    EspStyleR:AddSlider("ESP_BoxRotSpd",{ Text = "Box Rotation Speed",     Default = 300,  Min = 0,    Max = 1000, Rounding = 0, Callback = setEspBoxRotationSpeed })
+    EspStyleR:AddSlider("ESP_FillTrns", { Text = "Box Fill Transparency",  Default = 75,   Min = 0,    Max = 100,  Rounding = 0, Suffix = "%",
+        Callback = function(v) setEspFilledTransparency(v / 100) end })
+    EspStyleR:AddSlider("ESP_CFillTrn", { Text = "Chams Fill Transparency",    Default = 50, Min = 0, Max = 100, Rounding = 0, Callback = setEspChamsFillTransparency })
+    EspStyleR:AddSlider("ESP_COutTrn",  { Text = "Chams Outline Transparency", Default = 50, Min = 0, Max = 100, Rounding = 0, Callback = setEspChamsOutlineTransparency })
+    EspStyleR:AddDivider()
+    cp(EspStyleR, "Player Color",        "EC_Player",    Color3.fromRGB(210, 50, 80),   setEspPlayerColor)
+    cp(EspStyleR, "Gradient End",        "EC_GradEnd",   Color3.fromRGB(0, 0, 0),       setEspGradientEndColor)
+    cp(EspStyleR, "Fill Grad Start",     "EC_FGStart",   Color3.fromRGB(255, 255, 255), setEspFillGradientStartColor)
+    cp(EspStyleR, "Fill Grad End",       "EC_FGEnd",     Color3.fromRGB(0, 0, 0),       setEspFillGradientEndColor)
+    cp(EspStyleR, "Name Color",          "EC_Name",      Color3.fromRGB(255, 255, 255), setEspNameColor)
+    cp(EspStyleR, "Skeleton Color",      "EC_Skel",      Color3.fromRGB(210, 50, 80),   setEspSkeletonColor)
+    cp(EspStyleR, "Distance Color",      "EC_Dist",      Color3.fromRGB(255, 255, 255), setEspDistanceColor)
+    cp(EspStyleR, "Weapon Color",        "EC_Wep",       Color3.fromRGB(255, 255, 255), setEspWeaponColor)
+    cp(EspStyleR, "Chams Fill Color",    "EC_ChamsFill", Color3.fromRGB(243, 116, 166), setEspChamsFillColor)
+    cp(EspStyleR, "Chams Outline Color", "EC_ChamsOut",  Color3.fromRGB(243, 116, 166), setEspChamsOutlineColor)
+
+    local LightL = Tabs.Visuals:AddLeftGroupbox("Lighting")
+    LightL:AddToggle("FB_On", { Text = "Fullbright", Default = false, Callback = setFullbright })
+    LightL:AddSlider("FB_Bright", { Text = "Brightness", Default = 100, Min = 0, Max = 500, Rounding = 0, Suffix = "%",
+        Callback = function(v) setFullbrightSetting("Brightness", v / 100) end })
+    LightL:AddSlider("FB_Clock",  { Text = "Clock Time", Default = 12, Min = 0, Max = 24, Rounding = 0,
+        Callback = function(v) setFullbrightSetting("ClockTime", v) end })
+    LightL:AddSlider("FB_FogEnd", { Text = "Fog End", Default = 786543, Min = 1000, Max = 1000000, Rounding = 0,
+        Callback = function(v) setFullbrightSetting("FogEnd", v) end })
+    LightL:AddToggle("FB_Shadows", { Text = "Global Shadows", Default = false,
+        Callback = function(v) setFullbrightSetting("GlobalShadows", v) end })
+    cp(LightL, "Ambient Color", "FB_Ambient", Color3.fromRGB(178,178,178),
+        function(c) setFullbrightSetting("Ambient", c) end)
+
+
+
+        local GadL = Tabs.Gadgets:AddLeftGroupbox("Gadget Chams")
+    local GadR = Tabs.Gadgets:AddRightGroupbox("Gadget Colors")
+
+    GadL:AddToggle("G_ObjNames", { Text = "Object Name Labels", Default = false, Callback = setEspObjectNamesEnabled })
+    GadL:AddDivider()
+
+    local gadgetKeys = {
+        { key = "Drones",            label = "Drone Chams",              fn = setEspDroneEnabled },
+        { key = "Claymores",         label = "Claymore Chams",           fn = setEspClaymoreEnabled },
+        { key = "ProximityAlarm",    label = "Proximity Alarm Chams",    fn = function(v) setEspObjectEnabled("ProximityAlarm",    v) end },
+        { key = "StickyCamera",      label = "Sticky Camera Chams",      fn = function(v) setEspObjectEnabled("StickyCamera",      v) end },
+        { key = "RemoteC4",          label = "Remote C4 Chams",          fn = function(v) setEspObjectEnabled("RemoteC4",          v) end },
+        { key = "ThermiteCharge",    label = "Thermite Charge Chams",    fn = function(v) setEspObjectEnabled("ThermiteCharge",    v) end },
+        { key = "ToxicCharge",       label = "Toxic Charge Chams",       fn = function(v) setEspObjectEnabled("ToxicCharge",       v) end },
+        { key = "BreachCharge",      label = "Breach Charge Chams",      fn = function(v) setEspObjectEnabled("BreachCharge",      v) end },
+        { key = "HardBreachCharge",  label = "Hard Breach Chams",        fn = function(v) setEspObjectEnabled("HardBreachCharge",  v) end },
+        { key = "ShockBattery",      label = "Shock Battery Chams",      fn = function(v) setEspObjectEnabled("ShockBattery",      v) end },
+        { key = "DeployableShield",  label = "Deployable Shield Chams",  fn = function(v) setEspObjectEnabled("DeployableShield",  v) end },
+        { key = "BarbedWire",        label = "Barbed Wire Chams",        fn = function(v) setEspObjectEnabled("BarbedWire",        v) end },
+        { key = "SignalDisruptor",   label = "Signal Disruptor Chams",   fn = function(v) setEspObjectEnabled("SignalDisruptor",   v) end },
+        { key = "BulletproofCamera", label = "Bulletproof Camera Chams", fn = function(v) setEspObjectEnabled("BulletproofCamera", v) end },
+    }
+
+    for _, g in ipairs(gadgetKeys) do
+        GadL:AddToggle("G_" .. g.key, { Text = g.label, Default = false, Callback = g.fn })
+    end
+
+    GadL:AddDivider()
+    GadL:AddLabel({ Text = "Transparency (Fill + Outline)", DoesWrap = false })
+
+    local transparencyTargets = {
+        { key = "Drones",            label = "Drone",              fn = function(v) setEspDroneTransparency(v/100)                          end },
+        { key = "Claymores",         label = "Claymore",           fn = function(v) setEspClaymoreTransparency(v/100)                       end },
+        { key = "ProximityAlarm",    label = "Proximity Alarm",    fn = function(v) setEspObjectTransparency("ProximityAlarm",    v/100) end },
+        { key = "StickyCamera",      label = "Sticky Camera",      fn = function(v) setEspObjectTransparency("StickyCamera",      v/100) end },
+        { key = "RemoteC4",          label = "Remote C4",          fn = function(v) setEspObjectTransparency("RemoteC4",          v/100) end },
+        { key = "ThermiteCharge",    label = "Thermite Charge",    fn = function(v) setEspObjectTransparency("ThermiteCharge",    v/100) end },
+        { key = "ToxicCharge",       label = "Toxic Charge",       fn = function(v) setEspObjectTransparency("ToxicCharge",       v/100) end },
+        { key = "BreachCharge",      label = "Breach Charge",      fn = function(v) setEspObjectTransparency("BreachCharge",      v/100) end },
+        { key = "HardBreachCharge",  label = "Hard Breach",        fn = function(v) setEspObjectTransparency("HardBreachCharge",  v/100) end },
+        { key = "ShockBattery",      label = "Shock Battery",      fn = function(v) setEspObjectTransparency("ShockBattery",      v/100) end },
+        { key = "DeployableShield",  label = "Deployable Shield",  fn = function(v) setEspObjectTransparency("DeployableShield",  v/100) end },
+        { key = "BarbedWire",        label = "Barbed Wire",        fn = function(v) setEspObjectTransparency("BarbedWire",        v/100) end },
+        { key = "SignalDisruptor",   label = "Signal Disruptor",   fn = function(v) setEspObjectTransparency("SignalDisruptor",   v/100) end },
+        { key = "BulletproofCamera", label = "Bulletproof Camera", fn = function(v) setEspObjectTransparency("BulletproofCamera", v/100) end },
+    }
+
+    for _, t in ipairs(transparencyTargets) do
+        GadL:AddSlider("GT_" .. t.key, {
+            Text    = t.label .. " Transparency",
+            Default = 50, Min = 0, Max = 100, Rounding = 0, Suffix = "%",
+            Callback = t.fn,
+        })
+    end
+
+    local gadgetColors = {
+        { key = "Drones",            label = "Drone Color",              fn = setEspDroneColor },
+        { key = "Claymores",         label = "Claymore Color",           fn = setEspClaymoreColor },
+        { key = "ProximityAlarm",    label = "Proximity Alarm Color",    fn = function(c) setEspObjectColor("ProximityAlarm",    c) end },
+        { key = "StickyCamera",      label = "Sticky Camera Color",      fn = function(c) setEspObjectColor("StickyCamera",      c) end },
+        { key = "RemoteC4",          label = "Remote C4 Color",          fn = function(c) setEspObjectColor("RemoteC4",          c) end },
+        { key = "ThermiteCharge",    label = "Thermite Charge Color",    fn = function(c) setEspObjectColor("ThermiteCharge",    c) end },
+        { key = "ToxicCharge",       label = "Toxic Charge Color",       fn = function(c) setEspObjectColor("ToxicCharge",       c) end },
+        { key = "BreachCharge",      label = "Breach Charge Color",      fn = function(c) setEspObjectColor("BreachCharge",      c) end },
+        { key = "HardBreachCharge",  label = "Hard Breach Color",        fn = function(c) setEspObjectColor("HardBreachCharge",  c) end },
+        { key = "ShockBattery",      label = "Shock Battery Color",      fn = function(c) setEspObjectColor("ShockBattery",      c) end },
+        { key = "DeployableShield",  label = "Deployable Shield Color",  fn = function(c) setEspObjectColor("DeployableShield",  c) end },
+        { key = "BarbedWire",        label = "Barbed Wire Color",        fn = function(c) setEspObjectColor("BarbedWire",        c) end },
+        { key = "SignalDisruptor",   label = "Signal Disruptor Color",   fn = function(c) setEspObjectColor("SignalDisruptor",   c) end },
+        { key = "BulletproofCamera", label = "Bulletproof Camera Color", fn = function(c) setEspObjectColor("BulletproofCamera", c) end },
+    }
+
+    local defaultGadgetColors = {
+        Drones            = Color3.fromRGB(0,   255, 255),
+        Claymores         = Color3.fromRGB(255, 0,   0),
+        ProximityAlarm    = Color3.fromRGB(255, 150, 0),
+        StickyCamera      = Color3.fromRGB(0,   200, 255),
+        RemoteC4          = Color3.fromRGB(255, 50,  50),
+        ThermiteCharge    = Color3.fromRGB(255, 120, 0),
+        ToxicCharge       = Color3.fromRGB(80,  255, 80),
+        BreachCharge      = Color3.fromRGB(255, 80,  80),
+        HardBreachCharge  = Color3.fromRGB(200, 80,  255),
+        ShockBattery      = Color3.fromRGB(255, 255, 0),
+        DeployableShield  = Color3.fromRGB(100, 180, 255),
+        BarbedWire        = Color3.fromRGB(180, 140, 80),
+        SignalDisruptor   = Color3.fromRGB(80,  80,  255),
+        BulletproofCamera = Color3.fromRGB(0,   255, 200),
+    }
+
+    for _, g in ipairs(gadgetColors) do
+        cp(GadR, g.label, "GC_" .. g.key, defaultGadgetColors[g.key] or Color3.new(1,1,1), g.fn)
+    end
+
+    local RadL     = Tabs.Radar:AddLeftGroupbox("Radar Core")
+    local RadR     = Tabs.Radar:AddRightGroupbox("Radar Style")
+    local RadTheme = Tabs.Radar:AddRightGroupbox("Radar Theme")
+
+    RadL:AddToggle("R_Enabled",       { Text = "Radar Enabled",     Default = false, Callback = function(v) setRadarFlag("Enabled",            v) end })
+    RadL:AddToggle("R_Lines",         { Text = "Distance Lines",    Default = true,  Callback = function(v) setRadarFlag("Lines",              v) end })
+    RadL:AddToggle("R_Rotation",      { Text = "Rotation",          Default = false, Callback = function(v) setRadarFlag("Rotation",           v) end })
+    RadL:AddToggle("R_SmoothRot",     { Text = "Smooth Rotation",   Default = true,  Callback = function(v) setRadarFlag("SmoothRot",          v) end })
+    RadL:AddToggle("R_Cardinal",      { Text = "Cardinal Display",  Default = true,  Callback = function(v) setRadarFlag("CardinalDisplay",    v) end })
+    RadL:AddToggle("R_Offscreen",     { Text = "Show Offscreen",    Default = true,  Callback = function(v) setRadarFlag("ShowOffscreen",      v) end })
+    RadL:AddToggle("R_Teammates",     { Text = "Display Teammates", Default = false, Callback = function(v) setRadarFlag("DisplayTeammates",   v) end })
+    RadL:AddToggle("R_TeamColors",    { Text = "Team Colors",       Default = true,  Callback = function(v) setRadarFlag("DisplayTeamColors",  v) end })
+    RadL:AddToggle("R_FriendColors",  { Text = "Friend Colors",     Default = true,  Callback = function(v) setRadarFlag("DisplayFriendColors",v) end })
+    RadL:AddToggle("R_RGB",           { Text = "RGB Colors",        Default = false, Callback = function(v) setRadarFlag("DisplayRGBColors",   v) end })
+    RadL:AddToggle("R_Falloff",       { Text = "Marker Falloff",    Default = true,  Callback = function(v) setRadarFlag("MarkerFalloff",      v) end })
+    RadL:AddToggle("R_Fallback",      { Text = "Use Fallback",      Default = false, Callback = function(v) setRadarFlag("UseFallback",        v) end })
+    RadL:AddToggle("R_Quads",         { Text = "Use Quads",         Default = true,  Callback = function(v) setRadarFlag("UseQuads",           v) end })
+    RadL:AddToggle("R_UseTeamColors", { Text = "Use Team Colors",   Default = false, Callback = function(v) setRadarFlag("UseTeamColors",      v) end })
+    RadL:AddToggle("R_VisCheck",      { Text = "Visibility Check",  Default = false, Callback = function(v) setRadarFlag("VisibilityCheck",    v) end })
+
+    RadR:AddSlider("R_Radius",     { Text = "Radar Radius",           Default = 120,  Min = 50,   Max = 400,  Rounding = 0, Callback = function(v) setRadarNumber("Radius",            v) end })
+    RadR:AddSlider("R_Range",      { Text = "World Range",            Default = 300,  Min = 50,   Max = 1000, Rounding = 0, Callback = function(v) setRadarNumber("Range",             v) end })
+    RadR:AddSlider("R_Scale",      { Text = "Scale",                  Default = 100,  Min = 10,   Max = 500,  Rounding = 0, Suffix = "%",
+        Callback = function(v) setRadarNumber("Scale", v / 100) end })
+    RadR:AddSlider("R_LineDist",   { Text = "Line Distance",          Default = 50,   Min = 1,    Max = 200,  Rounding = 0, Callback = function(v) setRadarNumber("LineDistance",      v) end })
+    RadR:AddSlider("R_PosX",       { Text = "Position X",             Default = 170,  Min = 0,    Max = 2000, Rounding = 0, Callback = setRadarPositionX })
+    RadR:AddSlider("R_PosY",       { Text = "Position Y",             Default = 170,  Min = 0,    Max = 1200, Rounding = 0, Callback = setRadarPositionY })
+    RadR:AddSlider("R_SmoothAmt",  { Text = "Smooth Rot Amount",      Default = 30,   Min = 0,    Max = 100,  Rounding = 0, Callback = function(v) setRadarNumber("SmoothRotAmnt",    v) end })
+    RadR:AddSlider("R_MkrSz",      { Text = "Marker Size",            Default = 2,    Min = 1,    Max = 20,   Rounding = 0, Callback = function(v) setRadarNumber("MarkerSize",        v) end })
+    RadR:AddSlider("R_MkrBase",    { Text = "Marker Scale Base",      Default = 100,  Min = 10,   Max = 500,  Rounding = 0, Suffix = "%",
+        Callback = function(v) setRadarNumber("MarkerScaleBase", v / 100) end })
+    RadR:AddSlider("R_MkrMin",     { Text = "Marker Scale Min",       Default = 75,   Min = 10,   Max = 500,  Rounding = 0, Suffix = "%",
+        Callback = function(v) setRadarNumber("MarkerScaleMin",  v / 100) end })
+    RadR:AddSlider("R_MkrMax",     { Text = "Marker Scale Max",       Default = 100,  Min = 10,   Max = 500,  Rounding = 0, Suffix = "%",
+        Callback = function(v) setRadarNumber("MarkerScaleMax",  v / 100) end })
+    RadR:AddSlider("R_MkrFalloff", { Text = "Marker Falloff Amount",  Default = 125,  Min = 1,    Max = 500,  Rounding = 0, Callback = function(v) setRadarNumber("MarkerFalloffAmnt",v) end })
+    RadR:AddSlider("R_OffsTrans",  { Text = "Offscreen Transparency", Default = 30,   Min = 0,    Max = 100,  Rounding = 0, Suffix = "%",
+        Callback = function(v) setRadarNumber("OffscreenTransparency", v / 100) end })
+    RadR:AddSlider("R_SelfSz",     { Text = "Self Dot Size",          Default = 2,    Min = 1,    Max = 20,   Rounding = 0, Callback = function(v) setRadarNumber("SelfDotSize",       v) end })
+
+    cp(RadTheme, "Outline",        "RT_Outline",   Color3.fromRGB(35,35,45),    function(c) setRadarThemeColor("Outline",        c) end)
+    cp(RadTheme, "Background",     "RT_BG",        Color3.fromRGB(25,25,35),    function(c) setRadarThemeColor("Background",     c) end)
+    cp(RadTheme, "Drag Handle",    "RT_Drag",      Color3.fromRGB(50,50,255),   function(c) setRadarThemeColor("DragHandle",     c) end)
+    cp(RadTheme, "Cardinal Lines", "RT_Cardinal",  Color3.fromRGB(110,110,120), function(c) setRadarThemeColor("Cardinal_Lines", c) end)
+    cp(RadTheme, "Distance Lines", "RT_DistLines", Color3.fromRGB(65,65,75),    function(c) setRadarThemeColor("Distance_Lines", c) end)
+    cp(RadTheme, "Generic Marker", "RT_Generic",   Color3.fromRGB(255,25,115),  function(c) setRadarThemeColor("Generic_Marker", c) end)
+    cp(RadTheme, "Local Marker",   "RT_Local",     Color3.fromRGB(115,25,255),  function(c) setRadarThemeColor("Local_Marker",   c) end)
+    cp(RadTheme, "Team Marker",    "RT_Team",      Color3.fromRGB(25,115,255),  function(c) setRadarThemeColor("Team_Marker",    c) end)
+    cp(RadTheme, "Friend Marker",  "RT_Friend",    Color3.fromRGB(25,255,115),  function(c) setRadarThemeColor("Friend_Marker",  c) end)
+
+    local LocalL = Tabs.Local:AddLeftGroupbox("Skin Changer")
+
+    LocalL:AddDropdown("LC_Skin", {
+        Values = { "Default", "BlueFlowers", "Synthwave", "TigerCamo", "Toxic", "ToyGunM4", "YellowPattern", "RedRoses", "BlackCamo", "Blue", "CarbonFiber", "Cardboard", "CheckeredSkin", "ClassicAA12", "CrackedEarth", "DarkRedCamo", "DeepRed", "DesertCamo", "Diamond", "FestiveLightsM4", "ForestCamo", "FrenchSticker", "Ghillie", "GhostShipSkin", "GhostSkin", "GhostStickerSkin", "Golden", "Green", "HalloweenParty", "HazardMP7", "HazardSkin", "HotRedL85", "Kalash", "MakeshiftBeretta", "NeonShapesM249", "OilSpill", "PurpleFadeC775", "Red", "RustyAUG", "Skulls", "SnowCamo", "Space", "SpiderWebSkin", "Splattered", "Steyr", "Tan", "Toxic", "WastelandRSh12", "White", "Yellow"},
+        Default = 1, Text = "Weapon Skin", Searchable = true,
+        Callback = function(v) setAttachmentEditorOption("skin", v) end,
+    })
+    LocalL:AddDropdown("LC_Charm", {
+        Values = { "Default","8BallCharm","AceCard","BananaCharm","BellCharm","BlueBall",
+            "BulletCharm","ChristmasTreeCharm","ColorfulSquares","DiamondCharm","DogTagCharm",
+            "EyeballCharm","GhostCharm","LoveHeart","LuckyCharm","PumpkinCharm","S1Bronze",
+            "S1Champion","S1Diamond","S1Gold","S1Platinum","S1Silver","S2Bronze","S2Champion",
+            "S2Diamond","S2Gold","S2Platinum","S2Silver","SnowGlobeCharm","SnowflakeCharm",
+            "TargetPracticeCharm" },
+        Default = 1, Text = "Weapon Charm", Searchable = true,
+        Callback = function(v) setAttachmentEditorOption("charm", v) end,
+    })
+    LocalL:AddButton({
+        Text = "Apply Skin / Charm",
+        Func = function()
+            local ok, err = pcall(applyAttachmentEditor)
+            if not ok then
+                Library:Notify({ Title = "Skin Changer", Description = "Failed: " .. tostring(err), Time = 4 })
+            else
+                Library:Notify({ Title = "Skin Changer", Description = "Applied successfully!", Time = 3 })
             end
-        end
-        return bestName
-    end
+        end,
+    })
 
-    local function addPresetColorDropdown(name, defaultColor, callback)
-        window:addDropdown(name, colorNames, nearestColorName(defaultColor), function(selected)
-            callback(presetColors[selected] or defaultColor)
-        end)
-    end
+    local MenuGroup = Tabs.Settings:AddLeftGroupbox("Menu")
 
-    local combatTab = window:addTab("Combat")
-    window:switchTab(combatTab)
-    window:addSection("Aimbot")
-    window:addToggle("Silent/Aimbot", false, setSilentAim)
-    window:addToggle("Aim Team Check", true, setSilentAimTeamCheck)
-    window:addToggle("Aim Visible Check", false, setSilentAimVisibleCheck)
-    window:addToggle("FOV Circle Visual", true, setSilentAimFovCircleVisual)
-    window:addSlider("Aim FOV", 10, 400, 60, 1, setSilentAimFov)
-    window:addSlider("Aim Assist Smoothness", 0.01, 1, 1, 0.01, setSilentAimSmoothness)
-    window:addDropdown("Aim Mode", { "silent", "aim_assist" }, "silent", function(selected)
-        setSilentAimMode(selected)
-    end)
-    window:addDropdown("Aim Assist Activation", { "mb2", "mb1", "always", "mobile" }, "mb2", function(selected)
-        setAimAssistActivation(selected)
-    end)
-    window:addDropdown("Target Mode", { "Custom Parts", "Head Only" }, "Custom Parts", function(selected)
-        if selected == "Head Only" then
-            setSilentAimTargetMode("head_only")
-        else
-            setSilentAimTargetMode("custom_parts")
-        end
-    end)
-    window:addToggle("Target Gadgets", false, setSilentAimTargetGadgets)
+    MenuGroup:AddToggle("ShowCursor", {
+        Text = "Custom Cursor", Default = false,
+        Callback = function(v) Library.ShowCustomCursor = v end,
+    })
+    MenuGroup:AddDropdown("NotifSide", {
+        Values = { "Left", "Right" }, Default = "Right", Text = "Notification Side",
+        Callback = function(v) Library:SetNotifySide(v) end,
+    })
+    MenuGroup:AddDivider()
+    MenuGroup:AddLabel("Menu Keybind"):AddKeyPicker("MenuKeybind", {
+        Default = "RightShift", NoUI = true, Text = "Toggle Menu",
+    })
+    MenuGroup:AddButton({
+        Text = "Unload",
+        Func = function() Library:Unload() end,
+    })
 
-    window:addSection("Weapon")
-    window:addToggle("Gun Mod Enabled", false, setGunModEnabled)
-    window:addSlider("Recoil Reduction", 0, 1, 0, 0.1, function(v) setGunModConfig("recoil_reduction", v) end)
-    window:addSlider("Horizontal Recoil", 0, 1, 0, 0.1, function(v) setGunModConfig("horizontal_recoil", v) end)
-    window:addToggle("No Spread", false, function(v) setGunModConfig("no_spread", v) end)
-    window:addToggle("Automatic", false, function(v) setGunModConfig("force_auto", v) end)
+    Library.ToggleKeybind = Options.MenuKeybind
 
-    local visualsTab = window:addTab("Visuals")
-    window:switchTab(visualsTab)
-    window:addSection("ESP")
-    window:addToggle("ESP Enabled", false, setEspEnabled)
-    window:addToggle("ESP Team Check", false, setEspTeamCheck)
-    window:addToggle("Box ESP (Full)", false, setEspPlayers)
-    window:addToggle("Box ESP (Corner)", false, setEspCorners)
-    window:addToggle("Box Fill", false, setEspFilled)
-    window:addToggle("Box Gradient", true, setEspBoxGradient)
-    window:addToggle("Box Animate", false, setEspBoxAnimate)
-    window:addToggle("Box Fill Gradient", true, setEspBoxGradientFill)
-    window:addToggle("Health Bar", false, setEspHealthBar)
-    window:addToggle("Skeleton ESP", false, setEspSkeleton)
-    window:addToggle("Name ESP", false, setEspNames)
-    window:addToggle("Distance ESP", false, setEspDistances)
-    window:addToggle("Weapon ESP", false, setEspWeapons)
-    window:addToggle("Chams", false, setEspChams)
-    window:addToggle("Chams Thermal", false, setEspChamsThermal)
-    window:addToggle("Chams Visible Check", false, setEspChamsVisibleCheck)
+    ThemeManager:SetLibrary(Library)
+    SaveManager:SetLibrary(Library)
+    SaveManager:IgnoreThemeSettings()
+    SaveManager:SetIgnoreIndexes({ "MenuKeybind" })
+    ThemeManager:SetFolder("Astro")
+    SaveManager:SetFolder("Astro/configs")
+    ThemeManager:ApplyToTab(Tabs.Settings)
+    SaveManager:BuildConfigSection(Tabs.Settings)
+    SaveManager:LoadAutoloadConfig()
 
-    window:addSlider("ESP Max Distance", 100, 3000, 1000, 10, setEspMaxDistance)
-    --window:addToggle("Fade Out (Distance)", false, setEspFadeOut)
-    window:addSlider("ESP Font Size", 8, 24, 11, 1, setEspFontSize)
-    window:addSlider("Corner Thickness", 1, 5, 1, 1, setEspCornerThickness)
-    window:addSlider("Corner Length", 5, 35, 15, 1, setEspCornerLength)
-    window:addSlider("Skeleton Thickness", 1, 5, 1, 1, setEspSkeletonThickness)
-    window:addSlider("Box Rotation Speed", 0, 1000, 300, 10, setEspBoxRotationSpeed)
-    window:addSlider("Box Fill Transparency", 0, 1, 0.75, 0.01, setEspFilledTransparency)
-    window:addSlider("Chams Fill Transparency", 0, 100, 50, 1, setEspChamsFillTransparency)
-    window:addSlider("Chams Outline Transparency", 0, 100, 50, 1, setEspChamsOutlineTransparency)
-
-    addPresetColorDropdown("Player ESP Color", Color3.fromRGB(210, 50, 80), setEspPlayerColor)
-    addPresetColorDropdown("Box Gradient End", Color3.fromRGB(0, 0, 0), setEspGradientEndColor)
-    addPresetColorDropdown("Fill Gradient Start", Color3.fromRGB(255, 255, 255), setEspFillGradientStartColor)
-    addPresetColorDropdown("Fill Gradient End", Color3.fromRGB(0, 0, 0), setEspFillGradientEndColor)
-    addPresetColorDropdown("Name Color", Color3.fromRGB(255, 255, 255), setEspNameColor)
-    addPresetColorDropdown("Skeleton Color", Color3.fromRGB(210, 50, 80), setEspSkeletonColor)
-    addPresetColorDropdown("Distance Color", Color3.fromRGB(255, 255, 255), setEspDistanceColor)
-    addPresetColorDropdown("Weapon Color", Color3.fromRGB(255, 255, 255), setEspWeaponColor)
-    addPresetColorDropdown("Chams Fill Color", Color3.fromRGB(243, 116, 166), setEspChamsFillColor)
-    addPresetColorDropdown("Chams Outline Color", Color3.fromRGB(243, 116, 166), setEspChamsOutlineColor)
-
-    buildEspGadgetAndRadarTabs(window, addPresetColorDropdown)
-
-    window:switchTab(visualsTab)
-    window:addSection("Lighting")
-    window:addToggle("Fullbright", false, setFullbright)
-    window:addSlider("FB Brightness", 0, 5, 1, 0.01, function(v) setFullbrightSetting("Brightness", v) end)
-    window:addSlider("FB ClockTime", 0, 24, 12, 1, function(v) setFullbrightSetting("ClockTime", v) end)
-    window:addSlider("FB FogEnd", 1000, 1000000, 786543, 1, function(v) setFullbrightSetting("FogEnd", v) end)
-    window:addToggle("FB GlobalShadows", false, function(v) setFullbrightSetting("GlobalShadows", v) end)
-    addPresetColorDropdown("FB Ambient Color", Color3.fromRGB(178, 178, 178), function(c)
-        setFullbrightSetting("Ambient", c)
-    end)
-
-    local localTab = window:addTab("Local")
-    window:switchTab(localTab)
-    window:addSection("Skin Changer")
-    window:addDropdown("Skin", { "Default", "BlueFlowers", "Synthwave", "TigerCamo", "Toxic", "ToyGunM4", "YellowPattern", "RedRoses", "BlackCamo", "Blue", "CarbonFiber", "Cardboard", "CheckeredSkin", "ClassicAA12", "CrackedEarth", "DarkRedCamo", "DeepRed", "DesertCamo", "Diamond", "FestiveLightsM4", "ForestCamo", "FrenchSticker", "Ghillie", "GhostShipSkin", "GhostSkin", "GhostStickerSkin", "Golden", "Green", "HalloweenParty", "HazardMP7", "HazardSkin", "HotRedL85", "Kalash", "MakeshiftBeretta", "NeonShapesM249", "OilSpill", "PurpleFadeC775", "Red", "RustyAUG", "Skulls", "SnowCamo", "Space", "SpiderWebSkin", "Splattered", "Steyr", "Tan", "Toxic", "WastelandRSh12", "White", "Yellow" }, "Default", function(selected)
-        setAttachmentEditorOption("skin", selected)
-    end)
-    window:addDropdown("Charm", { "Default", "8BallCharm", "AceCard", "BananaCharm", "BellCharm", "BlueBall", "BulletCharm", "ChristmasTreeCharm", "ColorfulSquares", "DiamondCharm", "DogTagCharm", "EyeballCharm", "GhostCharm", "LoveHeart", "LuckyCharm", "PumpkinCharm", "S1Bronze", "S1Champion", "S1Diamond", "S1Gold", "S1Platinum", "S1Silver", "S2Bronze", "S2Champion", "S2Diamond", "S2Gold", "S2Platinum", "S2Silver", "SnowGlobeCharm", "SnowflakeCharm", "TargetPracticeCharm" }, "Default", function(selected)
-        setAttachmentEditorOption("charm", selected)
-    end)
-    window:addButton("Apply Skin/Charm", applyAttachmentEditor)
-
-    local configTab = window:addTab("Config")
-    window:switchTab(configTab)
-    if type(window.addConfigManager) == "function" then
-        window:addConfigManager("default")
-    else
-        window:addLabel("Config manager unavailable")
-    end
-    window:switchTab(combatTab)
-
-    window:onClose(function()
+    Library:OnUnload(function()
         setSilentAim(false)
         setEspEnabled(false)
         setEspGadgetsEnabled(false)
-        RadarControls.setObjectNamesEnabled(false)
-        RadarControls.setFlag("Enabled", false)
+        setRadarFlag("Enabled", false)
         setFullbright(false)
         setGunModEnabled(false)
     end)
 
+    Library:Notify({
+        Title       = "ASTRO.WTF",
+        Description = "Loaded successfully — discord.gg/NtBMqWXySm",
+        Time        = 5,
+    })
 end
 
-local lib, libErr = loadUiLibrary()
-if lib then
-    local loadingOverlay = nil
-    if type(lib.showLoadingOverlay) == "function" then
-        loadingOverlay = lib.showLoadingOverlay("Waiting for initialized for ASTRO.WTF, please wait...")
-        if loadingOverlay and type(loadingOverlay.setText) == "function" then
-            loadingOverlay.setText("Initializing ASTRO.WTF, please wait...")
-        end
-    end
+local okInit, initErr = pcall(runStartupInit)
+if not okInit then log("startup init failed -> " .. tostring(initErr)) end
 
-    local okInit, initErr = pcall(runStartupInit)
-    if not okInit then
-        log("startup init failed -> " .. tostring(initErr))
-        if loadingOverlay and type(loadingOverlay.setText) == "function" then
-            loadingOverlay.setText("Initialization failed for ASTRO.WTF.")
-        end
-    elseif loadingOverlay and type(loadingOverlay.setText) == "function" then
-        loadingOverlay.setText("Initialization complete. Building ASTRO.WTF UI...")
-    end
+local okUi, uiErr = pcall(buildObsidianUi)
+if not okUi then log("UI build failed -> " .. tostring(uiErr)) end
 
-    local ok, err = pcall(buildAkUi, lib)
-    if not ok then
-        log("failed -> " .. tostring(err))
-        if loadingOverlay and type(loadingOverlay.setText) == "function" then
-            loadingOverlay.setText("Failed to build ASTRO.WTF UI.")
-        end
-    elseif loadingOverlay and type(loadingOverlay.dismiss) == "function" then
-        loadingOverlay.dismiss()
-    end
-else
-    log("failed -> " .. tostring(libErr))
-end
-
-pcall(function()
-    game:GetService("WebViewService"):Destroy()
-end)
-
+pcall(function() game:GetService("WebViewService"):Destroy() end)
+warn("init")
