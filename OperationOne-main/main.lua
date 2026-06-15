@@ -609,10 +609,39 @@ local function setEspClaymoreEnabled(state)
     end)
 end
 
+local function setEspObjectEnabled(key, state)
+    withModule(ESP_MODULE_NAME, function(m)
+        local fn = m and m["Toggle" .. key .. "Chams"]
+        if type(fn) == "function" then
+            fn(state)
+            return
+        end
+        if m and m.ObjectChams and m.ObjectChams[key] then
+            m.ObjectChams[key].Enabled = state == true
+        end
+    end)
+end
+
 
 local function setEspGadgetsEnabled(state)
     setEspDroneEnabled(state)
     setEspClaymoreEnabled(state)
+    for _, key in ipairs({
+        "ProximityAlarm",
+        "StickyCamera",
+        "RemoteC4",
+        "ThermiteCharge",
+        "ToxicCharge",
+        "BreachCharge",
+        "HardBreachCharge",
+        "ShockBattery",
+        "DeployableShield",
+        "BarbedWire",
+        "SignalDisruptor",
+        "BulletproofCamera",
+    }) do
+        setEspObjectEnabled(key, state)
+    end
 end
 
 local function setEspDroneColor(color)
@@ -637,6 +666,23 @@ local function setEspClaymoreColor(color)
     end)
 end
 
+local function setEspObjectColor(key, color)
+    withModule(ESP_MODULE_NAME, function(m)
+        local fillFn = m and m["Set" .. key .. "ChamsFill"]
+        local outlineFn = m and m["Set" .. key .. "ChamsOutline"]
+        if type(fillFn) == "function" then
+            fillFn(color)
+        end
+        if type(outlineFn) == "function" then
+            outlineFn(color)
+        end
+        if m and m.ObjectChams and m.ObjectChams[key] then
+            m.ObjectChams[key].FillRGB = color
+            m.ObjectChams[key].OutlineRGB = color
+        end
+    end)
+end
+
 local function setEspDroneTransparency(value)
     withModule(ESP_MODULE_NAME, function(m)
         if type(m.SetDroneChamsFill) == "function" then m.SetDroneChamsFill(nil, value) end
@@ -653,6 +699,180 @@ local function setEspClaymoreTransparency(value)
             m.ObjectChams.Claymores.FillTrans = value
         end
     end)
+end
+
+local function setEspObjectNamesEnabled(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.ObjectChams and m.ObjectChams.Names then
+            m.ObjectChams.Names.Enabled = state == true
+        end
+    end)
+end
+
+local function setRadarFlag(key, state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Radar and m.Radar[key] ~= nil then
+            m.Radar[key] = state == true
+        end
+    end)
+end
+
+local function setRadarNumber(key, value)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Radar and type(m.Radar[key]) == "number" then
+            m.Radar[key] = value
+        end
+    end)
+end
+
+local function setRadarPositionX(value)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Radar and m.Radar.Position and type(value) == "number" then
+            m.Radar.Position = Vector2.new(value, m.Radar.Position.Y)
+        end
+    end)
+end
+
+local function setRadarPositionY(value)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Radar and m.Radar.Position and type(value) == "number" then
+            m.Radar.Position = Vector2.new(m.Radar.Position.X, value)
+        end
+    end)
+end
+
+local function setRadarThemeColor(key, color)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Radar and m.Radar.Theme and typeof(color) == "Color3" then
+            m.Radar.Theme[key] = color
+        end
+    end)
+end
+
+local RadarControls = {
+    setObjectNamesEnabled = setEspObjectNamesEnabled,
+    setFlag = setRadarFlag,
+    setNumber = setRadarNumber,
+    setPositionX = setRadarPositionX,
+    setPositionY = setRadarPositionY,
+    setThemeColor = setRadarThemeColor,
+}
+
+local function makeRadarFlagHandler(key)
+    return function(v)
+        RadarControls.setFlag(key, v)
+    end
+end
+
+local function makeRadarNumberHandler(key)
+    return function(v)
+        RadarControls.setNumber(key, v)
+    end
+end
+
+local function makeRadarThemeHandler(key)
+    return function(c)
+        RadarControls.setThemeColor(key, c)
+    end
+end
+
+local function makeObjectEnabledHandler(key)
+    return function(state)
+        setEspObjectEnabled(key, state)
+    end
+end
+
+local function makeObjectColorHandler(key)
+    return function(c)
+        setEspObjectColor(key, c)
+    end
+end
+
+local function buildEspGadgetAndRadarTabs(window, addPresetColorDropdown)
+    local gadgetTab = window:addTab("ESP Gadgets")
+    window:switchTab(gadgetTab)
+    window:addSection("Gadgets")
+    window:addToggle("Drone Chams", false, setEspDroneEnabled)
+    window:addToggle("Claymore Chams", false, setEspClaymoreEnabled)
+    window:addToggle("Proximity Alarm Chams", false, makeObjectEnabledHandler("ProximityAlarm"))
+    window:addToggle("Sticky Camera Chams", false, makeObjectEnabledHandler("StickyCamera"))
+    window:addToggle("Remote C4 Chams", false, makeObjectEnabledHandler("RemoteC4"))
+    window:addToggle("Thermite Charge Chams", false, makeObjectEnabledHandler("ThermiteCharge"))
+    window:addToggle("Toxic Charge Chams", false, makeObjectEnabledHandler("ToxicCharge"))
+    window:addToggle("Breach Charge Chams", false, makeObjectEnabledHandler("BreachCharge"))
+    window:addToggle("Hard Breach Chams", false, makeObjectEnabledHandler("HardBreachCharge"))
+    window:addToggle("Shock Battery Chams", false, makeObjectEnabledHandler("ShockBattery"))
+    window:addToggle("Deployable Shield Chams", false, makeObjectEnabledHandler("DeployableShield"))
+    window:addToggle("Barbed Wire Chams", false, makeObjectEnabledHandler("BarbedWire"))
+    window:addToggle("Signal Disruptor Chams", false, makeObjectEnabledHandler("SignalDisruptor"))
+    window:addToggle("Bulletproof Camera Chams", false, makeObjectEnabledHandler("BulletproofCamera"))
+    window:addSlider("Drone Transparency", 0, 1, 0.5, 0.01, setEspDroneTransparency)
+    window:addSlider("Claymore Transparency", 0, 1, 0.5, 0.01, setEspClaymoreTransparency)
+    addPresetColorDropdown("Drone Color", Color3.fromRGB(0, 255, 255), setEspDroneColor)
+    addPresetColorDropdown("Claymore Color", Color3.fromRGB(255, 0, 0), setEspClaymoreColor)
+    window:addSection("Object Colors")
+    addPresetColorDropdown("Proximity Alarm Color", Color3.fromRGB(255, 150, 0), makeObjectColorHandler("ProximityAlarm"))
+    addPresetColorDropdown("Sticky Camera Color", Color3.fromRGB(0, 200, 255), makeObjectColorHandler("StickyCamera"))
+    addPresetColorDropdown("Remote C4 Color", Color3.fromRGB(255, 50, 50), makeObjectColorHandler("RemoteC4"))
+    addPresetColorDropdown("Thermite Charge Color", Color3.fromRGB(255, 120, 0), makeObjectColorHandler("ThermiteCharge"))
+    addPresetColorDropdown("Toxic Charge Color", Color3.fromRGB(80, 255, 80), makeObjectColorHandler("ToxicCharge"))
+    addPresetColorDropdown("Breach Charge Color", Color3.fromRGB(255, 80, 80), makeObjectColorHandler("BreachCharge"))
+    addPresetColorDropdown("Hard Breach Color", Color3.fromRGB(200, 80, 255), makeObjectColorHandler("HardBreachCharge"))
+    addPresetColorDropdown("Shock Battery Color", Color3.fromRGB(255, 255, 0), makeObjectColorHandler("ShockBattery"))
+    addPresetColorDropdown("Deployable Shield Color", Color3.fromRGB(100, 180, 255), makeObjectColorHandler("DeployableShield"))
+    addPresetColorDropdown("Barbed Wire Color", Color3.fromRGB(180, 140, 80), makeObjectColorHandler("BarbedWire"))
+    addPresetColorDropdown("Signal Disruptor Color", Color3.fromRGB(80, 80, 255), makeObjectColorHandler("SignalDisruptor"))
+    addPresetColorDropdown("Bulletproof Camera Color", Color3.fromRGB(0, 255, 200), makeObjectColorHandler("BulletproofCamera"))
+    window:addSection("Object Names")
+    window:addToggle("Object Names", false, RadarControls.setObjectNamesEnabled)
+
+    local radarTab = window:addTab("Radar")
+    window:switchTab(radarTab)
+    window:addSection("Radar Core")
+    window:addToggle("Radar Enabled", false, makeRadarFlagHandler("Enabled"))
+    window:addToggle("Radar Lines", true, makeRadarFlagHandler("Lines"))
+    window:addToggle("Radar Rotation", false, makeRadarFlagHandler("Rotation"))
+    window:addToggle("Radar Smooth Rot", true, makeRadarFlagHandler("SmoothRot"))
+    window:addToggle("Radar Cardinal Display", true, makeRadarFlagHandler("CardinalDisplay"))
+    window:addToggle("Radar Show Offscreen", true, makeRadarFlagHandler("ShowOffscreen"))
+    window:addToggle("Radar Display Teammates", false, makeRadarFlagHandler("DisplayTeammates"))
+    window:addToggle("Radar Display Team Colors", true, makeRadarFlagHandler("DisplayTeamColors"))
+    window:addToggle("Radar Display Friend Colors", true, makeRadarFlagHandler("DisplayFriendColors"))
+    window:addToggle("Radar Display RGB Colors", false, makeRadarFlagHandler("DisplayRGBColors"))
+    window:addToggle("Radar Marker Falloff", true, makeRadarFlagHandler("MarkerFalloff"))
+    window:addToggle("Radar Use Fallback", false, makeRadarFlagHandler("UseFallback"))
+    window:addToggle("Radar Use Quads", true, makeRadarFlagHandler("UseQuads"))
+    window:addToggle("Radar Use Team Colors", false, makeRadarFlagHandler("UseTeamColors"))
+    window:addToggle("Radar Visibility Check", false, makeRadarFlagHandler("VisibilityCheck"))
+
+    window:addSection("Radar Scale")
+    window:addSlider("Radar Line Distance", 1, 200, 50, 1, makeRadarNumberHandler("LineDistance"))
+    window:addSlider("Radar Scale", 0.1, 5, 1, 0.05, makeRadarNumberHandler("Scale"))
+    window:addSlider("Radar Radius", 50, 400, 120, 1, makeRadarNumberHandler("Radius"))
+    window:addSlider("Radar Range", 50, 1000, 300, 10, makeRadarNumberHandler("Range"))
+    window:addSlider("Radar Pos X", 0, 2000, 170, 1, function(v) RadarControls.setPositionX(v) end)
+    window:addSlider("Radar Pos Y", 0, 1200, 170, 1, function(v) RadarControls.setPositionY(v) end)
+    window:addSlider("Radar Smooth Rot Amount", 0, 100, 30, 1, makeRadarNumberHandler("SmoothRotAmnt"))
+
+    window:addSection("Radar Markers")
+    window:addSlider("Radar Marker Size", 1, 20, 2, 1, makeRadarNumberHandler("MarkerSize"))
+    window:addSlider("Radar Marker Scale Base", 0.1, 5, 1, 0.05, makeRadarNumberHandler("MarkerScaleBase"))
+    window:addSlider("Radar Marker Scale Min", 0.1, 5, 0.75, 0.05, makeRadarNumberHandler("MarkerScaleMin"))
+    window:addSlider("Radar Marker Scale Max", 0.1, 5, 1, 0.05, makeRadarNumberHandler("MarkerScaleMax"))
+    window:addSlider("Radar Marker Falloff Amount", 1, 500, 125, 1, makeRadarNumberHandler("MarkerFalloffAmnt"))
+    window:addSlider("Radar Offscreen Transparency", 0, 1, 0.3, 0.01, makeRadarNumberHandler("OffscreenTransparency"))
+    window:addSlider("Radar Self Dot Size", 1, 20, 2, 1, makeRadarNumberHandler("SelfDotSize"))
+
+    window:addSection("Radar Theme")
+    addPresetColorDropdown("Radar Outline", Color3.fromRGB(35, 35, 45), makeRadarThemeHandler("Outline"))
+    addPresetColorDropdown("Radar Background", Color3.fromRGB(25, 25, 35), makeRadarThemeHandler("Background"))
+    addPresetColorDropdown("Radar Drag Handle", Color3.fromRGB(50, 50, 255), makeRadarThemeHandler("DragHandle"))
+    addPresetColorDropdown("Radar Cardinal Lines", Color3.fromRGB(110, 110, 120), makeRadarThemeHandler("Cardinal_Lines"))
+    addPresetColorDropdown("Radar Distance Lines", Color3.fromRGB(65, 65, 75), makeRadarThemeHandler("Distance_Lines"))
+    addPresetColorDropdown("Radar Generic Marker", Color3.fromRGB(255, 25, 115), makeRadarThemeHandler("Generic_Marker"))
+    addPresetColorDropdown("Radar Local Marker", Color3.fromRGB(115, 25, 255), makeRadarThemeHandler("Local_Marker"))
+    addPresetColorDropdown("Radar Team Marker", Color3.fromRGB(25, 115, 255), makeRadarThemeHandler("Team_Marker"))
+    addPresetColorDropdown("Radar Friend Marker", Color3.fromRGB(25, 255, 115), makeRadarThemeHandler("Friend_Marker"))
 end
 
 local function setFullbright(state)
@@ -749,6 +969,45 @@ local function applyDefaults()
     setEspChamsFillColor(Color3.fromRGB(255, 80, 80))
     setEspChamsOutlineColor(Color3.fromRGB(255, 255, 255))
     setEspGadgetsEnabled(false)
+    RadarControls.setObjectNamesEnabled(false)
+    RadarControls.setFlag("Enabled", false)
+    RadarControls.setFlag("Lines", true)
+    RadarControls.setFlag("Rotation", false)
+    RadarControls.setFlag("SmoothRot", true)
+    RadarControls.setFlag("CardinalDisplay", true)
+    RadarControls.setFlag("ShowOffscreen", true)
+    RadarControls.setFlag("DisplayTeammates", false)
+    RadarControls.setFlag("DisplayTeamColors", true)
+    RadarControls.setFlag("DisplayFriendColors", true)
+    RadarControls.setFlag("DisplayRGBColors", false)
+    RadarControls.setFlag("MarkerFalloff", true)
+    RadarControls.setFlag("UseFallback", false)
+    RadarControls.setFlag("UseQuads", true)
+    RadarControls.setFlag("UseTeamColors", false)
+    RadarControls.setFlag("VisibilityCheck", false)
+    RadarControls.setNumber("LineDistance", 50)
+    RadarControls.setNumber("Scale", 1)
+    RadarControls.setNumber("Radius", 120)
+    RadarControls.setNumber("Range", 300)
+    RadarControls.setPositionX(170)
+    RadarControls.setPositionY(170)
+    RadarControls.setNumber("SmoothRotAmnt", 30)
+    RadarControls.setNumber("MarkerSize", 2)
+    RadarControls.setNumber("MarkerScaleBase", 1)
+    RadarControls.setNumber("MarkerScaleMax", 1)
+    RadarControls.setNumber("MarkerScaleMin", 0.75)
+    RadarControls.setNumber("MarkerFalloffAmnt", 125)
+    RadarControls.setNumber("OffscreenTransparency", 0.3)
+    RadarControls.setNumber("SelfDotSize", 2)
+    RadarControls.setThemeColor("Outline", Color3.fromRGB(35, 35, 45))
+    RadarControls.setThemeColor("Background", Color3.fromRGB(25, 25, 35))
+    RadarControls.setThemeColor("DragHandle", Color3.fromRGB(50, 50, 255))
+    RadarControls.setThemeColor("Cardinal_Lines", Color3.fromRGB(110, 110, 120))
+    RadarControls.setThemeColor("Distance_Lines", Color3.fromRGB(65, 65, 75))
+    RadarControls.setThemeColor("Generic_Marker", Color3.fromRGB(255, 25, 115))
+    RadarControls.setThemeColor("Local_Marker", Color3.fromRGB(115, 25, 255))
+    RadarControls.setThemeColor("Team_Marker", Color3.fromRGB(25, 115, 255))
+    RadarControls.setThemeColor("Friend_Marker", Color3.fromRGB(25, 255, 115))
     setEspDroneEnabled(false)
     setEspClaymoreEnabled(false)
     setEspDroneTransparency(0.5)
@@ -954,15 +1213,7 @@ local function buildAkUi(lib)
     addPresetColorDropdown("Chams Fill Color", Color3.fromRGB(243, 116, 166), setEspChamsFillColor)
     addPresetColorDropdown("Chams Outline Color", Color3.fromRGB(243, 116, 166), setEspChamsOutlineColor)
 
-    local gadgetTab = window:addTab("ESP Gadgets")
-    window:switchTab(gadgetTab)
-    window:addSection("Gadgets")
-    window:addToggle("Drone Chams", false, setEspDroneEnabled)
-    window:addToggle("Claymore Chams", false, setEspClaymoreEnabled)
-    window:addSlider("Drone Transparency", 0, 1, 0.5, 0.01, setEspDroneTransparency)
-    window:addSlider("Claymore Transparency", 0, 1, 0.5, 0.01, setEspClaymoreTransparency)
-    addPresetColorDropdown("Drone Color", Color3.fromRGB(0, 255, 255), setEspDroneColor)
-    addPresetColorDropdown("Claymore Color", Color3.fromRGB(255, 0, 0), setEspClaymoreColor)
+    buildEspGadgetAndRadarTabs(window, addPresetColorDropdown)
 
     window:switchTab(visualsTab)
     window:addSection("Lighting")
@@ -978,7 +1229,7 @@ local function buildAkUi(lib)
     local localTab = window:addTab("Local")
     window:switchTab(localTab)
     window:addSection("Skin Changer")
-    window:addDropdown("Skin", { "Default", "BlackCamo", "BlackIce", "Blue", "CandyCane", "CandyCaneCrowbar", "CarbonFiber", "Cardboard", "CheckeredSkin", "ClassicAA12", "CrackedEarth", "DarkRedCamo", "DeepRed", "DesertCamo", "Diamond", "FestiveLightsM4", "ForestCamo", "FrenchSticker", "Ghillie", "GhostShipSkin", "GhostSkin", "GhostStickerSkin", "Golden", "Green", "HalloweenParty", "HazardMP7", "HazardSkin", "HotRedL85", "IceDrone", "Kalash", "Karambit", "MakeshiftBeretta", "MedievalShield", "NeonShapesM249", "OilSpill", "OrnamentBall", "PumpkinBomb", "PurpleFadeC775", "Red", "RustyAUG", "ScytheHammer", "Skulls", "SnowCamo", "Space", "SpiderHookSkin", "SpiderWebSkin", "Splattered", "Steyr", "Tan", "Toxic", "WastelandRSh12", "White", "Yellow" }, "Default", function(selected)
+    window:addDropdown("Skin", { "Default", "BlueFlowers", "Synthwave", "TigerCamo", "Toxic", "ToyGunM4", "YellowPattern", "RedRoses", "BlackCamo", "Blue", "CarbonFiber", "Cardboard", "CheckeredSkin", "ClassicAA12", "CrackedEarth", "DarkRedCamo", "DeepRed", "DesertCamo", "Diamond", "FestiveLightsM4", "ForestCamo", "FrenchSticker", "Ghillie", "GhostShipSkin", "GhostSkin", "GhostStickerSkin", "Golden", "Green", "HalloweenParty", "HazardMP7", "HazardSkin", "HotRedL85", "Kalash", "MakeshiftBeretta", "NeonShapesM249", "OilSpill", "PurpleFadeC775", "Red", "RustyAUG", "Skulls", "SnowCamo", "Space", "SpiderWebSkin", "Splattered", "Steyr", "Tan", "Toxic", "WastelandRSh12", "White", "Yellow" }, "Default", function(selected)
         setAttachmentEditorOption("skin", selected)
     end)
     window:addDropdown("Charm", { "Default", "8BallCharm", "AceCard", "BananaCharm", "BellCharm", "BlueBall", "BulletCharm", "ChristmasTreeCharm", "ColorfulSquares", "DiamondCharm", "DogTagCharm", "EyeballCharm", "GhostCharm", "LoveHeart", "LuckyCharm", "PumpkinCharm", "S1Bronze", "S1Champion", "S1Diamond", "S1Gold", "S1Platinum", "S1Silver", "S2Bronze", "S2Champion", "S2Diamond", "S2Gold", "S2Platinum", "S2Silver", "SnowGlobeCharm", "SnowflakeCharm", "TargetPracticeCharm" }, "Default", function(selected)
@@ -999,6 +1250,8 @@ local function buildAkUi(lib)
         setSilentAim(false)
         setEspEnabled(false)
         setEspGadgetsEnabled(false)
+        RadarControls.setObjectNamesEnabled(false)
+        RadarControls.setFlag("Enabled", false)
         setFullbright(false)
         setGunModEnabled(false)
     end)
