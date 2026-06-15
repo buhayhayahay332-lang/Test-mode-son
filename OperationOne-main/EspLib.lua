@@ -1,3 +1,4 @@
+local ESP = (function()
 pcall(function() setthreadidentity(8) end)
 pcall(function() game:GetService("WebViewService"):Destroy() end)
 
@@ -10,6 +11,69 @@ local CoreGui    = cloneref(game:GetService("CoreGui"))
 local GuiService = cloneref(game:GetService("GuiService"))
 
 local LocalPlayer = Players.LocalPlayer
+
+local Global = getgenv and getgenv() or _G
+if Global.__rage_radar_cleanup then
+    pcall(Global.__rage_radar_cleanup)
+end
+
+local RadarState = {
+    Drawings = {},
+    Dots = {},
+    Rings = {},
+    Cardinals = {},
+    ObjectLabels = {},
+    Connections = {},
+    Yaw = 0,
+}
+
+Global.__rage_radar_cleanup = function()
+    for _, connection in ipairs(RadarState.Connections) do
+        pcall(function()
+            connection:Disconnect()
+        end)
+    end
+
+    for _, drawing in pairs(RadarState.Dots) do
+        for _, obj in pairs(drawing) do
+            pcall(function()
+                obj:Remove()
+            end)
+        end
+    end
+
+    for _, drawing in pairs(RadarState.Rings) do
+        pcall(function()
+            drawing:Remove()
+        end)
+    end
+
+    for _, drawing in pairs(RadarState.Cardinals) do
+        pcall(function()
+            drawing:Remove()
+        end)
+    end
+
+    for _, drawing in pairs(RadarState.ObjectLabels) do
+        pcall(function()
+            drawing:Remove()
+        end)
+    end
+
+    for _, drawing in ipairs(RadarState.Drawings) do
+        pcall(function()
+            drawing:Remove()
+        end)
+    end
+
+    table.clear(RadarState.Connections)
+    table.clear(RadarState.Dots)
+    table.clear(RadarState.Rings)
+    table.clear(RadarState.Cardinals)
+    table.clear(RadarState.ObjectLabels)
+    table.clear(RadarState.Drawings)
+    RadarState.Yaw = 0
+end
 
 local ESP = {
     Enabled     = false,
@@ -79,7 +143,52 @@ local ESP = {
             Enabled = false,
         },
     },
+    Radar = {
+        Enabled = true,
+        Lines = true,
+        LineDistance = 50,
+        Scale = 1,
+        Radius = 120,
+        Range = 300,
+        Position = Vector2.new(170, 170),
+        Rotation = false,
+        SmoothRot = true,
+        SmoothRotAmnt = 30,
+        CardinalDisplay = true,
+        ShowOffscreen = true,
+        DisplayTeammates = false,
+        DisplayTeamColors = true,
+        DisplayFriendColors = true,
+        DisplayRGBColors = false,
+        MarkerSize = 2,
+        MarkerScaleBase = 1,
+        MarkerScaleMax = 1,
+        MarkerScaleMin = 0.75,
+        MarkerFalloff = true,
+        MarkerFalloffAmnt = 125,
+        OffscreenTransparency = 0.3,
+        UseFallback = false,
+        UseQuads = true,
+        UseTeamColors = false,
+        VisibilityCheck = false,
+        SelfDotSize = 2,
+        Theme = {
+            Outline = Color3.fromRGB(35, 35, 45),
+            Background = Color3.fromRGB(25, 25, 35),
+            DragHandle = Color3.fromRGB(50, 50, 255),
+            Cardinal_Lines = Color3.fromRGB(110, 110, 120),
+            Distance_Lines = Color3.fromRGB(65, 65, 75),
+            Generic_Marker = Color3.fromRGB(255, 25, 115),
+            Local_Marker = Color3.fromRGB(115, 25, 255),
+            Team_Marker = Color3.fromRGB(25, 115, 255),
+            Friend_Marker = Color3.fromRGB(25, 255, 115),
+        },
+    },
     ObjectChams = {
+        Names = {
+            Enabled = false,
+            RGB = Color3.fromRGB(255, 255, 255),
+        },
         Drones = {
             Enabled      = false,
             FillRGB      = Color3.fromRGB(255, 200, 0),
@@ -94,8 +203,85 @@ local ESP = {
             OutlineRGB   = Color3.fromRGB(255, 50, 50),
             OutlineTrans = 0,
         },
+        ProximityAlarm = {
+        Enabled = false, FillRGB = Color3.fromRGB(255, 150, 0),
+        FillTrans = 0.5, OutlineRGB = Color3.fromRGB(255, 150, 0), OutlineTrans = 0,
+        },
+        StickyCamera = {
+            Enabled = false, FillRGB = Color3.fromRGB(0, 200, 255),
+            FillTrans = 0.5, OutlineRGB = Color3.fromRGB(0, 200, 255), OutlineTrans = 0,
+        },
+        RemoteC4 = {
+            Enabled = false, FillRGB = Color3.fromRGB(255, 50, 50),
+            FillTrans = 0.5, OutlineRGB = Color3.fromRGB(255, 50, 50), OutlineTrans = 0,
+        },
+        ThermiteCharge = {
+            Enabled = false, FillRGB = Color3.fromRGB(255, 120, 0),
+            FillTrans = 0.5, OutlineRGB = Color3.fromRGB(255, 120, 0), OutlineTrans = 0,
+        },
+        ToxicCharge = {
+            Enabled = false, FillRGB = Color3.fromRGB(80, 255, 80),
+            FillTrans = 0.5, OutlineRGB = Color3.fromRGB(80, 255, 80), OutlineTrans = 0,
+        },
+        BreachCharge = {
+            Enabled = false, FillRGB = Color3.fromRGB(255, 80, 80),
+            FillTrans = 0.5, OutlineRGB = Color3.fromRGB(255, 80, 80), OutlineTrans = 0,
+        },
+        HardBreachCharge = {
+            Enabled = false, FillRGB = Color3.fromRGB(200, 80, 255),
+            FillTrans = 0.5, OutlineRGB = Color3.fromRGB(200, 80, 255), OutlineTrans = 0,
+        },
+        ShockBattery = {
+            Enabled = false, FillRGB = Color3.fromRGB(255, 255, 0),
+            FillTrans = 0.5, OutlineRGB = Color3.fromRGB(255, 255, 0), OutlineTrans = 0,
+        },
+        DeployableShield = {
+            Enabled = false, FillRGB = Color3.fromRGB(100, 180, 255),
+            FillTrans = 0.5, OutlineRGB = Color3.fromRGB(100, 180, 255), OutlineTrans = 0,
+        },
+        BarbedWire = {
+            Enabled = false, FillRGB = Color3.fromRGB(180, 140, 80),
+            FillTrans = 0.5, OutlineRGB = Color3.fromRGB(180, 140, 80), OutlineTrans = 0,
+        },
+        SignalDisruptor = {
+            Enabled = false, FillRGB = Color3.fromRGB(80, 80, 255),
+            FillTrans = 0.5, OutlineRGB = Color3.fromRGB(80, 80, 255), OutlineTrans = 0,
+        },
+        BulletproofCamera = {
+            Enabled = false, FillRGB = Color3.fromRGB(0, 255, 200),
+            FillTrans = 0.5, OutlineRGB = Color3.fromRGB(0, 255, 200), OutlineTrans = 0,
+        },
     },
 }
+
+local function attachObjectNameConfig(cfg)
+    cfg.Name = cfg.Name or {
+        Enabled = false,
+        RGB = Color3.fromRGB(255, 255, 255),
+    }
+end
+
+for _, key in ipairs({
+    "Drones",
+    "Claymores",
+    "ProximityAlarm",
+    "StickyCamera",
+    "RemoteC4",
+    "ThermiteCharge",
+    "ToxicCharge",
+    "BreachCharge",
+    "HardBreachCharge",
+    "ShockBattery",
+    "DeployableShield",
+    "BarbedWire",
+    "SignalDisruptor",
+    "BulletproofCamera",
+}) do
+    attachObjectNameConfig(ESP.ObjectChams[key])
+end
+
+local Radar = ESP.Radar
+Global.RadarSettings = Radar
 
 local BONE_CONNECTIONS = {
     { "torso", "shoulder1" }, { "torso", "shoulder2" },
@@ -137,6 +323,14 @@ local _cb = {}
 for i = 1, 8 do _cb[i] = Vector3.new() end
 
 local function getRealPlayerFromCharacter(character)
+    if not character then
+        return nil
+    end
+
+    if typeof(character) ~= "Instance" or not character.GetAttribute then
+        return nil
+    end
+
     local id = character:GetAttribute("UserId") or character:GetAttribute("ID")
     if typeof(id) == "number" then
         return Players:GetPlayerByUserId(id)
@@ -267,6 +461,676 @@ local function getProjectedModelBounds(model)
     return minX, minY, maxX, maxY
 end
 
+local function getRadarRoot(model)
+    if not model then
+        return nil
+    end
+
+    return model:FindFirstChild("torso")
+        or model:FindFirstChild("HumanoidRootPart")
+        or model.PrimaryPart
+end
+
+local function getLocalRadarRoot()
+    local character = LocalPlayer.Character
+    if not character then
+        return nil
+    end
+
+    return character:FindFirstChild("HumanoidRootPart")
+        or character:FindFirstChild("torso")
+        or character.PrimaryPart
+end
+
+local radarBackground = Drawing.new("Circle")
+radarBackground.Filled = true
+radarBackground.Thickness = 1
+radarBackground.NumSides = 100
+radarBackground.Radius = Radar.Radius
+radarBackground.Color = Radar.Theme.Background
+radarBackground.Transparency = 0.72
+radarBackground.Visible = Radar.Enabled
+radarBackground.ZIndex = 990
+table.insert(RadarState.Drawings, radarBackground)
+
+local radarOutline = Drawing.new("Circle")
+radarOutline.Filled = false
+radarOutline.Thickness = 1
+radarOutline.NumSides = 100
+radarOutline.Radius = Radar.Radius
+radarOutline.Color = Radar.Theme.Outline
+radarOutline.Transparency = 1
+radarOutline.Visible = Radar.Enabled
+radarOutline.ZIndex = 991
+table.insert(RadarState.Drawings, radarOutline)
+
+local radarCrossH = Drawing.new("Line")
+radarCrossH.Color = Radar.Theme.Cardinal_Lines
+radarCrossH.Thickness = 1
+radarCrossH.Transparency = 0.7
+radarCrossH.Visible = Radar.Enabled
+radarCrossH.ZIndex = 991
+table.insert(RadarState.Drawings, radarCrossH)
+
+local radarCrossV = Drawing.new("Line")
+radarCrossV.Color = Radar.Theme.Cardinal_Lines
+radarCrossV.Thickness = 1
+radarCrossV.Transparency = 0.7
+radarCrossV.Visible = Radar.Enabled
+radarCrossV.ZIndex = 991
+table.insert(RadarState.Drawings, radarCrossV)
+
+local radarSelf = Drawing.new("Circle")
+radarSelf.Filled = true
+radarSelf.Thickness = 1
+radarSelf.NumSides = 100
+radarSelf.Radius = Radar.SelfDotSize
+radarSelf.Color = Radar.Theme.Local_Marker
+radarSelf.Transparency = 1
+radarSelf.Visible = Radar.Enabled
+radarSelf.ZIndex = 992
+table.insert(RadarState.Drawings, radarSelf)
+
+local radarSelfQuad = Drawing.new("Quad")
+radarSelfQuad.Filled = true
+radarSelfQuad.Thickness = 1
+radarSelfQuad.Transparency = 1
+radarSelfQuad.Visible = false
+radarSelfQuad.ZIndex = 992
+table.insert(RadarState.Drawings, radarSelfQuad)
+
+local function getRadarRing(index)
+    local ring = RadarState.Rings[index]
+    if ring then
+        return ring
+    end
+
+    ring = Drawing.new("Circle")
+    ring.Filled = false
+    ring.Thickness = 1
+    ring.NumSides = 100
+    ring.Visible = false
+    ring.ZIndex = 989
+    RadarState.Rings[index] = ring
+    table.insert(RadarState.Drawings, ring)
+    return ring
+end
+
+local function getRadarCardinal(name)
+    local item = RadarState.Cardinals[name]
+    if item then
+        return item
+    end
+
+    item = Drawing.new("Text")
+    item.Center = true
+    item.Outline = true
+    item.Font = Drawing.Fonts.UI
+    item.Size = 16
+    item.Color = Radar.Theme.Cardinal_Lines
+    item.Transparency = 1
+    item.Visible = false
+    item.ZIndex = 992
+    RadarState.Cardinals[name] = item
+    table.insert(RadarState.Drawings, item)
+    return item
+end
+
+local RadarQuadA = Vector2.new(0, 5)
+local RadarQuadB = Vector2.new(4, -5)
+local RadarQuadC = Vector2.new(0, -3)
+local RadarQuadD = Vector2.new(-4, -5)
+
+local function rotate2D(vec, radians)
+    local s = math.sin(radians)
+    local c = math.cos(radians)
+    return Vector2.new(
+        (vec.X * c) - (vec.Y * s),
+        (vec.X * s) + (vec.Y * c)
+    )
+end
+
+local function projectRadarQuad(center, angle, scale)
+    local s = math.sin(angle)
+    local c = math.cos(angle)
+    local function project(vec)
+        vec = vec * scale
+        return center + Vector2.new(
+            (vec.X * s) - (vec.Y * c),
+            (vec.X * c) + (vec.Y * s)
+        )
+    end
+
+    return project(RadarQuadA), project(RadarQuadB), project(RadarQuadC), project(RadarQuadD)
+end
+
+local function dropRadarDot(model)
+    local dot = RadarState.Dots[model]
+    if not dot then
+        return
+    end
+
+    RadarState.Dots[model] = nil
+    for _, obj in pairs(dot) do
+        pcall(function()
+            obj:Remove()
+        end)
+    end
+end
+
+local function dropObjectLabel(instance)
+    local label = RadarState.ObjectLabels[instance]
+    if not label then
+        return
+    end
+
+    RadarState.ObjectLabels[instance] = nil
+    local idx = table.find(RadarState.Drawings, label)
+    if idx then
+        table.remove(RadarState.Drawings, idx)
+    end
+    pcall(function()
+        label:Remove()
+    end)
+end
+
+local function IsPlayerVisible(player)
+    local character = player and player.Character
+    local localCharacter = LocalPlayer.Character
+
+    if not character or not localCharacter then
+        return false
+    end
+
+    local targetRoot = getRadarRoot(character)
+    if not targetRoot then
+        return false
+    end
+
+    local origin = _Camera and _Camera.CFrame.Position or Workspace.CurrentCamera.CFrame.Position
+    local direction = targetRoot.Position - origin
+    if direction.Magnitude <= 0 then
+        return true
+    end
+
+    local params = RaycastParams.new()
+    params.FilterType = Enum.RaycastFilterType.Blacklist
+    params.FilterDescendantsInstances = { localCharacter, character }
+
+    local hit = Workspace:Raycast(origin, direction, params)
+    return not hit or (hit.Position - targetRoot.Position).Magnitude <= 4
+end
+
+local function getRadarDot(model)
+    local dot = RadarState.Dots[model]
+    if dot then
+        return dot
+    end
+
+    dot = {
+        Circle = Drawing.new("Circle"),
+        Quad = Drawing.new("Quad"),
+    }
+
+    dot.Circle.Filled = true
+    dot.Circle.Thickness = 1
+    dot.Circle.NumSides = 100
+    dot.Circle.Radius = 4
+    dot.Circle.Transparency = 1
+    dot.Circle.Visible = false
+    dot.Circle.ZIndex = 992
+
+    dot.Quad.Filled = true
+    dot.Quad.Thickness = 1
+    dot.Quad.Transparency = 1
+    dot.Quad.Visible = false
+    dot.Quad.ZIndex = 992
+
+    RadarState.Dots[model] = dot
+    return dot
+end
+
+local function getObjectWorldPosition(instance)
+    if not instance or not instance.Parent then
+        return nil
+    end
+
+    if instance:IsA("BasePart") then
+        return instance.Position
+    end
+
+    if instance:IsA("Model") then
+        local ok, pivot = pcall(function()
+            return instance:GetPivot()
+        end)
+        if ok and pivot then
+            return pivot.Position
+        end
+    end
+
+    local part = instance:FindFirstChildWhichIsA("BasePart", true)
+    return part and part.Position or nil
+end
+
+local function getObjectLabelText(name)
+    local map = {
+        Drone = "Drone",
+        Claymore = "Claymore",
+        ProximityAlarm = "Proximity Alarm",
+        StickyCamera = "Sticky Camera",
+        RemoteC4 = "Remote C4",
+        ThermiteCharge = "Thermite Charge",
+        ToxicCharge = "Toxic Charge",
+        BreachCharge = "Breach Charge",
+        HardBreachCharge = "Hard Breach Charge",
+        ShockBattery = "Shock Battery",
+        DeployableShield = "Deployable Shield",
+        BarbedWire = "Barbed Wire",
+        SignalDisruptor = "Signal Disruptor",
+        BulletproofCamera = "Bulletproof Camera",
+    }
+
+    return map[name] or name
+end
+
+local function getObjectLabel(instance)
+    local label = RadarState.ObjectLabels[instance]
+    if label then
+        return label
+    end
+
+    label = Drawing.new("Text")
+    label.Center = true
+    label.Outline = true
+    label.Font = Drawing.Fonts.UI
+    label.Size = 14
+    label.Transparency = 1
+    label.Visible = false
+    label.ZIndex = 993
+    RadarState.ObjectLabels[instance] = label
+    table.insert(RadarState.Drawings, label)
+    return label
+end
+
+local function updateRadar(deltaTime)
+    if not Radar.Enabled then
+        radarBackground.Visible = false
+        radarOutline.Visible = false
+        radarCrossH.Visible = false
+        radarCrossV.Visible = false
+        radarSelf.Visible = false
+        radarSelfQuad.Visible = false
+
+        for _, dot in pairs(RadarState.Dots) do
+            dot.Circle.Visible = false
+            dot.Quad.Visible = false
+        end
+        for _, ring in pairs(RadarState.Rings) do
+            ring.Visible = false
+        end
+        for _, text in pairs(RadarState.Cardinals) do
+            text.Visible = false
+        end
+        return
+    end
+
+    local root = getLocalRadarRoot()
+    if not root or not _Camera then
+        radarBackground.Visible = false
+        radarOutline.Visible = false
+        radarCrossH.Visible = false
+        radarCrossV.Visible = false
+        radarSelf.Visible = false
+        radarSelfQuad.Visible = false
+        for _, dot in pairs(RadarState.Dots) do
+            dot.Circle.Visible = false
+            dot.Quad.Visible = false
+        end
+        return
+    end
+
+    local center = Radar.Position
+    local radius = Radar.Radius
+    local mapRadius = radius * Radar.Scale
+    local look = _Camera.CFrame.LookVector
+    local targetYaw = math.atan2(look.X, look.Z)
+    local camAngle = math.pi
+
+    if Radar.Rotation then
+        if Radar.SmoothRot then
+            local currentYaw = RadarState.Yaw
+            local alpha = 1 - math.exp(-Radar.SmoothRotAmnt * math.max(deltaTime or 0, 0))
+            RadarState.Yaw = currentYaw + ((targetYaw - currentYaw) * alpha)
+        else
+            RadarState.Yaw = targetYaw
+        end
+        camAngle = RadarState.Yaw
+    else
+        RadarState.Yaw = math.pi
+    end
+
+    local rad90 = math.rad(90)
+    local rad180 = math.rad(180)
+    local sinYaw = math.sin(-camAngle)
+    local cosYaw = math.cos(-camAngle)
+    local rotate = function(vec)
+        return Vector2.new(
+            (vec.X * cosYaw) - (vec.Y * sinYaw),
+            (vec.X * sinYaw) + (vec.Y * cosYaw)
+        )
+    end
+
+    local function getQuadAngle(lookVec)
+        return math.atan2(lookVec.X, lookVec.Z) - camAngle - rad90
+    end
+
+    radarBackground.Visible = true
+    radarOutline.Visible = true
+    radarSelf.Visible = true
+
+    radarBackground.Position = center
+    radarBackground.Radius = radius
+    radarBackground.Color = Radar.Theme.Background
+    radarOutline.Position = center
+    radarOutline.Radius = radius
+    radarOutline.Color = Radar.Theme.Outline
+    radarSelf.Position = center
+    radarSelf.Radius = Radar.SelfDotSize
+    radarSelf.Color = Radar.Theme.Local_Marker
+    radarSelfQuad.Visible = false
+
+    radarCrossH.Color = Radar.Theme.Cardinal_Lines
+    radarCrossV.Color = Radar.Theme.Cardinal_Lines
+    radarCrossH.Visible = Radar.Lines
+    radarCrossV.Visible = Radar.Lines
+
+    if Radar.Lines then
+        local left = center + rotate(Vector2.new(-radius, 0))
+        local right = center + rotate(Vector2.new(radius, 0))
+        local top = center + rotate(Vector2.new(0, -radius))
+        local bottom = center + rotate(Vector2.new(0, radius))
+
+        radarCrossH.From = left
+        radarCrossH.To = right
+        radarCrossV.From = top
+        radarCrossV.To = bottom
+
+        local ringCount = math.max(0, math.floor(Radar.Range / math.max(Radar.LineDistance, 1)))
+        for i = 1, ringCount do
+            local ring = getRadarRing(i)
+            local dist = i * Radar.LineDistance
+            ring.Position = center
+            ring.Radius = (dist / math.max(Radar.Range, 1)) * mapRadius
+            ring.Color = Radar.Theme.Distance_Lines
+            ring.Transparency = 0.55
+            ring.Visible = true
+        end
+        for i, ring in pairs(RadarState.Rings) do
+            if i > ringCount then
+                ring.Visible = false
+            end
+        end
+
+        if Radar.CardinalDisplay then
+            local north = getRadarCardinal("N")
+            local east = getRadarCardinal("E")
+            local south = getRadarCardinal("S")
+            local west = getRadarCardinal("W")
+
+            north.Text = "N"
+            east.Text = "E"
+            south.Text = "S"
+            west.Text = "W"
+
+            local labelPad = 16
+            local function pushOut(point)
+                local delta = point - center
+                if delta.Magnitude <= 0 then
+                    return point
+                end
+                return center + delta.Unit * (radius + labelPad)
+            end
+
+            north.Position = pushOut(top)
+            east.Position = pushOut(right)
+            south.Position = pushOut(bottom)
+            west.Position = pushOut(left)
+
+            for _, text in pairs(RadarState.Cardinals) do
+                text.Color = Radar.Theme.Cardinal_Lines
+                text.Visible = true
+            end
+        else
+            for _, text in pairs(RadarState.Cardinals) do
+                text.Visible = false
+            end
+        end
+    else
+        for _, ring in pairs(RadarState.Rings) do
+            ring.Visible = false
+        end
+        for _, text in pairs(RadarState.Cardinals) do
+            text.Visible = false
+        end
+    end
+
+    if Radar.UseQuads then
+        local selfLook = root.CFrame.LookVector
+        local selfAngle = getQuadAngle(selfLook)
+        local selfA, selfB, selfC, selfD = projectRadarQuad(center, selfAngle, Radar.SelfDotSize)
+
+        radarSelfQuad.PointA = selfA
+        radarSelfQuad.PointB = selfB
+        radarSelfQuad.PointC = selfC
+        radarSelfQuad.PointD = selfD
+        radarSelfQuad.Color = Radar.Theme.Local_Marker
+        radarSelfQuad.Visible = true
+        radarSelf.Visible = false
+    else
+        radarSelfQuad.Visible = false
+        radarSelf.Visible = true
+    end
+
+    local localPos = root.Position
+    local localTeam = LocalPlayer.Team
+    local hue = ((_Tick or tick()) / 20) % 1
+    local rgbColor = Color3.fromHSV(hue, 0.9, 0.9)
+
+    for model in pairs(ActiveESPs) do
+        local dot = getRadarDot(model)
+        local worldRoot = getRadarRoot(model)
+
+        if not worldRoot then
+            dot.Circle.Visible = false
+            dot.Quad.Visible = false
+            continue
+        end
+
+        local realPlayer = getRealPlayerFromCharacter(VMtoChar[model])
+        if not realPlayer or realPlayer == LocalPlayer then
+            dot.Circle.Visible = false
+            dot.Quad.Visible = false
+            continue
+        end
+
+        local sameTeam = realPlayer and localTeam and realPlayer.Team == localTeam
+        if not Radar.DisplayTeammates and sameTeam then
+            dot.Circle.Visible = false
+            dot.Quad.Visible = false
+            continue
+        end
+
+        local delta = worldRoot.Position - localPos
+        local flatDist = math.sqrt((delta.X * delta.X) + (delta.Z * delta.Z))
+        if flatDist <= 0 then
+            dot.Circle.Visible = false
+            dot.Quad.Visible = false
+            continue
+        end
+
+        local angle = math.atan2(delta.Z, delta.X)
+        local fixedRadius = (flatDist / math.max(Radar.Range, 1)) * mapRadius
+        local offscreen = fixedRadius > mapRadius
+
+        if offscreen then
+            if not Radar.ShowOffscreen then
+                dot.Circle.Visible = false
+                dot.Quad.Visible = false
+                continue
+            end
+
+            fixedRadius = mapRadius
+        end
+
+        angle += (camAngle + rad180)
+        local pos = center + Vector2.new(
+            fixedRadius * math.cos(angle),
+            fixedRadius * math.sin(angle)
+        )
+        local dotColor = Radar.Theme.Generic_Marker
+        local dotTransparency = 1
+
+        local dotRadius = Radar.MarkerSize * Radar.MarkerScaleBase
+        if Radar.MarkerFalloff then
+            local falloff = math.clamp(Radar.MarkerFalloffAmnt / math.max(delta.Magnitude, 1), Radar.MarkerScaleMin, Radar.MarkerScaleMax)
+            dotRadius *= falloff
+        end
+
+        local isFriend = false
+        if realPlayer then
+            pcall(function()
+                isFriend = realPlayer:IsFriendsWith(LocalPlayer.UserId)
+            end)
+        end
+
+        if Radar.DisplayFriendColors and isFriend then
+            dotColor = Radar.Theme.Friend_Marker
+        elseif Radar.DisplayTeamColors then
+            if Radar.UseTeamColors and realPlayer then
+                dotColor = realPlayer.TeamColor.Color
+            elseif sameTeam then
+                dotColor = Radar.Theme.Team_Marker
+            end
+        end
+
+        if Radar.DisplayRGBColors then
+            dotColor = rgbColor
+        end
+
+        if offscreen and Radar.ShowOffscreen then
+            dotTransparency = math.min(dotTransparency, Radar.OffscreenTransparency)
+        end
+        if Radar.VisibilityCheck and realPlayer and not IsPlayerVisible(realPlayer) then
+            dotTransparency = math.min(dotTransparency, 0.35)
+        end
+
+        if Radar.UseQuads then
+            local quad = dot.Quad
+            local lookVec = worldRoot.CFrame.LookVector
+            local angle = math.atan2(lookVec.X, lookVec.Z) - camAngle - rad90
+            local pA, pB, pC, pD = projectRadarQuad(pos, angle, dotRadius)
+
+            quad.PointA = pA
+            quad.PointB = pB
+            quad.PointC = pC
+            quad.PointD = pD
+            quad.Color = dotColor
+            quad.Transparency = dotTransparency
+            quad.Visible = true
+            dot.Circle.Visible = false
+        else
+            local circle = dot.Circle
+            circle.Position = pos
+            circle.Radius = dotRadius
+            circle.Color = dotColor
+            circle.Transparency = dotTransparency
+            circle.Visible = true
+            dot.Quad.Visible = false
+        end
+    end
+
+    for model in pairs(RadarState.Dots) do
+        if not ActiveESPs[model] then
+            dropRadarDot(model)
+        end
+    end
+end
+
+local function updateObjectLabels()
+    local oc = ESP.ObjectChams
+    local masterNames = oc.Names and oc.Names.Enabled
+
+    local nameToKey = {
+        Drone = "Drones",
+        Claymore = "Claymores",
+        ProximityAlarm = "ProximityAlarm",
+        StickyCamera = "StickyCamera",
+        RemoteC4 = "RemoteC4",
+        ThermiteCharge = "ThermiteCharge",
+        ToxicCharge = "ToxicCharge",
+        BreachCharge = "BreachCharge",
+        HardBreachCharge = "HardBreachCharge",
+        ShockBattery = "ShockBattery",
+        DeployableShield = "DeployableShield",
+        BarbedWire = "BarbedWire",
+        SignalDisruptor = "SignalDisruptor",
+        BulletproofCamera = "BulletproofCamera",
+    }
+
+    local anyEnabled = false
+    for _, key in pairs(nameToKey) do
+        local cfg = oc[key]
+        if cfg and (cfg.Enabled or masterNames or (cfg.Name and cfg.Name.Enabled)) then
+            anyEnabled = true
+            break
+        end
+    end
+
+    if not anyEnabled or not _Camera then
+        for _, label in pairs(RadarState.ObjectLabels) do
+            label.Visible = false
+        end
+        return
+    end
+
+    local cameraPos = _CamPos or _Camera.CFrame.Position
+
+    for _, child in ipairs(Workspace:GetChildren()) do
+        local key = nameToKey[child.Name]
+        local cfg = key and oc[key]
+        if not cfg or not (cfg.Enabled or masterNames or (cfg.Name and cfg.Name.Enabled)) then
+            dropObjectLabel(child)
+            continue
+        end
+
+        local label = getObjectLabel(child)
+        local worldPos = getObjectWorldPosition(child)
+        if not worldPos then
+            label.Visible = false
+            continue
+        end
+
+        local screenPos, onScreen = _Camera:WorldToViewportPoint(worldPos)
+        local dist = (cameraPos - worldPos).Magnitude
+        if not onScreen or dist > ESP.MaxDistance then
+            label.Visible = false
+            continue
+        end
+
+        label.Text = getObjectLabelText(child.Name)
+        label.Position = Vector2.new(screenPos.X, screenPos.Y - 18)
+        label.Color = cfg.OutlineRGB or cfg.FillRGB
+        label.Transparency = 1
+        label.Visible = true
+    end
+
+    for instance in pairs(RadarState.ObjectLabels) do
+        if not instance.Parent then
+            dropObjectLabel(instance)
+        end
+    end
+end
+
 local function createNameLabel(character)
     if ActiveNames[character] then return end
     local label = Instance.new("TextLabel")
@@ -373,16 +1237,17 @@ Workspace.ChildRemoved:Connect(function(child)
         table.clear(TeamHighlightCache)
         return
     end
-    if RealCharacterSet[child] then
-        RealCharacterSet[child] = nil
-        CharToVM[child] = nil
-        removeNameLabel(child)
-        markProxyCacheDirty()
-    end
-    if ActiveObjectChams[child] then
-        ActiveObjectChams[child]:Destroy()
-        ActiveObjectChams[child] = nil
-    end
+        if RealCharacterSet[child] then
+            RealCharacterSet[child] = nil
+            CharToVM[child] = nil
+            removeNameLabel(child)
+            markProxyCacheDirty()
+        end
+        if ActiveObjectChams[child] then
+            ActiveObjectChams[child]:Destroy()
+            ActiveObjectChams[child] = nil
+        end
+        dropObjectLabel(child)
 end)
 
 local function isValidPlayer(model)
@@ -508,10 +1373,33 @@ end
 
 local function updateObjectChams()
     local oc = ESP.ObjectChams
-    local droneEnabled    = oc.Drones.Enabled
-    local claymoreEnabled = oc.Claymores.Enabled
 
-    if not droneEnabled and not claymoreEnabled then
+    local nameToKey = {
+        Drone             = "Drones",
+        Claymore          = "Claymores",
+        ProximityAlarm    = "ProximityAlarm",
+        StickyCamera      = "StickyCamera",
+        RemoteC4          = "RemoteC4",
+        ThermiteCharge    = "ThermiteCharge",
+        ToxicCharge       = "ToxicCharge",
+        BreachCharge      = "BreachCharge",
+        HardBreachCharge  = "HardBreachCharge",
+        ShockBattery      = "ShockBattery",
+        DeployableShield  = "DeployableShield",
+        BarbedWire        = "BarbedWire",
+        SignalDisruptor   = "SignalDisruptor",
+        BulletproofCamera = "BulletproofCamera",
+    }
+
+    local anyEnabled = false
+    for _, key in pairs(nameToKey) do
+        if oc[key] and oc[key].Enabled then
+            anyEnabled = true
+            break
+        end
+    end
+
+    if not anyEnabled then
         for instance, h in pairs(ActiveObjectChams) do
             h:Destroy()
             ActiveObjectChams[instance] = nil
@@ -520,11 +1408,9 @@ local function updateObjectChams()
     end
 
     for _, child in pairs(Workspace:GetChildren()) do
-        local name = child.Name
-        if name == "Drone" and droneEnabled then
-            applyObjectChams(child, oc.Drones)
-        elseif name == "Claymore" and claymoreEnabled then
-            applyObjectChams(child, oc.Claymores)
+        local key = nameToKey[child.Name]
+        if key and oc[key] and oc[key].Enabled then
+            applyObjectChams(child, oc[key])
         end
     end
 
@@ -532,12 +1418,12 @@ local function updateObjectChams()
         if not instance.Parent then
             h:Destroy()
             ActiveObjectChams[instance] = nil
-        elseif instance.Name == "Drone" and not droneEnabled then
-            h:Destroy()
-            ActiveObjectChams[instance] = nil
-        elseif instance.Name == "Claymore" and not claymoreEnabled then
-            h:Destroy()
-            ActiveObjectChams[instance] = nil
+        else
+            local key = nameToKey[instance.Name]
+            if not key or not oc[key] or not oc[key].Enabled then
+                h:Destroy()
+                ActiveObjectChams[instance] = nil
+            end
         end
     end
 end
@@ -713,7 +1599,7 @@ local function st()
         MasterConnection = nil
     end
 
-    MasterConnection = RunService.RenderStepped:Connect(function()
+    MasterConnection = RunService.RenderStepped:Connect(function(deltaTime)
         _Camera     = Workspace.CurrentCamera
         _CamPos     = _Camera.CFrame.Position
         _ViewSize   = _Camera.ViewportSize
@@ -750,6 +1636,8 @@ local function st()
         end
 
         updateObjectChams()
+        updateObjectLabels()
+        updateRadar(deltaTime)
 
         if ESP.Enabled and ESP.Drawing.Names.Enabled then
             for character in pairs(RealCharacterSet) do
@@ -937,6 +1825,9 @@ function Functions:CleanAllESPs()
         if espData.folder then espData.folder:Destroy() end
         ActiveESPs[model] = nil
     end
+    for model in pairs(RadarState.Dots) do
+        dropRadarDot(model)
+    end
     self:CleanAllSkeletons()
 end
 
@@ -976,6 +1867,7 @@ local function mvm()
             if espData.folder then espData.folder:Destroy() end
             ActiveESPs[v] = nil
         end
+        dropRadarDot(v)
         removeSkeleton(v)
         TeamHighlightCache[v] = nil
         VMtoChar[v] = nil
@@ -1077,8 +1969,44 @@ ESP.SetClaymoreChamsOutline = function(color, trans)
     if type(trans)  == "number"  then ESP.ObjectChams.Claymores.OutlineTrans = trans end
 end
 
+local function makeChamsAPI(key)
+    ESP["Toggle" .. key .. "Chams"] = function(enabled)
+        ESP.ObjectChams[key].Enabled = enabled
+        if not enabled then
+            for instance, h in pairs(ActiveObjectChams) do
+                if instance.Name == key or
+                   (key == "Drones" and instance.Name == "Drone") or
+                   (key == "Claymores" and instance.Name == "Claymore") then
+                    h:Destroy()
+                    ActiveObjectChams[instance] = nil
+                end
+            end
+        end
+    end
+    ESP["Set" .. key .. "ChamsFill"] = function(color, trans)
+        if typeof(color) == "Color3" then ESP.ObjectChams[key].FillRGB   = color end
+        if type(trans)  == "number"  then ESP.ObjectChams[key].FillTrans = trans end
+    end
+    ESP["Set" .. key .. "ChamsOutline"] = function(color, trans)
+        if typeof(color) == "Color3" then ESP.ObjectChams[key].OutlineRGB   = color end
+        if type(trans)  == "number"  then ESP.ObjectChams[key].OutlineTrans = trans end
+    end
+end
+
+for _, key in ipairs({
+    "ProximityAlarm", "StickyCamera", "RemoteC4", "ThermiteCharge",
+    "ToxicCharge", "BreachCharge", "HardBreachCharge", "ShockBattery",
+    "DeployableShield", "BarbedWire", "SignalDisruptor", "BulletproofCamera",
+}) do
+    makeChamsAPI(key)
+end
+
 watchRealCharacters()
 mvm()
 st()
 
 return ESP
+
+
+end)()
+
