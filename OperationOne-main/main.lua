@@ -710,7 +710,7 @@ local function buildObsidianUi()
         Title            = "ASTRO.WTF",
         Footer           = "discord.gg/NtBMqWXySm",
         NotifySide       = "Right",
-        ShowCustomCursor = true,
+        ShowCustomCursor = false,
         Center           = true,
         AutoShow         = true,
     })
