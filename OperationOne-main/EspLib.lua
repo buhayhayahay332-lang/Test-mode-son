@@ -1,4 +1,3 @@
-local ESP = (function()
 pcall(function() setthreadidentity(8) end)
 pcall(function() game:GetService("WebViewService"):Destroy() end)
 
@@ -2006,7 +2005,3 @@ mvm()
 st()
 
 return ESP
-
-
-end)()
-
