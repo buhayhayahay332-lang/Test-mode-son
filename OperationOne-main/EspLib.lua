@@ -138,6 +138,21 @@ local ESP = {
             RGB       = Color3.fromRGB(255, 255, 255),
             Thickness = 1,
         },
+        Tracers = {
+            Enabled      = false,
+            RGB          = Color3.fromRGB(255, 255, 255),
+            Origin       = "Bottom",
+            Thickness    = 1,
+            Transparency = 1,
+        },
+        OffscreenArrows = {
+            Enabled          = false,
+            RGB              = Color3.fromRGB(255, 255, 255),
+            Size             = 10, 
+            Origin       = "Bottom",
+            Thickness    = 1,
+            Transparency = 1,
+        },
         TeamCheck = {
             Enabled = false,
         },
@@ -1439,12 +1454,18 @@ local function ProcessESP(model, espData)
         el.RTH.Visible = false; el.RTV.Visible = false
         el.LBH.Visible = false; el.LBV.Visible = false
         el.RBH.Visible = false; el.RBV.Visible = false
+        if el.Tracer then el.Tracer.Visible = false end
+        if el.OffscreenArrow then el.OffscreenArrow.Visible = false end
+        if el.OffscreenDistance then el.OffscreenDistance.Visible = false end
     end
 
     if not ESP.Enabled then Hide() return end
     if not model or not model.Parent or not isValidPlayer(model) then
         task.defer(function()
             if espData.folder then espData.folder:Destroy() end
+            if el.OffscreenArrow then el.OffscreenArrow:Remove() end
+            if el.OffscreenDistance then el.OffscreenDistance:Remove() end
+            if el.Tracer then el.Tracer:Remove() end
             ActiveESPs[model] = nil
             removeSkeleton(model)
         end)
@@ -1585,6 +1606,105 @@ local function ProcessESP(model, espData)
         else
             el.Weapon.Visible = false
         end
+    end
+
+    if ESP.Drawing.Tracers.Enabled then
+        local origin = ESP.Drawing.Tracers.Origin
+        local startPos
+        if origin == "Top" then
+            startPos = Vector2.new(_ViewSize.X / 2, 0)
+        elseif origin == "Center" then
+            startPos = Vector2.new(_ViewSize.X / 2, _ViewSize.Y / 2)
+        else  
+            startPos = Vector2.new(_ViewSize.X / 2, _ViewSize.Y)
+        end
+        el.Tracer.From         = startPos
+        el.Tracer.To           = Vector2.new(Pos.X, Pos.Y)
+        el.Tracer.Color        = ESP.Drawing.Tracers.RGB
+        el.Tracer.Thickness    = ESP.Drawing.Tracers.Thickness
+        el.Tracer.Transparency = ESP.Drawing.Tracers.Transparency
+        el.Tracer.Visible      = true
+    else
+        el.Tracer.Visible = false
+    end
+
+    local isOffscreen = not OnScreen or Pos.Z < 0 or Dist > ESP.MaxDistance
+
+    if ESP.Drawing.OffscreenArrows.Enabled and isOffscreen then
+        local arrow = el.OffscreenArrow
+        local distText = el.OffscreenDistance
+
+        local screenCenter = Vector2.new(_ViewSize.X / 2, _ViewSize.Y / 2)
+        local arrowMargin = 40 
+        local arrowRadius = ESP.Drawing.OffscreenArrows.Size
+
+        local targetScreenPos = Vector2.new(Pos.X, Pos.Y)
+
+       
+        if Pos.Z < 0 then
+            targetScreenPos = screenCenter + (screenCenter - targetScreenPos)
+        end
+
+        local vecToTarget = targetScreenPos - screenCenter
+        local angle = math.atan2(vecToTarget.Y, vecToTarget.X)
+
+       
+        local halfPaddedWidth = _ViewSize.X / 2 - arrowMargin
+        local halfPaddedHeight = _ViewSize.Y / 2 - arrowMargin
+
+        local intersectionX, intersectionY
+
+      
+        if math.abs(vecToTarget.X) < 0.001 then
+            intersectionX = screenCenter.X
+            intersectionY = screenCenter.Y + math.sign(vecToTarget.Y) * halfPaddedHeight
+        elseif math.abs(vecToTarget.Y) < 0.001 then
+            intersectionX = screenCenter.X + math.sign(vecToTarget.X) * halfPaddedWidth
+            intersectionY = screenCenter.Y
+        else
+            local slope = vecToTarget.Y / vecToTarget.X
+
+            
+            local yAtXBoundary = screenCenter.Y + slope * halfPaddedWidth * math.sign(vecToTarget.X)
+            if math.abs(yAtXBoundary - screenCenter.Y) <= halfPaddedHeight then
+                intersectionX = screenCenter.X + halfPaddedWidth * math.sign(vecToTarget.X)
+                intersectionY = yAtXBoundary
+            else
+              
+                local xAtYBoundary = screenCenter.X + (1 / slope) * halfPaddedHeight * math.sign(vecToTarget.Y)
+                intersectionX = xAtYBoundary
+                intersectionY = screenCenter.Y + halfPaddedHeight * math.sign(vecToTarget.Y)
+            end
+        end
+
+        local arrowPos = Vector2.new(intersectionX, intersectionY)
+
+       
+        arrowPos = Vector2.new(
+            math.clamp(arrowPos.X, arrowRadius, _ViewSize.X - arrowRadius),
+            math.clamp(arrowPos.Y, arrowRadius, _ViewSize.Y - arrowRadius)
+        )
+
+        arrow.Position = arrowPos
+        arrow.Radius = arrowRadius
+        arrow.Rotation = math.deg(angle) + 90 
+        arrow.Color = ESP.Drawing.OffscreenArrows.RGB
+        arrow.Transparency = ESP.Drawing.OffscreenArrows.Transparency
+        arrow.Visible = true
+
+        if ESP.Drawing.OffscreenArrows.ShowDistance then
+            distText.Text = math.floor(Dist) .. "m"
+            local textOffset = arrowRadius + 10
+            distText.Position = arrowPos + Vector2.new(math.cos(angle) * textOffset, math.sin(angle) * textOffset)
+            distText.Color = ESP.Drawing.OffscreenArrows.DistanceRGB
+            distText.Size = ESP.Drawing.OffscreenArrows.DistanceFontSize
+            distText.Visible = true
+        else
+            distText.Visible = false
+        end
+    else
+        el.OffscreenArrow.Visible = false
+        el.OffscreenDistance.Visible = false
     end
 
     if ESP.Drawing.Skeleton.Enabled and not ActiveSkeletons[model] then
@@ -1793,11 +1913,38 @@ local function CreateESP(CharacterModel)
         })
     end
 
+    local Tracer = Drawing.new("Line")
+    Tracer.Visible      = false
+    Tracer.Color        = ESP.Drawing.Tracers.RGB
+    Tracer.Thickness    = ESP.Drawing.Tracers.Thickness
+    Tracer.Transparency = ESP.Drawing.Tracers.Transparency
+    Tracer.ZIndex       = 1
+
+    local OffscreenArrow = Drawing.new("Triangle")
+    OffscreenArrow.Visible      = false
+    OffscreenArrow.Filled       = true
+    OffscreenArrow.Color        = ESP.Drawing.OffscreenArrows.RGB
+    OffscreenArrow.Transparency = ESP.Drawing.OffscreenArrows.Transparency
+    OffscreenArrow.Radius       = ESP.Drawing.OffscreenArrows.Size
+    OffscreenArrow.ZIndex       = 1
+
+    local OffscreenDistance = Drawing.new("Text")
+    OffscreenDistance.Visible      = false
+    OffscreenDistance.Center       = true
+    OffscreenDistance.Outline      = true
+    OffscreenDistance.Font         = Drawing.Fonts.UI
+    OffscreenDistance.Color        = ESP.Drawing.OffscreenArrows.DistanceRGB
+    OffscreenDistance.Size         = ESP.Drawing.OffscreenArrows.DistanceFontSize
+    Tracer.ZIndex       = 1
+
     ActiveESPs[CharacterModel] = {
         folder   = folder,
         rotAngle = -45,
         lastTick = tick(),
         elements = {
+            OffscreenArrow    = OffscreenArrow,
+            OffscreenDistance = OffscreenDistance,
+            Tracer      = Tracer,
             Name        = Name,
             Weapon      = Weapon,
             Box         = Box,
@@ -1822,6 +1969,9 @@ end
 function Functions:CleanAllESPs()
     for model, espData in pairs(ActiveESPs) do
         if espData.folder then espData.folder:Destroy() end
+        if espData.elements and espData.elements.OffscreenArrow then espData.elements.OffscreenArrow:Remove() end
+        if espData.elements and espData.elements.OffscreenDistance then espData.elements.OffscreenDistance:Remove() end
+        if espData.elements and espData.elements.Tracer then espData.elements.Tracer:Remove() end
         ActiveESPs[model] = nil
     end
     for model in pairs(RadarState.Dots) do
@@ -1864,6 +2014,9 @@ local function mvm()
         local espData = ActiveESPs[v]
         if espData then
             if espData.folder then espData.folder:Destroy() end
+            if espData.elements and espData.elements.OffscreenArrow then espData.elements.OffscreenArrow:Remove() end
+            if espData.elements and espData.elements.OffscreenDistance then espData.elements.OffscreenDistance:Remove() end
+            if espData.elements and espData.elements.Tracer then espData.elements.Tracer:Remove() end
             ActiveESPs[v] = nil
         end
         dropRadarDot(v)
@@ -1919,6 +2072,23 @@ ESP.SetSkeletonThickness = function(thickness)
         end
     end
 end
+
+ESP.ToggleTracers = function(enabled) ESP.Drawing.Tracers.Enabled = enabled end
+ESP.SetTracersColor = function(color) if typeof(color) == "Color3" then ESP.Drawing.Tracers.RGB = color end end
+ESP.SetTracersOrigin = function(origin)
+    local origins = { Top = true, Center = true, Bottom = true }
+    if origins[origin] then
+        ESP.Drawing.Tracers.Origin = origin
+    end
+end
+
+ESP.ToggleOffscreenArrows = function(enabled) ESP.Drawing.OffscreenArrows.Enabled = enabled end
+ESP.SetOffscreenArrowsColor = function(color) if typeof(color) == "Color3" then ESP.Drawing.OffscreenArrows.RGB = color end end
+ESP.SetOffscreenArrowsSize = function(size) if type(size) == "number" and size > 0 then ESP.Drawing.OffscreenArrows.Size = size end end
+ESP.SetOffscreenArrowsTransparency = function(trans) if type(trans) == "number" and trans >= 0 and trans <= 1 then ESP.Drawing.OffscreenArrows.Transparency = trans end end
+ESP.ToggleOffscreenArrowsDistance = function(enabled) ESP.Drawing.OffscreenArrows.ShowDistance = enabled end
+ESP.SetOffscreenArrowsDistanceColor = function(color) if typeof(color) == "Color3" then ESP.Drawing.OffscreenArrows.DistanceRGB = color end end
+ESP.SetOffscreenArrowsDistanceFontSize = function(size) if type(size) == "number" and size > 0 then ESP.Drawing.OffscreenArrows.DistanceFontSize = size end end
 
 ESP.SetCornerColor     = function(c) if typeof(c) == "Color3" then ESP.Drawing.Boxes.Corner.RGB = c end end
 ESP.SetCornerThickness = function(t) if type(t) == "number" and t > 0 then ESP.Drawing.Boxes.Corner.Thickness = t end end

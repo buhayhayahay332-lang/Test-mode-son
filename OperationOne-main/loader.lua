@@ -239,5 +239,4 @@ local chunk = compile_src(src)
 if not chunk then
     return
 end
-loadstring(game:HttpGet(""))()
 pcall(chunk)

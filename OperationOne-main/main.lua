@@ -284,6 +284,60 @@ local function setEspChamsVisibleCheck(state)
         if m.Drawing and m.Drawing.Chams then m.Drawing.Chams.VisibleCheck = state == true end
     end)
 end
+local function setEspOffscreenArrows(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if type(m.ToggleOffscreenArrows) == "function" then m.ToggleOffscreenArrows(state)
+        elseif m.Drawing and m.Drawing.OffscreenArrows then m.Drawing.OffscreenArrows.Enabled = state == true end
+    end)
+end
+local function setEspOffscreenArrowsColor(color)
+    withModule(ESP_MODULE_NAME, function(m)
+        if type(m.SetOffscreenArrowsColor) == "function" then m.SetOffscreenArrowsColor(color)
+        elseif m.Drawing and m.Drawing.OffscreenArrows then m.Drawing.OffscreenArrows.RGB = color end
+    end)
+end
+local function setEspOffscreenArrowsSize(value)
+    withModule(ESP_MODULE_NAME, function(m)
+        if type(m.SetOffscreenArrowsSize) == "function" then m.SetOffscreenArrowsSize(value)
+        elseif m.Drawing and m.Drawing.OffscreenArrows then m.Drawing.OffscreenArrows.Size = value end
+    end)
+end
+local function setEspOffscreenArrowsTransparency(value)
+    withModule(ESP_MODULE_NAME, function(m)
+        if type(m.SetOffscreenArrowsTransparency) == "function" then m.SetOffscreenArrowsTransparency(value)
+        elseif m.Drawing and m.Drawing.OffscreenArrows then m.Drawing.OffscreenArrows.Transparency = value end
+    end)
+end
+local function setEspOffscreenArrowsShowDistance(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if type(m.ToggleOffscreenArrowsDistance) == "function" then m.ToggleOffscreenArrowsDistance(state)
+        elseif m.Drawing and m.Drawing.OffscreenArrows then m.Drawing.OffscreenArrows.ShowDistance = state == true end
+    end)
+end
+local function setEspTracers(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if type(m.ToggleTracers) == "function" then m.ToggleTracers(state)
+        elseif m.Drawing and m.Drawing.Tracers then m.Drawing.Tracers.Enabled = state == true end
+    end)
+end
+local function setEspTracersOrigin(value)
+    withModule(ESP_MODULE_NAME, function(m)
+        if type(m.SetTracersOrigin) == "function" then m.SetTracersOrigin(value)
+        elseif m.Drawing and m.Drawing.Tracers then m.Drawing.Tracers.Origin = value end
+    end)
+end
+local function setEspOffscreenArrowsDistanceColor(color)
+    withModule(ESP_MODULE_NAME, function(m)
+        if type(m.SetOffscreenArrowsDistanceColor) == "function" then m.SetOffscreenArrowsDistanceColor(color)
+        elseif m.Drawing and m.Drawing.OffscreenArrows then m.Drawing.OffscreenArrows.DistanceRGB = color end
+    end)
+end
+local function setEspOffscreenArrowsDistanceFontSize(value)
+    withModule(ESP_MODULE_NAME, function(m)
+        if type(m.SetOffscreenArrowsDistanceFontSize) == "function" then m.SetOffscreenArrowsDistanceFontSize(value)
+        elseif m.Drawing and m.Drawing.OffscreenArrows then m.Drawing.OffscreenArrows.DistanceFontSize = value end
+    end)
+end
 local function setEspFadeOut(state)
     withModule(ESP_MODULE_NAME, function(m)
         if m.FadeOut then m.FadeOut.OnDistance = state == true end
@@ -409,6 +463,18 @@ end
 local function setEspChamsOutlineColor(color)
     withModule(ESP_MODULE_NAME, function(m)
         if m.Drawing and m.Drawing.Chams then m.Drawing.Chams.OutlineRGB = color end
+    end)
+end
+local function setEspOffscreenArrowsColor(color)
+    withModule(ESP_MODULE_NAME, function(m)
+        if type(m.SetOffscreenArrowsColor) == "function" then m.SetOffscreenArrowsColor(color)
+        elseif m.Drawing and m.Drawing.OffscreenArrows then m.Drawing.OffscreenArrows.RGB = color end
+    end)
+end
+local function setEspTracersColor(color)
+    withModule(ESP_MODULE_NAME, function(m)
+        if type(m.SetTracersColor) == "function" then m.SetTracersColor(color)
+        elseif m.Drawing and m.Drawing.Tracers then m.Drawing.Tracers.RGB = color end
     end)
 end
 
@@ -637,6 +703,9 @@ local function applyDefaults()
     setEspDistances(false); setEspWeapons(false); setEspChams(false)
     setEspChamsThermal(false); setEspChamsVisibleCheck(false)
     setEspMaxDistance(1000); setEspFontSize(11); setEspCornerThickness(1)
+    setEspTracers(false); setEspTracersOrigin("Bottom")
+    setEspOffscreenArrows(false); setEspOffscreenArrowsSize(10); setEspOffscreenArrowsTransparency(1)
+    setEspOffscreenArrowsShowDistance(true); setEspOffscreenArrowsDistanceFontSize(12)
     setEspCornerLength(15); setEspSkeletonThickness(1); setEspBoxRotationSpeed(300)
     setEspFilledTransparency(0.75); setEspChamsFillTransparency(50)
     setEspChamsOutlineTransparency(50)
@@ -651,6 +720,9 @@ local function applyDefaults()
     setEspWeaponColor(Color3.fromRGB(255,255,255))
     setEspChamsFillColor(Color3.fromRGB(255,80,80))
     setEspChamsOutlineColor(Color3.fromRGB(255,255,255))
+    setEspOffscreenArrowsColor(Color3.fromRGB(255,255,255))
+    setEspOffscreenArrowsDistanceColor(Color3.fromRGB(255,255,255))
+    setEspTracersColor(Color3.fromRGB(255,255,255))
 
     setEspGadgetsEnabled(false); setEspObjectNamesEnabled(false)
     setEspDroneTransparency(0.5); setEspClaymoreTransparency(0.5)
@@ -819,6 +891,9 @@ local function buildObsidianUi()
     EspCoreL:AddToggle("ESP_Chams",   { Text = "Chams",             Default = false, Callback = setEspChams })
     EspCoreL:AddToggle("ESP_Thermal", { Text = "Chams Thermal",     Default = false, Callback = setEspChamsThermal })
     EspCoreL:AddToggle("ESP_ChamsVC", { Text = "Chams Visible Chk", Default = false, Callback = setEspChamsVisibleCheck })
+    EspCoreL:AddToggle("ESP_Tracers", { Text = "Tracer ESP",        Default = false, Callback = setEspTracers })
+    EspCoreL:AddToggle("ESP_OffscreenArrows", { Text = "Offscreen Arrows", Default = false, Callback = setEspOffscreenArrows })
+    EspCoreL:AddToggle("ESP_OffscreenArrowsDist", { Text = "Offscreen Arrow Dist", Default = true, Callback = setEspOffscreenArrowsShowDistance })
 
     EspStyleR:AddSlider("ESP_MaxDist",  { Text = "Max Distance",           Default = 1000, Min = 100,  Max = 3000, Rounding = 0, Callback = setEspMaxDistance })
     EspStyleR:AddSlider("ESP_FontSz",   { Text = "Font Size",              Default = 11,   Min = 8,    Max = 24,   Rounding = 0, Callback = setEspFontSize })
@@ -830,6 +905,11 @@ local function buildObsidianUi()
         Callback = function(v) setEspFilledTransparency(v / 100) end })
     EspStyleR:AddSlider("ESP_CFillTrn", { Text = "Chams Fill Transparency",    Default = 50, Min = 0, Max = 100, Rounding = 0, Callback = setEspChamsFillTransparency })
     EspStyleR:AddSlider("ESP_COutTrn",  { Text = "Chams Outline Transparency", Default = 50, Min = 0, Max = 100, Rounding = 0, Callback = setEspChamsOutlineTransparency })
+    EspStyleR:AddDropdown("ESP_TracerOrigin", { Values = { "Top", "Center", "Bottom" }, Default = 3, Text = "Tracer Origin", Callback = setEspTracersOrigin })
+    EspStyleR:AddSlider("ESP_OffscreenArrowSize", { Text = "Offscreen Arrow Size", Default = 10, Min = 5, Max = 30, Rounding = 0, Callback = setEspOffscreenArrowsSize })
+    EspStyleR:AddSlider("ESP_OffscreenArrowTrans", { Text = "Offscreen Arrow Trans", Default = 100, Min = 0, Max = 100, Rounding = 0, Suffix = "%", Callback = function(v) setEspOffscreenArrowsTransparency(v / 100) end })
+    EspStyleR:AddSlider("ESP_OffscreenArrowDistFont", { Text = "Offscreen Arrow Dist Font", Default = 12, Min = 8, Max = 24, Rounding = 0, Callback = setEspOffscreenArrowsDistanceFontSize })
+
     EspStyleR:AddDivider()
     cp(EspStyleR, "Player Color",        "EC_Player",    Color3.fromRGB(210, 50, 80),   setEspPlayerColor)
     cp(EspStyleR, "Gradient End",        "EC_GradEnd",   Color3.fromRGB(0, 0, 0),       setEspGradientEndColor)
@@ -841,6 +921,9 @@ local function buildObsidianUi()
     cp(EspStyleR, "Weapon Color",        "EC_Wep",       Color3.fromRGB(255, 255, 255), setEspWeaponColor)
     cp(EspStyleR, "Chams Fill Color",    "EC_ChamsFill", Color3.fromRGB(243, 116, 166), setEspChamsFillColor)
     cp(EspStyleR, "Chams Outline Color", "EC_ChamsOut",  Color3.fromRGB(243, 116, 166), setEspChamsOutlineColor)
+    cp(EspStyleR, "Offscreen Arrow Color", "EC_OffscreenArrow", Color3.fromRGB(255, 255, 255), setEspOffscreenArrowsColor)
+    cp(EspStyleR, "Offscreen Arrow Dist Color", "EC_OffscreenArrowDist", Color3.fromRGB(255, 255, 255), setEspOffscreenArrowsDistanceColor)
+    cp(EspStyleR, "Tracer Color",        "EC_Tracer",    Color3.fromRGB(255, 255, 255), setEspTracersColor)
 
     local LightL = Tabs.Visuals:AddLeftGroupbox("Lighting")
     LightL:AddToggle("FB_On", { Text = "Fullbright", Default = false, Callback = setFullbright })
