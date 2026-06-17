@@ -1482,7 +1482,6 @@ local function ProcessESP(model, espData)
 
     local Pos, OnScreen = _Camera:WorldToViewportPoint(torso.Position)
     local Dist = (_CamPos - torso.Position).Magnitude / 3.5714285714
-    if not OnScreen or Dist > ESP.MaxDistance then
 
     if Dist > ESP.MaxDistance then
         Hide()
@@ -1498,7 +1497,6 @@ local function ProcessESP(model, espData)
         el.RTH.Visible = false; el.RTV.Visible = false
         el.LBH.Visible = false; el.LBV.Visible = false
         el.RBH.Visible = false; el.RBV.Visible = false
-        if el.Tracer then el.Tracer.Visible = false end
     end
 
     local yInset = _GuiInsetY
