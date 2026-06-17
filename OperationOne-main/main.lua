@@ -1086,17 +1086,12 @@ local function buildObsidianUi()
     local LocalL = Tabs.Local:AddLeftGroupbox("Skin Changer")
 
     LocalL:AddDropdown("LC_Skin", {
-        Values = { "Default", "BlueFlowers", "Synthwave", "TigerCamo", "Toxic", "ToyGunM4", "YellowPattern", "RedRoses", "BlackCamo", "Blue", "CarbonFiber", "Cardboard", "CheckeredSkin", "ClassicAA12", "CrackedEarth", "DarkRedCamo", "DeepRed", "DesertCamo", "Diamond", "FestiveLightsM4", "ForestCamo", "FrenchSticker", "Ghillie", "GhostShipSkin", "GhostSkin", "GhostStickerSkin", "Golden", "Green", "HalloweenParty", "HazardMP7", "HazardSkin", "HotRedL85", "Kalash", "MakeshiftBeretta", "NeonShapesM249", "OilSpill", "PurpleFadeC775", "Red", "RustyAUG", "Skulls", "SnowCamo", "Space", "SpiderWebSkin", "Splattered", "Steyr", "Tan", "Toxic", "WastelandRSh12", "White", "Yellow"},
+        Values = { "Default","TidalWaveAK", "CherryBlossom","AntiqueAnaconda","RoyalCAL12","RedLineAW50","RedLineReaper", "BlueFlowers", "Synthwave", "TigerCamo", "Toxic", "ToyGunM4", "YellowPattern", "RedRoses", "BlackCamo", "Blue", "CarbonFiber", "Cardboard", "CheckeredSkin", "ClassicAA12", "CrackedEarth", "DarkRedCamo", "DeepRed", "DesertCamo", "Diamond", "FestiveLightsM4", "ForestCamo", "FrenchSticker", "Ghillie", "GhostShipSkin", "GhostSkin", "GhostStickerSkin", "Golden", "Green", "HalloweenParty", "HazardMP7", "HazardSkin", "HotRedL85", "Kalash", "MakeshiftBeretta", "NeonShapesM249", "OilSpill", "PurpleFadeC775", "Red", "RustyAUG", "Skulls", "SnowCamo", "Space", "SpiderWebSkin", "Splattered", "Steyr", "Tan", "Toxic", "WastelandRSh12", "White", "Yellow"},
         Default = 1, Text = "Weapon Skin", Searchable = true,
         Callback = function(v) setAttachmentEditorOption("skin", v) end,
     })
     LocalL:AddDropdown("LC_Charm", {
-        Values = { "Default","8BallCharm","AceCard","BananaCharm","BellCharm","BlueBall",
-            "BulletCharm","ChristmasTreeCharm","ColorfulSquares","DiamondCharm","DogTagCharm",
-            "EyeballCharm","GhostCharm","LoveHeart","LuckyCharm","PumpkinCharm","S1Bronze",
-            "S1Champion","S1Diamond","S1Gold","S1Platinum","S1Silver","S2Bronze","S2Champion",
-            "S2Diamond","S2Gold","S2Platinum","S2Silver","SnowGlobeCharm","SnowflakeCharm",
-            "TargetPracticeCharm" },
+        Values = {  "Default", "DiamondBurgerCharm", "FishCharm", "GoldMedal", "GoldenTrophy", "HourglassCharm", "JussisCharm", "LoveHeart", "MedalTVCharm", "NXTCharm", "StaffCharm", "TSKCharm", "WalkieTalkieCharm", "YinYangCharm", "8BallCharm", "AceCard", "BananaCharm", "BellCharm", "BlueBall", "BulletCharm", "ChristmasTreeCharm", "ColorfulSquares", "DiamondCharm", "DogTagCharm", "EyeballCharm", "GhostCharm", "LoveHeart", "LuckyCharm", "PumpkinCharm", "S1Bronze", "S1Champion", "S1Diamond", "S1Gold", "S1Platinum", "S1Silver", "S2Bronze", "S2Champion", "S2Diamond", "S2Gold", "S2Platinum", "S2Silver", "SnowGlobeCharm", "SnowflakeCharm", "TargetPracticeCharm" },
         Default = 1, Text = "Weapon Charm", Searchable = true,
         Callback = function(v) setAttachmentEditorOption("charm", v) end,
     })
