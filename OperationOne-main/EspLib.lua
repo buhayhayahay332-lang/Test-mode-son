@@ -1643,89 +1643,6 @@ local function ProcessESP(model, espData)
         el.Tracer.Visible = false
     end
 
-    local isOffscreen = not OnScreen or Pos.Z < 0 or Dist > ESP.MaxDistance
-
-    if ESP.Drawing.OffscreenArrows.Enabled and isOffscreen then
-        local arrow = el.OffscreenArrow
-        local distText = el.OffscreenDistance
-
-        local screenCenter = Vector2.new(_ViewSize.X / 2, _ViewSize.Y / 2)
-        local arrowMargin = 40 
-        local arrowRadius = ESP.Drawing.OffscreenArrows.Size
-
-        local targetScreenPos = Vector2.new(Pos.X, Pos.Y)
-
-       
-        if Pos.Z < 0 then
-            targetScreenPos = screenCenter + (screenCenter - targetScreenPos)
-        end
-
-        local vecToTarget = targetScreenPos - screenCenter
-        local angle = math.atan2(vecToTarget.Y, vecToTarget.X)
-
-       
-        local halfPaddedWidth = _ViewSize.X / 2 - arrowMargin
-        local halfPaddedHeight = _ViewSize.Y / 2 - arrowMargin
-
-        local intersectionX, intersectionY
-
-      
-        if math.abs(vecToTarget.X) < 0.001 then
-            intersectionX = screenCenter.X
-            intersectionY = screenCenter.Y + math.sign(vecToTarget.Y) * halfPaddedHeight
-        elseif math.abs(vecToTarget.Y) < 0.001 then
-            intersectionX = screenCenter.X + math.sign(vecToTarget.X) * halfPaddedWidth
-            intersectionY = screenCenter.Y
-        else
-            local slope = vecToTarget.Y / vecToTarget.X
-
-            
-            local yAtXBoundary = screenCenter.Y + slope * halfPaddedWidth * math.sign(vecToTarget.X)
-            if math.abs(yAtXBoundary - screenCenter.Y) <= halfPaddedHeight then
-                intersectionX = screenCenter.X + halfPaddedWidth * math.sign(vecToTarget.X)
-                intersectionY = yAtXBoundary
-            else
-              
-                local xAtYBoundary = screenCenter.X + (1 / slope) * halfPaddedHeight * math.sign(vecToTarget.Y)
-                intersectionX = xAtYBoundary
-                intersectionY = screenCenter.Y + halfPaddedHeight * math.sign(vecToTarget.Y)
-            end
-        end
-
-        local arrowPos = Vector2.new(intersectionX, intersectionY)
-
-       
-        arrowPos = Vector2.new(
-            math.clamp(arrowPos.X, arrowRadius, _ViewSize.X - arrowRadius),
-            math.clamp(arrowPos.Y, arrowRadius, _ViewSize.Y - arrowRadius)
-        )
-
-        arrow.Position = arrowPos
-        arrow.Radius = arrowRadius
-        arrow.Rotation = math.deg(angle) + 90 
-        arrow.PointA = arrowPos + Vector2.new(math.cos(angle), math.sin(angle)) * arrowRadius
-        arrow.PointB = arrowPos + Vector2.new(math.cos(angle + math.rad(140)), math.sin(angle + math.rad(140))) * (arrowRadius * 0.8)
-        arrow.PointC = arrowPos + Vector2.new(math.cos(angle - math.rad(140)), math.sin(angle - math.rad(140))) * (arrowRadius * 0.8)
-        
-        arrow.Color = ESP.Drawing.OffscreenArrows.RGB
-        arrow.Transparency = ESP.Drawing.OffscreenArrows.Transparency
-        arrow.Visible = true
-
-        if ESP.Drawing.OffscreenArrows.ShowDistance then
-            distText.Text = math.floor(Dist) .. "m"
-            local textOffset = arrowRadius + 10
-            distText.Position = arrowPos + Vector2.new(math.cos(angle) * textOffset, math.sin(angle) * textOffset)
-            distText.Color = ESP.Drawing.OffscreenArrows.DistanceRGB
-            distText.Size = ESP.Drawing.OffscreenArrows.DistanceFontSize
-            distText.Visible = true
-        else
-            distText.Visible = false
-        end
-    else
-        el.OffscreenArrow.Visible = false
-        el.OffscreenDistance.Visible = false
-    end
-
     if ESP.Drawing.Skeleton.Enabled and not ActiveSkeletons[model] then
         createSkeletonESP(model)
     end
@@ -1938,7 +1855,6 @@ local function CreateESP(CharacterModel)
     OffscreenDistance.Font         = Drawing.Fonts.UI
     OffscreenDistance.Color        = ESP.Drawing.OffscreenArrows.DistanceRGB or Color3.new(1,1,1)
     OffscreenDistance.Size         = ESP.Drawing.OffscreenArrows.DistanceFontSize or 12
-    Tracer.ZIndex       = 1
 
     ActiveESPs[CharacterModel] = {
         folder   = folder,
@@ -2024,6 +1940,11 @@ local function mvm()
         dropRadarDot(v)
         removeSkeleton(v)
         TeamHighlightCache[v] = nil
+        local associatedChar = VMtoChar[v]
+        if associatedChar then
+            removeNameLabel(associatedChar)
+            CharToVM[associatedChar] = nil 
+        end
         VMtoChar[v] = nil
         markProxyCacheDirty()
     end)
