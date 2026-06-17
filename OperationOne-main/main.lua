@@ -177,6 +177,21 @@ local function setSilentAimFovCircleVisual(state)
         if type(m.setFovCircleVisible) == "function" then m:setFovCircleVisible(state) end
     end)
 end
+local function setSilentAimSnaplines(state)
+    withModule("silent_aim", function(m)
+        if type(m.setSnaplinesEnabled) == "function" then m:setSnaplinesEnabled(state) end
+    end)
+end
+local function setSilentAimSnaplineOrigin(value)
+    withModule("silent_aim", function(m)
+        if type(m.setSnaplineOrigin) == "function" then m:setSnaplineOrigin(value) end
+    end)
+end
+local function setSilentAimSnaplineColor(color)
+    withModule("silent_aim", function(m)
+        if type(m.setSnaplineColor) == "function" then m:setSnaplineColor(color) end
+    end)
+end
 
 local function setGunModEnabled(state)
     withModule("gun_modification", function(m)
@@ -691,6 +706,7 @@ local function applyDefaults()
     setAimAssistActivation("mb2"); setSilentAimTargetMode("custom_parts")
     setSilentAimTargetGadgets(false); setSilentAimVisibleCheck(false)
     setSilentAimFovCircleVisual(true)
+    setSilentAimSnaplines(false); setSilentAimSnaplineOrigin("Center")
 
     setGunModEnabled(false); setGunModConfig("recoil_reduction", 0)
     setGunModConfig("horizontal_recoil", 0); setGunModConfig("no_spread", false)
@@ -723,6 +739,7 @@ local function applyDefaults()
     setEspOffscreenArrowsColor(Color3.fromRGB(255,255,255))
     setEspOffscreenArrowsDistanceColor(Color3.fromRGB(255,255,255))
     setEspTracersColor(Color3.fromRGB(255,255,255))
+    setSilentAimSnaplineColor(Color3.fromRGB(255,255,255))
 
     setEspGadgetsEnabled(false); setEspObjectNamesEnabled(false)
     setEspDroneTransparency(0.5); setEspClaymoreTransparency(0.5)
@@ -823,6 +840,11 @@ local function buildObsidianUi()
         Tooltip = "Draw FOV boundary on screen",
         Callback = setSilentAimFovCircleVisual,
     })
+    AimL:AddToggle("SA_Snaplines", {
+        Text = "Snaplines", Default = false,
+        Tooltip = "Draw line to current target",
+        Callback = setSilentAimSnaplines,
+    })
     AimL:AddSlider("SA_FOV", {
         Text = "FOV Radius", Default = 60, Min = 10, Max = 400, Rounding = 0,
         Callback = setSilentAimFov,
@@ -846,10 +868,16 @@ local function buildObsidianUi()
         Text = "Target Mode",
         Callback = setSilentAimTargetMode,
     })
+    AimL:AddDropdown("SA_SnaplineOrigin", {
+        Values = { "Top", "Center", "Bottom" }, Default = 2,
+        Text = "Snapline Origin",
+        Callback = setSilentAimSnaplineOrigin,
+    })
     AimL:AddToggle("SA_TargetGadgets", {
         Text = "Target Gadgets", Default = false,
         Callback = setSilentAimTargetGadgets,
     })
+    cp(AimL, "Snapline Color", "SA_SnapColor", Color3.fromRGB(255,255,255), setSilentAimSnaplineColor)
 
     AimR:AddToggle("GM_Enabled", {
         Text = "Gun Mod Enabled", Default = false, Risky = true,

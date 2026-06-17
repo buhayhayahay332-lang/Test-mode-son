@@ -15,11 +15,17 @@ local Module = {
     _smoothness = 1,
     _fovRadius = 60,
     _fovRadiusSq = 60 * 60,
+    _snaplineOrigin = "Bottom",
+    _snaplineColor = Color3.fromRGB(255, 255, 255),
+    _snaplineThickness = 1,
+    _snaplineTransparency = 1,
     _visibleCheck = false,
     _showFovCircle = true,
+    _showSnaplines = false,
     _mobileScopeButton = nil,
     _renderConn = nil,
     _fovCircle = nil,
+    _snapline = nil,
     _viewmodelsFolder = nil,
     _hookInstalled = false,
 }
@@ -388,8 +394,42 @@ function Module:_updateFovCircle()
     self._fovCircle.Position = self:_getMousePosition()
 end
 
+function Module:_updateSnapline()
+    if not self._snapline then return end
+
+    local target = self:_getClosestTargetToCursor()
+    if self._enabled and self._showSnaplines and target then
+        local camera = Workspace.CurrentCamera
+        if not camera then self._snapline.Visible = false return end
+
+        local screenPos, onScreen = camera:WorldToViewportPoint(target.Position)
+        if not onScreen then self._snapline.Visible = false return end
+
+        local viewportSize = camera.ViewportSize
+        local startPos
+
+        if self._snaplineOrigin == "Top" then
+            startPos = Vector2.new(viewportSize.X / 2, 0)
+        elseif self._snaplineOrigin == "Center" then
+            startPos = Vector2.new(viewportSize.X / 2, viewportSize.Y / 2)
+        else -- Bottom
+            startPos = Vector2.new(viewportSize.X / 2, viewportSize.Y)
+        end
+
+        self._snapline.From = startPos
+        self._snapline.To = Vector2.new(screenPos.X, screenPos.Y)
+        self._snapline.Color = self._snaplineColor
+        self._snapline.Thickness = self._snaplineThickness
+        self._snapline.Transparency = self._snaplineTransparency
+        self._snapline.Visible = true
+    else
+        self._snapline.Visible = false
+    end
+end
+
 function Module:_onRenderStep()
     self:_updateFovCircle()
+    self:_updateSnapline()
     self:_runAimAssist()
 end
 
@@ -490,6 +530,25 @@ function Module:_createFovCircle()
     self._fovCircle = circle
 end
 
+function Module:_createSnapline()
+    if self._snapline then return end
+    if type(Drawing) ~= "table" or type(Drawing.new) ~= "function" then return end
+
+    local env = (getgenv and getgenv()) or _G
+    if type(env) == "table" and env.__op1_silent_snapline then
+        pcall(function() env.__op1_silent_snapline:Remove() end)
+    end
+
+    local line = Drawing.new("Line")
+    line.Visible = false
+    line.Thickness = 1
+    line.Color = self._snaplineColor
+    line.Transparency = 1
+
+    if type(env) == "table" then env.__op1_silent_snapline = line end
+    self._snapline = line
+end
+
 function Module:init(force)
     if self._initialized and not force then
         return true
@@ -505,6 +564,7 @@ function Module:init(force)
     end
 
     self:_createFovCircle()
+    self:_createSnapline()
 
     if self._renderConn then
         self._renderConn:Disconnect()
@@ -601,6 +661,28 @@ function Module:setFovCircleVisible(state)
     return true
 end
 
+function Module:setSnaplinesEnabled(state)
+    self._showSnaplines = state == true
+    self:_updateSnapline()
+end
+
+function Module:setSnaplineColor(color)
+    if typeof(color) == "Color3" then
+        self._snaplineColor = color
+    end
+end
+
+function Module:setSnaplineOrigin(origin)
+    local valid = {["Top"] = true, ["Center"] = true, ["Bottom"] = true}
+    if valid[origin] then
+        self._snaplineOrigin = origin
+    end
+end
+
+function Module:setSnaplineThickness(value)
+    self._snaplineThickness = tonumber(value) or 1
+end
+
 function Module:unload()
     self._enabled = false
     self._mobileScopeButton = nil
@@ -618,9 +700,18 @@ function Module:unload()
         self._fovCircle = nil
     end
 
+    if self._snapline then
+        pcall(function()
+            self._snapline.Visible = false
+            self._snapline:Remove()
+        end)
+        self._snapline = nil
+    end
+
     local env = (getgenv and getgenv()) or _G
     if type(env) == "table" then
         env.__op1_silent_fov_circle = nil
+        env.__op1_silent_snapline = nil
     end
 
     self._initialized = false
