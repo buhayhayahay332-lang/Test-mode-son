@@ -1483,9 +1483,22 @@ local function ProcessESP(model, espData)
     local Pos, OnScreen = _Camera:WorldToViewportPoint(torso.Position)
     local Dist = (_CamPos - torso.Position).Magnitude / 3.5714285714
     if not OnScreen or Dist > ESP.MaxDistance then
+
+    if Dist > ESP.MaxDistance then
         Hide()
         removeSkeleton(model)
         return
+    end
+
+    if not OnScreen or Pos.Z < 0 then
+        el.Box.Visible         = false
+        el.Weapon.Visible      = false
+        el.HealthBarBG.Visible = false
+        el.LTH.Visible = false; el.LTV.Visible = false
+        el.RTH.Visible = false; el.RTV.Visible = false
+        el.LBH.Visible = false; el.LBV.Visible = false
+        el.RBH.Visible = false; el.RBV.Visible = false
+        if el.Tracer then el.Tracer.Visible = false end
     end
 
     local yInset = _GuiInsetY
@@ -1692,6 +1705,10 @@ local function ProcessESP(model, espData)
         arrow.Position = arrowPos
         arrow.Radius = arrowRadius
         arrow.Rotation = math.deg(angle) + 90 
+        arrow.PointA = arrowPos + Vector2.new(math.cos(angle), math.sin(angle)) * arrowRadius
+        arrow.PointB = arrowPos + Vector2.new(math.cos(angle + math.rad(140)), math.sin(angle + math.rad(140))) * (arrowRadius * 0.8)
+        arrow.PointC = arrowPos + Vector2.new(math.cos(angle - math.rad(140)), math.sin(angle - math.rad(140))) * (arrowRadius * 0.8)
+        
         arrow.Color = ESP.Drawing.OffscreenArrows.RGB
         arrow.Transparency = ESP.Drawing.OffscreenArrows.Transparency
         arrow.Visible = true
