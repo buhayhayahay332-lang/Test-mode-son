@@ -1523,6 +1523,13 @@ local function ProcessESP(model, espData)
             arrow.PointA = arrowPos + Vector2.new(cosA, sinA) * arrowRadius
             arrow.PointB = arrowPos + Vector2.new(math.cos(angle + math.rad(140)), math.sin(angle + math.rad(140))) * (arrowRadius * 0.8)
             arrow.PointC = arrowPos + Vector2.new(math.cos(angle - math.rad(140)), math.sin(angle - math.rad(140))) * (arrowRadius * 0.8)
+            local dir = Vector2.new(cosA, sinA)
+            local side = Vector2.new(-sinA, cosA)
+
+            arrow.PointA = arrowPos + dir * arrowRadius
+            arrow.PointB = arrowPos + side * (arrowRadius * 0.8) - dir * arrowRadius
+            arrow.PointC = arrowPos - dir * (arrowRadius * 0.6)
+            arrow.PointD = arrowPos - side * (arrowRadius * 0.8) - dir * arrowRadius
 
             arrow.Color = ESP.Drawing.OffscreenArrows.RGB
             arrow.Transparency = ESP.Drawing.OffscreenArrows.Transparency
@@ -1885,6 +1892,7 @@ local function CreateESP(CharacterModel)
     Tracer.ZIndex       = 1
 
     local OffscreenArrow = Drawing.new("Triangle")
+    local OffscreenArrow = Drawing.new("Quad")
     OffscreenArrow.Visible      = false
     OffscreenArrow.Filled       = true
     OffscreenArrow.Color        = ESP.Drawing.OffscreenArrows.RGB
