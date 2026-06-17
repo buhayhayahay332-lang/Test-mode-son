@@ -148,8 +148,11 @@ local ESP = {
         OffscreenArrows = {
             Enabled          = false,
             RGB              = Color3.fromRGB(255, 255, 255),
-            Size             = 10, 
-            Origin       = "Bottom",
+            Size             = 10,
+            ShowDistance     = true,
+            DistanceRGB      = Color3.fromRGB(255, 255, 255),
+            DistanceFontSize = 12,
+            Origin           = "Bottom",
             Thickness    = 1,
             Transparency = 1,
         },
@@ -1448,6 +1451,7 @@ local function ProcessESP(model, espData)
     local function Hide()
         el.Box.Visible         = false
         el.Weapon.Visible      = false
+        if el.Name then el.Name.Visible = false end
         el.Chams.Enabled       = false
         el.HealthBarBG.Visible = false
         el.LTH.Visible = false; el.LTV.Visible = false
@@ -1810,22 +1814,6 @@ local function CreateESP(CharacterModel)
     ESPCounter = ESPCounter + 1
     local folder = Functions:Create("Folder", { Parent = ScreenGui, Name = "E_" .. ESPCounter })
 
-    local Name = Functions:Create("TextLabel", {
-        Parent               = folder, Name = "N",
-        Position             = UDim2.new(0.5, 0, 0, 0),
-        Size                 = UDim2.new(0, 200, 0, ESP.FontSize + 4),
-        AnchorPoint          = Vector2.new(0.5, 1),
-        BackgroundTransparency = 1,
-        TextColor3           = Color3.fromRGB(255, 255, 255),
-        Font                 = Enum.Font.Code,
-        TextSize             = ESP.FontSize,
-        TextStrokeTransparency = 0,
-        TextStrokeColor3     = Color3.fromRGB(0, 0, 0),
-        RichText             = true,
-        TextScaled           = false,
-        Visible              = false,
-    })
-
     local Weapon = Functions:Create("TextLabel", {
         Parent               = folder, Name = "W",
         Position             = UDim2.new(0.5, 0, 0, 0),
@@ -1933,8 +1921,8 @@ local function CreateESP(CharacterModel)
     OffscreenDistance.Center       = true
     OffscreenDistance.Outline      = true
     OffscreenDistance.Font         = Drawing.Fonts.UI
-    OffscreenDistance.Color        = ESP.Drawing.OffscreenArrows.DistanceRGB
-    OffscreenDistance.Size         = ESP.Drawing.OffscreenArrows.DistanceFontSize
+    OffscreenDistance.Color        = ESP.Drawing.OffscreenArrows.DistanceRGB or Color3.new(1,1,1)
+    OffscreenDistance.Size         = ESP.Drawing.OffscreenArrows.DistanceFontSize or 12
     Tracer.ZIndex       = 1
 
     ActiveESPs[CharacterModel] = {
@@ -1945,7 +1933,6 @@ local function CreateESP(CharacterModel)
             OffscreenArrow    = OffscreenArrow,
             OffscreenDistance = OffscreenDistance,
             Tracer      = Tracer,
-            Name        = Name,
             Weapon      = Weapon,
             Box         = Box,
             Gradient1   = Gradient1,
