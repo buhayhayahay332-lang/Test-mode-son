@@ -1490,14 +1490,58 @@ local function ProcessESP(model, espData)
     end
 
     if not OnScreen or Pos.Z < 0 then
-        el.Box.Visible         = false
-        el.Weapon.Visible      = false
-        el.HealthBarBG.Visible = false
-        el.LTH.Visible = false; el.LTV.Visible = false
-        el.RTH.Visible = false; el.RTV.Visible = false
-        el.LBH.Visible = false; el.LBV.Visible = false
-        el.RBH.Visible = false; el.RBV.Visible = false
+        Hide() 
+
+        if ESP.Drawing.OffscreenArrows.Enabled then
+            local arrow = el.OffscreenArrow
+            local distText = el.OffscreenDistance
+            local screenCenter = Vector2.new(_ViewSize.X / 2, _ViewSize.Y / 2)
+            local arrowMargin = 40
+            local arrowRadius = ESP.Drawing.OffscreenArrows.Size
+
+            local targetScreenPos = Vector2.new(Pos.X, Pos.Y)
+            if Pos.Z < 0 then
+                targetScreenPos = screenCenter + (screenCenter - targetScreenPos).Unit * 1000
+            end
+
+            local vecToTarget = (targetScreenPos - screenCenter)
+            local angle = math.atan2(vecToTarget.Y, vecToTarget.X)
+            local halfWidth = _ViewSize.X / 2 - arrowMargin
+            local halfHeight = _ViewSize.Y / 2 - arrowMargin
+            local cosA, sinA = math.cos(angle), math.sin(angle)
+
+            local xInter = halfHeight * cosA / math.abs(sinA)
+            local yInter = halfWidth * sinA / math.abs(cosA)
+            local intersection
+            if math.abs(xInter) <= halfWidth then
+                intersection = Vector2.new(xInter, halfHeight * math.sign(sinA))
+            else
+                intersection = Vector2.new(halfWidth * math.sign(cosA), yInter)
+            end
+
+            local arrowPos = screenCenter + intersection
+            arrow.PointA = arrowPos + Vector2.new(cosA, sinA) * arrowRadius
+            arrow.PointB = arrowPos + Vector2.new(math.cos(angle + math.rad(140)), math.sin(angle + math.rad(140))) * (arrowRadius * 0.8)
+            arrow.PointC = arrowPos + Vector2.new(math.cos(angle - math.rad(140)), math.sin(angle - math.rad(140))) * (arrowRadius * 0.8)
+
+            arrow.Color = ESP.Drawing.OffscreenArrows.RGB
+            arrow.Transparency = ESP.Drawing.OffscreenArrows.Transparency
+            arrow.Visible = true
+
+            if ESP.Drawing.OffscreenArrows.ShowDistance then
+                distText.Text = math.floor(Dist) .. "m"
+                distText.Position = arrowPos - (Vector2.new(cosA, sinA) * (arrowRadius + 15))
+                distText.Color = ESP.Drawing.OffscreenArrows.DistanceRGB
+                distText.Size = ESP.Drawing.OffscreenArrows.DistanceFontSize
+                distText.Visible = true
+            end
+        end
+        return 
     end
+
+   
+    el.OffscreenArrow.Visible = false
+    el.OffscreenDistance.Visible = false
 
     local yInset = _GuiInsetY
 
