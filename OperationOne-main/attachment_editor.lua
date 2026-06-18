@@ -98,8 +98,20 @@ function Module:_applyAttachment(moduleName, settingKey)
     end
 
     attachmentModule.remove(attachmentModule, gun)
-    task.wait()
     attachmentModule.apply(require(assetModule), gun)
+
+    -- Restore reticle visibility. Skins often overwrite transparency/modifiers
+    -- on parts they don't define, which usually includes the SightMark and Reticle.
+    task.defer(function()
+        if not gun or not gun.instance then return end
+        for _, v in ipairs(gun.instance:GetDescendants()) do
+            if v:IsA("BasePart") and (v.Name == "ReticuleSight" or v.Name == "RedDot" or v.Name == "Dot") then
+                v.Transparency = 0
+                v.LocalTransparencyModifier = 0
+            end
+        end
+    end)
+
     return true
 end
 
