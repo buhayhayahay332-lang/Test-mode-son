@@ -1,7 +1,3 @@
-local recoil_x = 1
-local recoil_y = 1
-local no_spread_enabled = false
-
 local Module = {
     _initialized = false,
     _enabled = false,
@@ -13,6 +9,9 @@ local Module = {
         no_spread = false,
         force_auto = false,
     },
+    recoil_x = 1,
+    recoil_y = 1,
+    no_spread_enabled = false,
 }
 
 function Module:setShared(shared)
@@ -30,22 +29,20 @@ end
 
 function Module:_applyConfig()
     if self._enabled then
-        recoil_x = 1 - (tonumber(self.config.recoil_reduction) or 0)
-        recoil_y = 1 - (tonumber(self.config.horizontal_recoil) or 0)
-        no_spread_enabled = self.config.no_spread == true
-
-        if self.config.force_auto then
-            task.spawn(function()
-                local RS = game:GetService("ReplicatedStorage")
-                local GunModule = require(RS:WaitForChild("Modules"):WaitForChild("Items"):WaitForChild("Item"):WaitForChild("Gun"))
-                rawset(GunModule, "automatic", true)
-            end)
-        end
+        self.recoil_x = 1 - (tonumber(self.config.recoil_reduction) or 0)
+        self.recoil_y = 1 - (tonumber(self.config.horizontal_recoil) or 0)
+        self.no_spread_enabled = self.config.no_spread == true
     else
-        recoil_x = 1
-        recoil_y = 1
-        no_spread_enabled = false
+        self.recoil_x = 1
+        self.recoil_y = 1
+        self.no_spread_enabled = false
     end
+
+    task.spawn(function()
+        local RS = game:GetService("ReplicatedStorage")
+        local GunModule = require(RS:WaitForChild("Modules"):WaitForChild("Items"):WaitForChild("Item"):WaitForChild("Gun"))
+        rawset(GunModule, "automatic", self._enabled and self.config.force_auto == true)
+    end)
 end
 
 function Module:_installHook()
@@ -53,18 +50,19 @@ function Module:_installHook()
         return true
     end
 
+    local selfRef = self
     local old_tweenInfo_new = clonefunction(TweenInfo.new)
     hookfunction(TweenInfo.new, newcclosure(function(...)
         if dbg.info(3, "n") == "recoil_function" then
-            sstack(3, 5, gstack(3, 5) * recoil_x)
-            sstack(3, 6, gstack(3, 6) * recoil_y)
+            sstack(3, 5, gstack(3, 5) * selfRef.recoil_x)
+            sstack(3, 6, gstack(3, 6) * selfRef.recoil_y)
         end
         return old_tweenInfo_new(...)
     end))
 
     local old_math_random = clonefunction(math.random)
     hookfunction(math.random, newcclosure(function(...)
-        if no_spread_enabled then
+        if selfRef.no_spread_enabled then
             if dbg.info(2, "n") == "get_circular_spread" then
                 sstack(2, 2, 0)
                 return 0
