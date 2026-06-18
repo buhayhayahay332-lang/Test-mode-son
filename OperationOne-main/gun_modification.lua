@@ -29,8 +29,8 @@ end
 
 function Module:_applyConfig()
     if self._enabled then
-        self.recoil_x = 1 - (tonumber(self.config.recoil_reduction) or 0)
-        self.recoil_y = 1 - (tonumber(self.config.horizontal_recoil) or 0)
+        self.recoil_x = tonumber(self.config.recoil_reduction) or 0
+        self.recoil_y = tonumber(self.config.horizontal_recoil) or 0
         self.no_spread_enabled = self.config.no_spread == true
     else
         self.recoil_x = 1
