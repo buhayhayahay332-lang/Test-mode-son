@@ -1,5 +1,5 @@
-local recoil_x = 0
-local recoil_y = 0
+local recoil_x = 1
+local recoil_y = 1
 local no_spread_enabled = false
 
 local Module = {
@@ -30,8 +30,8 @@ end
 
 function Module:_applyConfig()
     if self._enabled then
-        recoil_x = tonumber(self.config.recoil_reduction) or 0
-        recoil_y = tonumber(self.config.horizontal_recoil) or 0
+        recoil_x = 1 - (tonumber(self.config.recoil_reduction) or 0)
+        recoil_y = 1 - (tonumber(self.config.horizontal_recoil) or 0)
         no_spread_enabled = self.config.no_spread == true
 
         if self.config.force_auto then
@@ -42,8 +42,8 @@ function Module:_applyConfig()
             end)
         end
     else
-        recoil_x = 0
-        recoil_y = 0
+        recoil_x = 1
+        recoil_y = 1
         no_spread_enabled = false
     end
 end
