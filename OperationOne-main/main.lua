@@ -776,6 +776,7 @@ local function applyDefaults()
     setFullbrightSetting("GlobalShadows", false)
     setFullbrightSetting("Ambient", Color3.fromRGB(178,178,178))
 
+    setAttachmentEditorOption("fixSkins", false)
     setAttachmentEditorOption("skin", "Default")
     setAttachmentEditorOption("charm", "Default")
 end
@@ -1113,6 +1114,11 @@ local function buildObsidianUi()
 
     local LocalL = Tabs.Local:AddLeftGroupbox("Skin Changer")
 
+    LocalL:AddToggle("LC_FixSkins", {
+        Text = "Fix Missing Skin Parts", Default = false,
+        Tooltip = "Restores parts that were hidden by certain skins",
+        Callback = function(v) setAttachmentEditorOption("fixSkins", v) end,
+    })
     LocalL:AddDropdown("LC_Skin", {
         Values = { "Default","TidalWaveAK", "CherryBlossom","AntiqueAnaconda","RoyalCAL12","RedLineAW50","RedLineReaper", "BlueFlowers", "Synthwave", "TigerCamo", "Toxic", "ToyGunM4", "YellowPattern", "RedRoses", "BlackCamo", "Blue", "CarbonFiber", "Cardboard", "CheckeredSkin", "ClassicAA12", "CrackedEarth", "DarkRedCamo", "DeepRed", "DesertCamo", "Diamond", "FestiveLightsM4", "ForestCamo", "FrenchSticker", "Ghillie", "GhostShipSkin", "GhostSkin", "GhostStickerSkin", "Golden", "Green", "HalloweenParty", "HazardMP7", "HazardSkin", "HotRedL85", "Kalash", "MakeshiftBeretta", "NeonShapesM249", "OilSpill", "PurpleFadeC775", "Red", "RustyAUG", "Skulls", "SnowCamo", "Space", "SpiderWebSkin", "Splattered", "Steyr", "Tan", "Toxic", "WastelandRSh12", "White", "Yellow"},
         Default = 1, Text = "Weapon Skin", Searchable = true,

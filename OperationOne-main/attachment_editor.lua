@@ -8,6 +8,7 @@ local Module = {
     _localViewmodelChildConn = nil,
     _pendingAutoApply = false,
     config = {
+        fixSkins = false,
         skin = "Default",
         charm = "Default",
     },
@@ -100,14 +101,25 @@ function Module:_applyAttachment(moduleName, settingKey)
     attachmentModule.remove(attachmentModule, gun)
     attachmentModule.apply(require(assetModule), gun)
 
-    -- Restore reticle visibility. Skins often overwrite transparency/modifiers
-    -- on parts they don't define, which usually includes the SightMark and Reticle.
+    local selfRef = self
     task.defer(function()
         if not gun or not gun.instance then return end
         for _, v in ipairs(gun.instance:GetDescendants()) do
-            if v:IsA("BasePart") and (v.Name == "ReticuleSight" or v.Name == "RedDot" or v.Name == "Dot") then
-                v.Transparency = 0
-                v.LocalTransparencyModifier = 0
+            if v:IsA("BasePart") then
+                -- Reticle fix
+                if v.Name == "ReticuleSight" or v.Name == "RedDot" or v.Name == "Dot" then
+                    v.Transparency = 0
+                    v.LocalTransparencyModifier = 0
+                end
+
+               
+                if selfRef.config.fixSkins then
+                    local original = v:GetAttribute("OriginalTransparency")
+                    if original and v.Transparency > original then
+                        v.Transparency = original
+                        v.LocalTransparencyModifier = 0
+                    end
+                end
             end
         end
     end)
@@ -209,6 +221,12 @@ function Module:setOption(key, value)
         return false, initErr
     end
 
+    if key == "fixSkins" then
+        self.config[key] = value == true
+        self:applyAll()
+        return true
+    end
+
     self.config[key] = tostring(value)
 
     local moduleMap = {
@@ -230,7 +248,11 @@ function Module:updateConfig(newConfig)
 
     for key, value in pairs(newConfig) do
         if self.config[key] ~= nil then
-            self.config[key] = tostring(value)
+            if key == "fixSkins" then
+                self.config[key] = value == true
+            else
+                self.config[key] = tostring(value)
+            end
         end
     end
 
