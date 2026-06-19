@@ -614,13 +614,11 @@ function Module:_createMobileAimbotButton()
         if input.UserInputType ~= Enum.UserInputType.Touch and input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
         if not button.Visible then return end
 
-        local inBounds = (input.Position - button.Position).Magnitude < buttonBg.Radius
         local inputPos = Vector2.new(input.Position.X, input.Position.Y)
 
         local inBounds = (inputPos - button.Position).Magnitude < buttonBg.Radius
         if input.UserInputState == Enum.UserInputState.Begin and inBounds then
             dragging = true
-            dragStart = input.Position
             dragStart = inputPos
             buttonStartPos = button.Position
 
@@ -629,8 +627,6 @@ function Module:_createMobileAimbotButton()
                 if not dragging then return end
                 if dragInput.UserInputType ~= Enum.UserInputType.MouseMovement and dragInput.UserInputType ~= Enum.UserInputType.Touch then return end
 
-                local delta = dragInput.Position - dragStart
-                
                 local dragPos = Vector2.new(dragInput.Position.X, dragInput.Position.Y)
                 local delta = dragPos - dragStart
                 local newPos = buttonStartPos + delta
@@ -647,7 +643,7 @@ function Module:_createMobileAimbotButton()
             if not dragging then return end
             dragging = false
 
-            local dragDistance = (input.Position - dragStart).Magnitude
+            local inputPos = Vector2.new(input.Position.X, input.Position.Y)
             local dragDistance = (inputPos - dragStart).Magnitude
             if dragDistance < 10 then
                 self._mobileAimbotToggledOn = not self._mobileAimbotToggledOn
