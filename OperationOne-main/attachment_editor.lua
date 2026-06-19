@@ -13,7 +13,7 @@ local Module = {
         charm = "Default",
     },
     options = {
-        skin = { "Default","TidalWaveAK", "CherryBlossom","AntiqueAnaconda","RoyalCAL12","RedLineAW50","RedLineReaper", "BlueFlowers", "Synthwave", "TigerCamo", "Toxic", "ToyGunM4", "YellowPattern", "RedRoses", "BlackCamo", "Blue", "CarbonFiber", "Cardboard", "CheckeredSkin", "ClassicAA12", "CrackedEarth", "DarkRedCamo", "DeepRed", "DesertCamo", "Diamond", "FestiveLightsM4", "ForestCamo", "FrenchSticker", "Ghillie", "GhostShipSkin", "GhostSkin", "GhostStickerSkin", "Golden", "Green", "HalloweenParty", "HazardMP7", "HazardSkin", "HotRedL85", "Kalash", "MakeshiftBeretta", "NeonShapesM249", "OilSpill", "PurpleFadeC775", "Red", "RustyAUG", "Skulls", "SnowCamo", "Space", "SpiderWebSkin", "Splattered", "Steyr", "Tan", "Toxic", "WastelandRSh12", "White", "Yellow" },
+        skin = { "Default","TidalWaveAK", "CherryBlossom","RoyalCAL12","RedLineAW50","RedLineReaper", "BlueFlowers", "Synthwave", "TigerCamo", "Toxic", "ToyGunM4", "YellowPattern", "RedRoses", "BlackCamo", "Blue", "CarbonFiber", "Cardboard", "CheckeredSkin", "ClassicAA12", "CrackedEarth", "DarkRedCamo", "DeepRed", "DesertCamo", "Diamond", "FestiveLightsM4", "ForestCamo", "FrenchSticker", "Ghillie", "GhostShipSkin", "GhostSkin", "GhostStickerSkin", "Golden", "Green", "HalloweenParty", "HazardMP7", "HazardSkin", "HotRedL85", "Kalash", "MakeshiftBeretta", "NeonShapesM249", "OilSpill", "PurpleFadeC775", "Red", "RustyAUG", "Skulls", "SnowCamo", "Space", "SpiderWebSkin", "Splattered", "Steyr", "Tan", "Toxic", "WastelandRSh12", "White", "Yellow" },
         charm = { "Default", "DiamondBurgerCharm", "FishCharm", "GoldMedal", "GoldenTrophy", "HourglassCharm", "JussisCharm", "LoveHeart", "MedalTVCharm", "NXTCharm", "StaffCharm", "TSKCharm", "WalkieTalkieCharm", "YinYangCharm", "8BallCharm", "AceCard", "BananaCharm", "BellCharm", "BlueBall", "BulletCharm", "ChristmasTreeCharm", "ColorfulSquares", "DiamondCharm", "DogTagCharm", "EyeballCharm", "GhostCharm", "LoveHeart", "LuckyCharm", "PumpkinCharm", "S1Bronze", "S1Champion", "S1Diamond", "S1Gold", "S1Platinum", "S1Silver", "S2Bronze", "S2Champion", "S2Diamond", "S2Gold", "S2Platinum", "S2Silver", "SnowGlobeCharm", "SnowflakeCharm", "TargetPracticeCharm" },
     },
 }
@@ -106,7 +106,6 @@ function Module:_applyAttachment(moduleName, settingKey)
         if not gun or not gun.instance then return end
         for _, v in ipairs(gun.instance:GetDescendants()) do
             if v:IsA("BasePart") then
-                -- Reticle fix
                 if v.Name == "ReticuleSight" or v.Name == "RedDot" or v.Name == "Dot" then
                     v.Transparency = 0
                     v.LocalTransparencyModifier = 0
