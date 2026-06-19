@@ -585,6 +585,7 @@ function Module:_createMobileAimbotButton()
     button.Font = Drawing.Fonts.UI
     button.Text = "AIM"
     button.Color = Color3.new(1, 1, 1)
+    local textOffset = Vector2.new(0, -1)
 
     local dragging = false
     local dragStart = Vector2.new()
@@ -604,14 +605,14 @@ function Module:_createMobileAimbotButton()
         button.Size = textSize
         button.Center = true
         button.Outline = true
-        button.Position = buttonBg.Position
+        button.Position = buttonBg.Position + textOffset
     end
 
     local function applyButtonLayout()
         local pos = getButtonPosition()
         buttonBg.Position = pos
         buttonBorder.Position = pos
-        button.Position = pos
+        button.Position = pos + textOffset
         buttonBg.Radius = self._mobileButtonSize
         buttonBorder.Radius = self._mobileButtonSize + 1
         buttonBg.Transparency = self._mobileButtonTransparency
@@ -684,7 +685,7 @@ function Module:_createMobileAimbotButton()
                 self._mobileButtonPosition = Vector2.new(newPos.X, newPos.Y - Workspace.CurrentCamera.ViewportSize.Y)
                 buttonBg.Position = newPos
                 buttonBorder.Position = newPos
-                button.Position = newPos
+                button.Position = newPos + textOffset
             end)
             return
         end
