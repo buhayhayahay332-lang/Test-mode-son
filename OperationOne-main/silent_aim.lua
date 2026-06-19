@@ -575,10 +575,13 @@ function Module:_createMobileAimbotButton()
     button.Size = 18
     button.Text = "AIM\n(DRAG)"
     button.Position = Vector2.new(self._mobileButtonPosition.X, Workspace.CurrentCamera.ViewportSize.Y + self._mobileButtonPosition.Y)
+    button.Text = "AIM"
+    button.Position = Vector2.new(100, Workspace.CurrentCamera.ViewportSize.Y - 100)
     button.Color = Color3.new(1, 1, 1)
 
     local buttonBg = Drawing.new("Circle")
     buttonBg.Radius = self._mobileButtonSize
+    buttonBg.Radius = 30
     buttonBg.Filled = true
     buttonBg.Visible = false
     buttonBg.Color = Color3.new(0.1, 0.1, 0.1)
