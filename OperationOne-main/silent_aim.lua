@@ -344,13 +344,12 @@ function Module:_isAimAssistInputActive()
         return true
     end
 
-    if self._aimAssistActivation == "mobile" then
-        if self._mobileAimbotButton and self._mobileAimbotButton.Parent then
-        if self._mobileAimbotButton and self._mobileAimbotButton.text.Visible then
-            return self._mobileAimbotToggledOn
-        else
-            return self:_isMobileScopePressed()
-        end
+    if self._aimAssistActivation == "mobile_toggle" then
+        return self._mobileAimbotToggledOn
+    end
+
+    if self._aimAssistActivation == "mobile_hold" then
+        return self:_isMobileScopePressed()
     end
 
     if UserInputService.TouchEnabled and not UserInputService.MouseEnabled then
