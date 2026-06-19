@@ -584,15 +584,22 @@ function Module:_createMobileAimbotButton()
     button.Center = true
     button.Outline = true
     button.Font = Drawing.Fonts.UI
-    button.Size = 18
     button.Text = "AIM"
     button.Color = Color3.new(1, 1, 1)
+
+    local function updateButtonTextStyle()
+        local textSize = math.clamp(math.floor(self._mobileButtonSize * 0.75), 12, 42)
+        button.Size = textSize
+        button.Center = true
+        button.Outline = true
+    end
 
     local function updatePosition()
         local pos = Vector2.new(self._mobileButtonPosition.X, Workspace.CurrentCamera.ViewportSize.Y + self._mobileButtonPosition.Y)
         button.Position = pos
         buttonBg.Position = pos
         buttonBorder.Position = pos
+        updateButtonTextStyle()
     end
     updatePosition()
 
@@ -612,15 +619,15 @@ function Module:_createMobileAimbotButton()
 
     local function onInput(input)
         if input.UserInputType ~= Enum.UserInputType.Touch and input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
-        if not button.Visible then return end
+        if not buttonBg.Visible then return end
 
         local inputPos = Vector2.new(input.Position.X, input.Position.Y)
 
-        local inBounds = (inputPos - button.Position).Magnitude < buttonBg.Radius
+        local inBounds = (inputPos - buttonBg.Position).Magnitude <= (buttonBg.Radius + 4)
         if input.UserInputState == Enum.UserInputState.Begin and inBounds then
             dragging = true
             dragStart = inputPos
-            buttonStartPos = button.Position
+            buttonStartPos = buttonBg.Position
 
             if self._mobileButtonDragConn then self._mobileButtonDragConn:Disconnect() end
             self._mobileButtonDragConn = UserInputService.InputChanged:Connect(function(dragInput)
@@ -757,6 +764,9 @@ function Module:setMobileButtonSize(value)
         self._mobileAimbotButton.bg.Radius = self._mobileButtonSize
         if self._mobileAimbotButton.border then
             self._mobileAimbotButton.border.Radius = self._mobileButtonSize + 1
+        end
+        if self._mobileAimbotButton.text then
+            self._mobileAimbotButton.text.Size = math.clamp(math.floor(self._mobileButtonSize * 0.75), 12, 42)
         end
     end
     return true
