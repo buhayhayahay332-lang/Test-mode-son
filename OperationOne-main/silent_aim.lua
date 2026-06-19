@@ -24,6 +24,8 @@ local Module = {
     _showSnaplines = false,
     _mobileScopeButton = nil,
     _renderConn = nil,
+    _mobileAimbotButton = nil,
+    _mobileAimbotToggledOn = false,
     _fovCircle = nil,
     _snapline = nil,
     _viewmodelsFolder = nil,
@@ -340,7 +342,11 @@ function Module:_isAimAssistInputActive()
     end
 
     if self._aimAssistActivation == "mobile" then
-        return self:_isMobileScopePressed()
+        if self._mobileAimbotButton and self._mobileAimbotButton.Parent then
+            return self._mobileAimbotToggledOn
+        else
+            return self:_isMobileScopePressed()
+        end
     end
 
     if UserInputService.TouchEnabled and not UserInputService.MouseEnabled then
@@ -549,6 +555,53 @@ function Module:_createSnapline()
     self._snapline = line
 end
 
+function Module:_createMobileAimbotButton()
+    if self._mobileAimbotButton and self._mobileAimbotButton.Parent then
+        return
+    end
+
+    if not UserInputService.TouchEnabled then return end
+
+    local button = Drawing.new("Text")
+    button.Visible = false
+    button.Center = true
+    button.Outline = true
+    button.Font = Drawing.Fonts.UI
+    button.Size = 18
+    button.Text = "AIM"
+    button.Position = Vector2.new(100, Workspace.CurrentCamera.ViewportSize.Y - 100)
+    button.Color = Color3.new(1, 1, 1)
+
+    local buttonBg = Drawing.new("Circle")
+    buttonBg.Radius = 30
+    buttonBg.Filled = true
+    buttonBg.Visible = false
+    buttonBg.Color = Color3.new(0.1, 0.1, 0.1)
+    buttonBg.Transparency = 0.3
+    buttonBg.Position = button.Position
+
+    self._mobileAimbotButton = { text = button, bg = buttonBg }
+
+    local function updateButtonVisibility()
+        local show = self._enabled and self._mode == "aim_assist" and self._aimAssistActivation == "mobile"
+        button.Visible = show
+        buttonBg.Visible = show
+    end
+
+    local function onInput(input)
+        if input.UserInputType ~= Enum.UserInputType.Touch then return end
+        if not button.Visible then return end
+
+        if (input.Position - button.Position).Magnitude < buttonBg.Radius then
+            self._mobileAimbotToggledOn = not self._mobileAimbotToggledOn
+            button.Color = self._mobileAimbotToggledOn and Color3.new(0, 1, 0) or Color3.new(1, 1, 1)
+        end
+    end
+
+    UserInputService.InputBegan:Connect(onInput)
+    self.updateMobileButtonVisibility = updateButtonVisibility
+end
+
 function Module:init(force)
     if self._initialized and not force then
         return true
@@ -565,6 +618,7 @@ function Module:init(force)
 
     self:_createFovCircle()
     self:_createSnapline()
+    self:_createMobileAimbotButton()
 
     if self._renderConn then
         self._renderConn:Disconnect()
@@ -595,6 +649,9 @@ function Module:setEnabled(state)
 
     self._enabled = state == true
     self:_updateFovCircle()
+    if self.updateMobileButtonVisibility then
+        self.updateMobileButtonVisibility()
+    end
     return true
 end
 
@@ -617,6 +674,9 @@ function Module:setMode(mode)
     end
 
     self._mode = m
+    if self.updateMobileButtonVisibility then
+        self.updateMobileButtonVisibility()
+    end
     return true
 end
 
@@ -627,6 +687,9 @@ function Module:setAimAssistActivation(mode)
     end
 
     self._aimAssistActivation = m
+    if self.updateMobileButtonVisibility then
+        self.updateMobileButtonVisibility()
+    end
     return true
 end
 
@@ -691,6 +754,14 @@ function Module:unload()
         self._renderConn:Disconnect()
         self._renderConn = nil
     end
+
+    if self._mobileAimbotButton then
+        pcall(function() self._mobileAimbotButton.text:Remove() end)
+        pcall(function() self._mobileAimbotButton.bg:Remove() end)
+        self._mobileAimbotButton = nil
+    end
+    self._mobileAimbotToggledOn = false
+    self.updateMobileButtonVisibility = nil
 
     if self._fovCircle then
         pcall(function()

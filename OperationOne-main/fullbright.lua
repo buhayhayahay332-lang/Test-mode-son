@@ -170,7 +170,7 @@ function Module:_applyFpsBoost(enable)
         end
         self._originalMaterials = {}
         setmetatable(self._originalMaterials, { __mode = "k" })
-        self:_bindMonitors() -- Re-bind to remove the DescendantAdded connection
+        self:_bindMonitors()
     end
 end
 
