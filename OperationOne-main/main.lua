@@ -878,6 +878,17 @@ local function buildObsidianUi()
         Text = "Target Gadgets", Default = false,
         Callback = setSilentAimTargetGadgets,
     })
+    AimL:AddDivider()
+    AimL:AddLabel("Mobile Button Settings")
+    AimL:AddSlider("SA_MobileBtnSize", { Text = "Mobile Button Size", Default = 30, Min = 20, Max = 100, Rounding = 0,
+        Callback = function(v) withModule("silent_aim", function(m) m:setMobileButtonSize(v) end) end
+    })
+    AimL:AddSlider("SA_MobileBtnX", { Text = "Mobile Button Pos X", Default = 100, Min = 0, Max = 1000, Rounding = 0,
+        Callback = function(v) withModule("silent_aim", function(m) m:setMobileButtonPositionX(v) end) end
+    })
+    AimL:AddSlider("SA_MobileBtnY", { Text = "Mobile Button Pos Y", Default = -100, Min = -600, Max = 0, Rounding = 0,
+        Callback = function(v) withModule("silent_aim", function(m) m:setMobileButtonPositionY(v) end) end
+    })
     cp(AimL, "Snapline Color", "SA_SnapColor", Color3.fromRGB(255,255,255), setSilentAimSnaplineColor)
 
     AimR:AddToggle("GM_Enabled", {

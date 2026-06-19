@@ -26,6 +26,9 @@ local Module = {
     _renderConn = nil,
     _mobileAimbotButton = nil,
     _mobileAimbotToggledOn = false,
+    _mobileButtonSize = 30,
+    _mobileButtonPosition = Vector2.new(100, -100),
+    _mobileButtonDragConn = nil,
     _fovCircle = nil,
     _snapline = nil,
     _viewmodelsFolder = nil,
@@ -343,6 +346,7 @@ function Module:_isAimAssistInputActive()
 
     if self._aimAssistActivation == "mobile" then
         if self._mobileAimbotButton and self._mobileAimbotButton.Parent then
+        if self._mobileAimbotButton and self._mobileAimbotButton.text.Visible then
             return self._mobileAimbotToggledOn
         else
             return self:_isMobileScopePressed()
@@ -418,7 +422,7 @@ function Module:_updateSnapline()
             startPos = Vector2.new(viewportSize.X / 2, 0)
         elseif self._snaplineOrigin == "Center" then
             startPos = Vector2.new(viewportSize.X / 2, viewportSize.Y / 2)
-        else -- Bottom
+        else
             startPos = Vector2.new(viewportSize.X / 2, viewportSize.Y)
         end
 
@@ -557,6 +561,7 @@ end
 
 function Module:_createMobileAimbotButton()
     if self._mobileAimbotButton and self._mobileAimbotButton.Parent then
+    if self._mobileAimbotButton then
         return
     end
 
@@ -568,12 +573,12 @@ function Module:_createMobileAimbotButton()
     button.Outline = true
     button.Font = Drawing.Fonts.UI
     button.Size = 18
-    button.Text = "AIM"
-    button.Position = Vector2.new(100, Workspace.CurrentCamera.ViewportSize.Y - 100)
+    button.Text = "AIM\n(DRAG)"
+    button.Position = Vector2.new(self._mobileButtonPosition.X, Workspace.CurrentCamera.ViewportSize.Y + self._mobileButtonPosition.Y)
     button.Color = Color3.new(1, 1, 1)
 
     local buttonBg = Drawing.new("Circle")
-    buttonBg.Radius = 30
+    buttonBg.Radius = self._mobileButtonSize
     buttonBg.Filled = true
     buttonBg.Visible = false
     buttonBg.Color = Color3.new(0.1, 0.1, 0.1)
@@ -583,22 +588,57 @@ function Module:_createMobileAimbotButton()
     self._mobileAimbotButton = { text = button, bg = buttonBg }
 
     local function updateButtonVisibility()
-        local show = self._enabled and self._mode == "aim_assist" and self._aimAssistActivation == "mobile"
+        local isMobileToggle = self._aimAssistActivation == "mobile_toggle"
+        local show = self._enabled and self._mode == "aim_assist" and isMobileToggle
         button.Visible = show
         buttonBg.Visible = show
     end
 
+    local dragging = false
+    local dragStart = nil
+    local buttonStartPos = nil
+
     local function onInput(input)
-        if input.UserInputType ~= Enum.UserInputType.Touch then return end
+        if input.UserInputType ~= Enum.UserInputType.Touch and input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
         if not button.Visible then return end
 
-        if (input.Position - button.Position).Magnitude < buttonBg.Radius then
-            self._mobileAimbotToggledOn = not self._mobileAimbotToggledOn
-            button.Color = self._mobileAimbotToggledOn and Color3.new(0, 1, 0) or Color3.new(1, 1, 1)
+        local inBounds = (input.Position - button.Position).Magnitude < buttonBg.Radius
+        if input.UserInputState == Enum.UserInputState.Begin and inBounds then
+            dragging = true
+            dragStart = input.Position
+            buttonStartPos = button.Position
+
+            if self._mobileButtonDragConn then self._mobileButtonDragConn:Disconnect() end
+            self._mobileButtonDragConn = UserInputService.InputChanged:Connect(function(dragInput)
+                if not dragging then return end
+                if dragInput.UserInputType ~= Enum.UserInputType.MouseMovement and dragInput.UserInputType ~= Enum.UserInputType.Touch then return end
+
+                local delta = dragInput.Position - dragStart
+                local newPos = buttonStartPos + delta
+                button.Position = newPos
+                buttonBg.Position = newPos
+            end)
+        elseif input.UserInputState == Enum.UserInputState.End then
+            if self._mobileButtonDragConn then
+                self._mobileButtonDragConn:Disconnect()
+                self._mobileButtonDragConn = nil
+            end
+
+            if not dragging then return end
+            dragging = false
+
+            local dragDistance = (input.Position - dragStart).Magnitude
+            if dragDistance < 10 then
+                self._mobileAimbotToggledOn = not self._mobileAimbotToggledOn
+                button.Color = self._mobileAimbotToggledOn and Color3.new(0, 1, 0) or Color3.new(1, 1, 1)
+            else
+                self._mobileButtonPosition = Vector2.new(button.Position.X, button.Position.Y - Workspace.CurrentCamera.ViewportSize.Y)
+            end
         end
     end
 
     UserInputService.InputBegan:Connect(onInput)
+    UserInputService.InputEnded:Connect(onInput)
     self.updateMobileButtonVisibility = updateButtonVisibility
 end
 
@@ -682,8 +722,9 @@ end
 
 function Module:setAimAssistActivation(mode)
     local m = toLower(mode)
-    if m ~= "mb1" and m ~= "mb2" and m ~= "always" and m ~= "mobile" then
-        return false, "invalid activation"
+    local validActivations = { mb1 = true, mb2 = true, always = true, mobile_hold = true, mobile_toggle = true }
+    if not validActivations[m] then
+        return false, "invalid activation: " .. tostring(mode)
     end
 
     self._aimAssistActivation = m
@@ -691,6 +732,32 @@ function Module:setAimAssistActivation(mode)
         self.updateMobileButtonVisibility()
     end
     return true
+end
+
+function Module:setMobileButtonSize(value)
+    self._mobileButtonSize = clampNumber(value, 20, 100, 30)
+    if self._mobileAimbotButton and self._mobileAimbotButton.bg then
+        self._mobileAimbotButton.bg.Radius = self._mobileButtonSize
+    end
+    return true
+end
+
+function Module:setMobileButtonPositionX(value)
+    self._mobileButtonPosition = Vector2.new(value, self._mobileButtonPosition.Y)
+    if self._mobileAimbotButton and self._mobileAimbotButton.text then
+        local y = Workspace.CurrentCamera.ViewportSize.Y + self._mobileButtonPosition.Y
+        self._mobileAimbotButton.text.Position = Vector2.new(value, y)
+        self._mobileAimbotButton.bg.Position = Vector2.new(value, y)
+    end
+end
+
+function Module:setMobileButtonPositionY(value)
+    self._mobileButtonPosition = Vector2.new(self._mobileButtonPosition.X, value)
+    if self._mobileAimbotButton and self._mobileAimbotButton.text then
+        local y = Workspace.CurrentCamera.ViewportSize.Y + value
+        self._mobileAimbotButton.text.Position = Vector2.new(self._mobileButtonPosition.X, y)
+        self._mobileAimbotButton.bg.Position = Vector2.new(self._mobileButtonPosition.X, y)
+    end
 end
 
 function Module:setTargetMode(mode)
@@ -753,6 +820,11 @@ function Module:unload()
     if self._renderConn then
         self._renderConn:Disconnect()
         self._renderConn = nil
+    end
+
+    if self._mobileButtonDragConn then
+        self._mobileButtonDragConn:Disconnect()
+        self._mobileButtonDragConn = nil
     end
 
     if self._mobileAimbotButton then
