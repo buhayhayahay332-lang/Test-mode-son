@@ -564,7 +564,6 @@ function Module:_createMobileAimbotButton()
         return
     end
 
-    self._mobileButtonVisualOffset = self._mobileButtonVisualOffset or Vector2.new(0, 0)
     self._mobileButtonDebugEnabled = self._mobileButtonDebugEnabled or false
 
     local buttonBorder = Drawing.new("Circle")
@@ -625,9 +624,8 @@ function Module:_createMobileAimbotButton()
     local function applyButtonLayout()
         currentPos = getBasePosition()
 
-        local visualPos = currentPos + self._mobileButtonVisualOffset
-        buttonBg.Position = visualPos
-        buttonBorder.Position = visualPos
+        buttonBg.Position = currentPos
+        buttonBorder.Position = currentPos
         buttonBg.Radius = self._mobileButtonSize
         buttonBorder.Radius = self._mobileButtonSize + 1
         buttonBg.Transparency = self._mobileButtonTransparency
@@ -642,7 +640,7 @@ function Module:_createMobileAimbotButton()
     local function isInsideButton(inputPos)
         local dx = inputPos.X - buttonBg.Position.X
         local dy = inputPos.Y - buttonBg.Position.Y
-        local radius = self._mobileButtonSize
+        local radius = math.max(6, self._mobileButtonSize - 2)
         return (dx * dx) + (dy * dy) <= (radius * radius)
     end
 
@@ -699,10 +697,9 @@ function Module:_createMobileAimbotButton()
                 end
 
                 local dragPos = Vector2.new(dragInput.Position.X, dragInput.Position.Y)
-                local visualPos = dragStartPos + (dragPos - dragStart)
-                buttonBg.Position = visualPos
-                buttonBorder.Position = visualPos
-                currentPos = visualPos - self._mobileButtonVisualOffset
+                currentPos = dragStartPos + (dragPos - dragStart)
+                buttonBg.Position = currentPos
+                buttonBorder.Position = currentPos
                 debugDot.Position = currentPos
                 applyButtonTextStyle()
             end)
@@ -752,7 +749,6 @@ function Module:_createMobileAimbotButton()
 end
 
 function Module:setMobileButtonVisualOffset(x, y)
-    self._mobileButtonVisualOffset = Vector2.new(tonumber(x) or 0, tonumber(y) or 0)
     if self._mobileAimbotButton and self._mobileAimbotButton.layout then
         self._mobileAimbotButton.layout()
     end
