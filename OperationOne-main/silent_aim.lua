@@ -23,6 +23,8 @@ local Module = {
     _showFovCircle = true,
     _showSnaplines = false,
     _mobileScopeButton = nil,
+    _scopeButtonConn = nil,
+    _scopeButtonToggled = false,
     _renderConn = nil,
     _fovCircle = nil,
     _snapline = nil,
@@ -339,7 +341,15 @@ function Module:_isAimAssistInputActive()
         return true
     end
 
-    if self._aimAssistActivation == "mobile" then
+    if self._aimAssistActivation == "mobile_hold" then
+        return self:_isMobileScopePressed()
+    end
+
+    if self._aimAssistActivation == "mobile_toggle" then
+        return self._scopeButtonToggled
+    end
+
+    if UserInputService.TouchEnabled and not UserInputService.MouseEnabled then
         return self:_isMobileScopePressed()
     end
 
@@ -428,6 +438,19 @@ function Module:_updateSnapline()
 end
 
 function Module:_onRenderStep()
+    if not self._scopeButtonConn then
+        local scopeButton = self:_getMobileScopeButton()
+        if scopeButton then
+            self._scopeButtonConn = scopeButton.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    if self._aimAssistActivation == "mobile_toggle" then
+                        self._scopeButtonToggled = not self._scopeButtonToggled
+                    end
+                end
+            end)
+        end
+    end
+
     self:_updateFovCircle()
     self:_updateSnapline()
     self:_runAimAssist()
@@ -622,11 +645,15 @@ end
 
 function Module:setAimAssistActivation(mode)
     local m = toLower(mode)
-    if m ~= "mb1" and m ~= "mb2" and m ~= "always" and m ~= "mobile" then
+    if m ~= "mb1" and m ~= "mb2" and m ~= "always" and m ~= "mobile_hold" and m ~= "mobile_toggle" then
         return false, "invalid activation"
     end
 
     self._aimAssistActivation = m
+    if m ~= "mobile_toggle" then
+        self._scopeButtonToggled = false
+    end
+
     return true
 end
 
@@ -686,6 +713,12 @@ end
 function Module:unload()
     self._enabled = false
     self._mobileScopeButton = nil
+    self._scopeButtonToggled = false
+
+    if self._scopeButtonConn then
+        self._scopeButtonConn:Disconnect()
+        self._scopeButtonConn = nil
+    end
 
     if self._renderConn then
         self._renderConn:Disconnect()

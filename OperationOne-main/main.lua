@@ -860,7 +860,7 @@ local function buildObsidianUi()
         Callback = setSilentAimMode,
     })
     AimL:AddDropdown("SA_Activation", {
-        Values = { "mb2", "mb1", "always", "mobile" }, Default = 1,
+        Values = { "mb2", "mb1", "always", "mobile_hold", "mobile_toggle" }, Default = 1,
         Text = "Activation",
         Callback = setAimAssistActivation,
     })
