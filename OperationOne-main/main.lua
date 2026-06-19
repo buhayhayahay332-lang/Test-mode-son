@@ -889,6 +889,9 @@ local function buildObsidianUi()
     AimL:AddSlider("SA_MobileBtnY", { Text = "Mobile Button Pos Y", Default = -100, Min = -600, Max = 0, Rounding = 0,
         Callback = function(v) withModule("silent_aim", function(m) m:setMobileButtonPositionY(v) end) end
     })
+    AimL:AddSlider("SA_MobileBtnTrans", { Text = "Mobile Button Transparency", Default = 30, Min = 0, Max = 100, Rounding = 0, Suffix = "%",
+        Callback = function(v) withModule("silent_aim", function(m) m:setMobileButtonTransparency(v / 100) end) end
+    })
     cp(AimL, "Snapline Color", "SA_SnapColor", Color3.fromRGB(255,255,255), setSilentAimSnaplineColor)
 
     AimR:AddToggle("GM_Enabled", {
