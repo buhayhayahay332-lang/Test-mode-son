@@ -586,6 +586,7 @@ function Module:_createMobileAimbotButton()
     button.Font = Drawing.Fonts.UI
     button.Text = "AIM"
     button.Color = Color3.new(1, 1, 1)
+    local textOffset = Vector2.new(0, 2)
 
     local function updateButtonTextStyle()
         local textSize = math.clamp(math.floor(self._mobileButtonSize * 0.75), 12, 42)
@@ -600,6 +601,7 @@ function Module:_createMobileAimbotButton()
         buttonBg.Position = pos
         buttonBorder.Position = pos
         updateButtonTextStyle()
+        button.Position = pos + textOffset
     end
     updatePosition()
 
@@ -623,7 +625,8 @@ function Module:_createMobileAimbotButton()
 
         local inputPos = Vector2.new(input.Position.X, input.Position.Y)
 
-        local inBounds = (inputPos - buttonBg.Position).Magnitude <= (buttonBg.Radius + 4)
+        local hitRadius = buttonBg.Radius + math.max(12, math.floor(button.Size * 0.5))
+        local inBounds = (inputPos - buttonBg.Position).Magnitude <= hitRadius
         if input.UserInputState == Enum.UserInputState.Begin and inBounds then
             dragging = true
             dragStart = inputPos
@@ -637,7 +640,7 @@ function Module:_createMobileAimbotButton()
                 local dragPos = Vector2.new(dragInput.Position.X, dragInput.Position.Y)
                 local delta = dragPos - dragStart
                 local newPos = buttonStartPos + delta
-                button.Position = newPos
+                button.Position = newPos + textOffset
                 buttonBg.Position = newPos
                 buttonBorder.Position = newPos
             end)
@@ -652,7 +655,7 @@ function Module:_createMobileAimbotButton()
 
             local inputPos = Vector2.new(input.Position.X, input.Position.Y)
             local dragDistance = (inputPos - dragStart).Magnitude
-            if dragDistance < 10 then
+            if dragDistance < math.max(16, math.floor(buttonBg.Radius * 0.45)) then
                 self._mobileAimbotToggledOn = not self._mobileAimbotToggledOn
                 button.Color = self._mobileAimbotToggledOn and Color3.new(0, 1, 0) or Color3.new(1, 1, 1)
             else
@@ -767,6 +770,7 @@ function Module:setMobileButtonSize(value)
         end
         if self._mobileAimbotButton.text then
             self._mobileAimbotButton.text.Size = math.clamp(math.floor(self._mobileButtonSize * 0.75), 12, 42)
+            self._mobileAimbotButton.text.Position = self._mobileAimbotButton.bg.Position + Vector2.new(0, 2)
         end
     end
     return true
@@ -790,7 +794,7 @@ function Module:setMobileButtonPositionX(value)
     if self._mobileAimbotButton and self._mobileAimbotButton.text then
         local y = Workspace.CurrentCamera.ViewportSize.Y + self._mobileButtonPosition.Y
         local newPos = Vector2.new(value, y)
-        self._mobileAimbotButton.text.Position = newPos
+        self._mobileAimbotButton.text.Position = newPos + Vector2.new(0, 2)
         self._mobileAimbotButton.bg.Position = newPos
         if self._mobileAimbotButton.border then self._mobileAimbotButton.border.Position = newPos end
     end
@@ -801,7 +805,7 @@ function Module:setMobileButtonPositionY(value)
     if self._mobileAimbotButton and self._mobileAimbotButton.text then
         local y = Workspace.CurrentCamera.ViewportSize.Y + value
         local newPos = Vector2.new(self._mobileButtonPosition.X, y)
-        self._mobileAimbotButton.text.Position = newPos
+        self._mobileAimbotButton.text.Position = newPos + Vector2.new(0, 2)
         self._mobileAimbotButton.bg.Position = newPos
         if self._mobileAimbotButton.border then self._mobileAimbotButton.border.Position = newPos end
     end
