@@ -860,7 +860,7 @@ local function buildObsidianUi()
         Callback = setSilentAimMode,
     })
     AimL:AddDropdown("SA_Activation", {
-        Values = { "mb2", "mb1", "always", "mobile_hold", "mobile_toggle" }, Default = 1,
+        Values = { "mb2", "mb1", "always", "mobile" }, Default = 1,
         Text = "Activation",
         Callback = setAimAssistActivation,
     })
@@ -877,20 +877,6 @@ local function buildObsidianUi()
     AimL:AddToggle("SA_TargetGadgets", {
         Text = "Target Gadgets", Default = false,
         Callback = setSilentAimTargetGadgets,
-    })
-    AimL:AddDivider()
-    AimL:AddLabel("Mobile Button Settings")
-    AimL:AddSlider("SA_MobileBtnSize", { Text = "Mobile Button Size", Default = 30, Min = 20, Max = 100, Rounding = 0,
-        Callback = function(v) withModule("silent_aim", function(m) m:setMobileButtonSize(v) end) end
-    })
-    AimL:AddSlider("SA_MobileBtnX", { Text = "Mobile Button Pos X", Default = 100, Min = 0, Max = 1000, Rounding = 0,
-        Callback = function(v) withModule("silent_aim", function(m) m:setMobileButtonPositionX(v) end) end
-    })
-    AimL:AddSlider("SA_MobileBtnY", { Text = "Mobile Button Pos Y", Default = -100, Min = -600, Max = 0, Rounding = 0,
-        Callback = function(v) withModule("silent_aim", function(m) m:setMobileButtonPositionY(v) end) end
-    })
-    AimL:AddSlider("SA_MobileBtnTrans", { Text = "Mobile Button Transparency", Default = 30, Min = 0, Max = 100, Rounding = 0, Suffix = "%",
-        Callback = function(v) withModule("silent_aim", function(m) m:setMobileButtonTransparency(v / 100) end) end
     })
     cp(AimL, "Snapline Color", "SA_SnapColor", Color3.fromRGB(255,255,255), setSilentAimSnaplineColor)
 
