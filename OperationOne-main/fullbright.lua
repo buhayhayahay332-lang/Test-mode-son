@@ -1,11 +1,14 @@
 local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
 
 local Module = {
     shared = nil,
     _initialized = false,
     _enabled = false,
+    _fpsBoostEnabled = false,
     _connections = {},
     _normal = nil,
+    _originalMaterials = {},
     _fullbright = {
         Brightness = 1,
         ClockTime = 12,
@@ -28,6 +31,7 @@ function Module:setShared(shared)
     end
     if type(ref) == "function" then
         Lighting = ref(game:GetService("Lighting"))
+        Workspace = ref(game:GetService("Workspace"))
     end
 
     return true
@@ -82,6 +86,7 @@ function Module:init(force)
         return true
     end
 
+    setmetatable(self._originalMaterials, { __mode = "k" })
     self:_captureNormal()
     self:_bindMonitors()
     self._initialized = true
@@ -140,8 +145,47 @@ function Module:getSettings()
     return self._fullbright
 end
 
+function Module:_applyFpsBoost(enable)
+    if enable then
+        local function applyToPart(part)
+            if part:IsA("BasePart") then
+                if not self._originalMaterials[part] then
+                    self._originalMaterials[part] = part.Material
+                end
+                part.Material = Enum.Material.SmoothPlastic
+            end
+        end
+
+        for _, part in ipairs(Workspace:GetDescendants()) do
+            applyToPart(part)
+        end
+
+        local conn = Workspace.DescendantAdded:Connect(applyToPart)
+        table.insert(self._connections, conn)
+    else
+        for part, material in pairs(self._originalMaterials) do
+            if part and part.Parent then
+                part.Material = material
+            end
+        end
+        self._originalMaterials = {}
+        setmetatable(self._originalMaterials, { __mode = "k" })
+        self:_bindMonitors() -- Re-bind to remove the DescendantAdded connection
+    end
+end
+
+function Module:setFpsBoostEnabled(state)
+    local okInit, initErr = self:init(false)
+    if not okInit then return false, initErr end
+
+    self._fpsBoostEnabled = state == true
+    self:_applyFpsBoost(self._fpsBoostEnabled)
+    return true
+end
+
 function Module:destroy()
     self:setEnabled(false)
+    self:setFpsBoostEnabled(false)
     disconnectAll(self._connections)
     self._initialized = false
 end

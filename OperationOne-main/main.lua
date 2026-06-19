@@ -956,6 +956,9 @@ local function buildObsidianUi()
 
     local LightL = Tabs.Visuals:AddLeftGroupbox("Lighting")
     LightL:AddToggle("FB_On", { Text = "Fullbright", Default = false, Callback = setFullbright })
+    LightL:AddToggle("FB_FPSBoost", { Text = "FPS Boost", Default = false, Tooltip = "Changes all materials to SmoothPlastic for performance.",
+        Callback = function(v) withModule("fullbright", function(m) m:setFpsBoostEnabled(v) end) end
+    })
     LightL:AddSlider("FB_Bright", { Text = "Brightness", Default = 100, Min = 0, Max = 500, Rounding = 0, Suffix = "%",
         Callback = function(v) setFullbrightSetting("Brightness", v / 100) end })
     LightL:AddSlider("FB_Clock",  { Text = "Clock Time", Default = 12, Min = 0, Max = 24, Rounding = 0,
@@ -1120,7 +1123,7 @@ local function buildObsidianUi()
         Callback = function(v) setAttachmentEditorOption("fixSkins", v) end,
     })
     LocalL:AddDropdown("LC_Skin", {
-        Values = { "Default","TidalWaveAK", "CherryBlossom","AntiqueAnaconda","RoyalCAL12","RedLineAW50","RedLineReaper", "BlueFlowers", "Synthwave", "TigerCamo", "Toxic", "ToyGunM4", "YellowPattern", "RedRoses", "BlackCamo", "Blue", "CarbonFiber", "Cardboard", "CheckeredSkin", "ClassicAA12", "CrackedEarth", "DarkRedCamo", "DeepRed", "DesertCamo", "Diamond", "FestiveLightsM4", "ForestCamo", "FrenchSticker", "Ghillie", "GhostShipSkin", "GhostSkin", "GhostStickerSkin", "Golden", "Green", "HalloweenParty", "HazardMP7", "HazardSkin", "HotRedL85", "Kalash", "MakeshiftBeretta", "NeonShapesM249", "OilSpill", "PurpleFadeC775", "Red", "RustyAUG", "Skulls", "SnowCamo", "Space", "SpiderWebSkin", "Splattered", "Steyr", "Tan", "Toxic", "WastelandRSh12", "White", "Yellow"},
+        Values = { "Default","TidalWaveAK", "CherryBlossom","RoyalCAL12","RedLineAW50","RedLineReaper", "BlueFlowers", "Synthwave", "TigerCamo", "Toxic", "ToyGunM4", "YellowPattern", "RedRoses", "BlackCamo", "Blue", "CarbonFiber", "Cardboard", "CheckeredSkin", "ClassicAA12", "CrackedEarth", "DarkRedCamo", "DeepRed", "DesertCamo", "Diamond", "FestiveLightsM4", "ForestCamo", "FrenchSticker", "Ghillie", "GhostShipSkin", "GhostSkin", "GhostStickerSkin", "Golden", "Green", "HalloweenParty", "HazardMP7", "HazardSkin", "HotRedL85", "Kalash", "MakeshiftBeretta", "NeonShapesM249", "OilSpill", "PurpleFadeC775", "Red", "RustyAUG", "Skulls", "SnowCamo", "Space", "SpiderWebSkin", "Splattered", "Steyr", "Tan", "Toxic", "WastelandRSh12", "White", "Yellow"},
         Default = 1, Text = "Weapon Skin", Searchable = true,
         Callback = function(v) setAttachmentEditorOption("skin", v) end,
     })
