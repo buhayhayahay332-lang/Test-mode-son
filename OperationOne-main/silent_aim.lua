@@ -642,7 +642,7 @@ function Module:_createMobileAimbotButton()
     local function isInsideButton(inputPos)
         local dx = inputPos.X - buttonBg.Position.X
         local dy = inputPos.Y - buttonBg.Position.Y
-        local radius = self._mobileButtonSize + 16
+        local radius = self._mobileButtonSize
         return (dx * dx) + (dy * dy) <= (radius * radius)
     end
 
@@ -720,7 +720,7 @@ function Module:_createMobileAimbotButton()
         dragging = false
 
         local dragDistance = (inputPos - dragStart).Magnitude
-        if dragDistance < math.max(12, math.floor(self._mobileButtonSize * 0.25)) then
+        if dragDistance < math.max(8, math.floor(self._mobileButtonSize * 0.18)) then
             toggleAimbot()
         else
             local camera = Workspace.CurrentCamera
