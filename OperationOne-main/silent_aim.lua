@@ -15,6 +15,7 @@ local Module = {
     _smoothness = 1,
     _fovRadius = 60,
     _fovRadiusSq = 60 * 60,
+    _fovShape = "circle",
     _snaplineOrigin = "Bottom",
     _snaplineColor = Color3.fromRGB(255, 255, 255),
     _snaplineThickness = 1,
@@ -27,6 +28,7 @@ local Module = {
     _scopeButtonToggled = false,
     _renderConn = nil,
     _fovCircle = nil,
+    _fovSquare = nil,
     _snapline = nil,
     _viewmodelsFolder = nil,
     _hookInstalled = false,
@@ -395,13 +397,27 @@ function Module:_runAimAssist()
 end
 
 function Module:_updateFovCircle()
-    if not self._fovCircle then
+    if not self._fovCircle and not self._fovSquare then
         return
     end
 
-    self._fovCircle.Visible = self._enabled and self._showFovCircle
-    self._fovCircle.Radius = self._fovRadius
-    self._fovCircle.Position = self:_getMousePosition()
+    local mousePos = self:_getMousePosition()
+    local visible = self._enabled and self._showFovCircle
+
+    if self._fovCircle then
+        self._fovCircle.Visible = visible and self._fovShape == "circle"
+        self._fovCircle.Radius = self._fovRadius
+        self._fovCircle.Position = mousePos
+    end
+
+    if self._fovSquare then
+        local size = self._fovRadius * 2
+        self._fovSquare.Visible = visible and self._fovShape == "square"
+        self._fovSquare.Size = Vector2.new(size, size)
+        self._fovSquare.Position = Vector2.new(mousePos.X - self._fovRadius, mousePos.Y - self._fovRadius)
+        self._fovSquare.Color = Color3.fromRGB(255, 255, 255)
+        self._fovSquare.Transparency = 1
+    end
 end
 
 function Module:_updateSnapline()
@@ -521,7 +537,7 @@ function Module:_installHook()
 end
 
 function Module:_createFovCircle()
-    if self._fovCircle then
+    if self._fovCircle or self._fovSquare then
         return
     end
 
@@ -546,11 +562,21 @@ function Module:_createFovCircle()
     circle.Radius = self._fovRadius
     circle.Position = self:_getMousePosition()
 
+    local square = Drawing.new("Square")
+    square.Visible = false
+    square.Filled = false
+    square.Thickness = 1.5
+    square.Color = Color3.fromRGB(255, 255, 255)
+    square.Transparency = 1
+    square.Size = Vector2.new(self._fovRadius * 2, self._fovRadius * 2)
+    square.Position = Vector2.new(circle.Position.X - self._fovRadius, circle.Position.Y - self._fovRadius)
+
     if type(env) == "table" then
         env.__op1_silent_fov_circle = circle
     end
 
     self._fovCircle = circle
+    self._fovSquare = square
 end
 
 function Module:_createSnapline()
@@ -624,6 +650,17 @@ end
 function Module:setFov(value)
     self._fovRadius = clampNumber(value, 10, 400, 60)
     self._fovRadiusSq = self._fovRadius * self._fovRadius
+    self:_updateFovCircle()
+    return true
+end
+
+function Module:setFovShape(shape)
+    local s = toLower(shape)
+    if s ~= "circle" and s ~= "square" then
+        return false, "invalid fov shape"
+    end
+
+    self._fovShape = s
     self:_updateFovCircle()
     return true
 end
@@ -731,6 +768,14 @@ function Module:unload()
             self._fovCircle:Remove()
         end)
         self._fovCircle = nil
+    end
+
+    if self._fovSquare then
+        pcall(function()
+            self._fovSquare.Visible = false
+            self._fovSquare:Remove()
+        end)
+        self._fovSquare = nil
     end
 
     if self._snapline then

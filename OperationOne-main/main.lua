@@ -137,6 +137,11 @@ local function setSilentAimFov(value)
         if type(m.setFov) == "function" then m:setFov(value) end
     end)
 end
+local function setSilentAimFovShape(shape)
+    withModule("silent_aim", function(m)
+        if type(m.setFovShape) == "function" then m:setFovShape(shape) end
+    end)
+end
 local function setSilentAimSmoothness(value)
     withModule("silent_aim", function(m)
         if type(m.setSmoothness) == "function" then m:setSmoothness(value) end
@@ -706,6 +711,7 @@ local function applyDefaults()
     setAimAssistActivation("mb2"); setSilentAimTargetMode("custom_parts")
     setSilentAimTargetGadgets(false); setSilentAimVisibleCheck(false)
     setSilentAimFovCircleVisual(true)
+    setSilentAimFovShape("circle")
     setSilentAimSnaplines(false); setSilentAimSnaplineOrigin("Center")
 
     setGunModEnabled(false); setGunModConfig("recoil_reduction", 0)
@@ -849,6 +855,11 @@ local function buildObsidianUi()
     AimL:AddSlider("SA_FOV", {
         Text = "FOV Radius", Default = 60, Min = 10, Max = 400, Rounding = 0,
         Callback = setSilentAimFov,
+    })
+    AimL:AddDropdown("SA_FOVShape", {
+        Values = { "circle", "square" }, Default = 1,
+        Text = "FOV Shape",
+        Callback = setSilentAimFovShape,
     })
     AimL:AddSlider("SA_Smooth", {
         Text = "Smoothness", Default = 100, Min = 1, Max = 100, Rounding = 0, Suffix = "%",
