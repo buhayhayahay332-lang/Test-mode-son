@@ -1150,11 +1150,18 @@ local function buildObsidianUi()
         Text = "Custom Cursor", Default = false,
         Callback = function(v) Library.ShowCustomCursor = v end,
     })
-        MenuGroup:AddSlider("DPIScale", {
-        Text = "UI Scale", Default = 100, Min = 50, Max = 200, Rounding = 0, Suffix = "%",
-        Tooltip = "Resizes the entire menu (groupboxes, dropdowns, notifications, tooltips)",
-        Callback = function(v) Library:SetDPIScale(v) end,
-    })
+       MenuGroup:AddSlider("DPIScale", {
+    Text = "UI Scale",
+    Default = 100,
+    Min = 50,
+    Max = 200,
+    Rounding = 0,
+    Suffix = "%",
+    Tooltip = "Resizes the entire menu",
+    Callback = function(v)
+        Library:SetDPIScale(v)
+    end,
+})
 
     MenuGroup:AddDropdown("NotifSide", {
         Values = { "Left", "Right" }, Default = "Right", Text = "Notification Side",
