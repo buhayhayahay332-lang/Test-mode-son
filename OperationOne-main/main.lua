@@ -706,7 +706,6 @@ local function applyDefaults()
     setAimAssistActivation("mb2"); setSilentAimTargetMode("custom_parts")
     setSilentAimTargetGadgets(false); setSilentAimVisibleCheck(false)
     setSilentAimFovCircleVisual(true)
-    setSilentAimFovShape("circle")
     setSilentAimSnaplines(false); setSilentAimSnaplineOrigin("Center")
 
     setGunModEnabled(false); setGunModConfig("recoil_reduction", 0)
