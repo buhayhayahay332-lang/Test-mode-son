@@ -397,27 +397,16 @@ function Module:_runAimAssist()
 end
 
 function Module:_updateFovCircle()
-    if not self._fovCircle and not self._fovSquare then
+    if not self._fovCircle then
         return
     end
 
     local mousePos = self:_getMousePosition()
-    local visible = self._enabled and self._showFovCircle
+    local visible = self._enabled and self._showFovCircle and self._fovShape == "circle"
 
-    if self._fovCircle then
-        self._fovCircle.Visible = visible and self._fovShape == "circle"
-        self._fovCircle.Radius = self._fovRadius
-        self._fovCircle.Position = mousePos
-    end
-
-    if self._fovSquare then
-        local size = self._fovRadius * 2
-        self._fovSquare.Visible = visible and self._fovShape == "square"
-        self._fovSquare.Size = Vector2.new(size, size)
-        self._fovSquare.Position = Vector2.new(mousePos.X - self._fovRadius, mousePos.Y - self._fovRadius)
-        self._fovSquare.Color = Color3.fromRGB(255, 255, 255)
-        self._fovSquare.Transparency = 1
-    end
+    self._fovCircle.Visible = visible
+    self._fovCircle.Position = UDim2.fromOffset(mousePos.X, mousePos.Y)
+    self._fovCircle.Size = UDim2.fromOffset(self._fovRadius * 2, self._fovRadius * 2)
 end
 
 function Module:_updateSnapline()
@@ -536,47 +525,44 @@ function Module:_installHook()
     return true
 end
 
+local function createUICircle(radius, parent)
+    local circle = Instance.new("Frame")
+    circle.AnchorPoint = Vector2.new(0.5, 0.5)
+    circle.Size = UDim2.fromOffset(radius * 2, radius * 2)
+    circle.BackgroundTransparency = 1
+    circle.BorderSizePixel = 0
+    circle.Visible = false
+    circle.Parent = parent
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = 1.5
+    stroke.Color = Color3.fromRGB(255, 255, 255)
+    stroke.Transparency = 0
+    stroke.Parent = circle
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0.5, 0)  -- 0.5 scale = perfect circle
+    corner.Parent = circle
+
+    return circle, stroke
+end
+
 function Module:_createFovCircle()
     if self._fovCircle or self._fovSquare then
         return
     end
 
-    if type(Drawing) ~= "table" or type(Drawing.new) ~= "function" then
-        return
-    end
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "Module_FovGui"
+    screenGui.IgnoreGuiInset = true
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = (gethui and gethui()) or cloneref(game:GetService("CoreGui"))
 
-    local env = (getgenv and getgenv()) or _G
-    if type(env) == "table" and env.__op1_silent_fov_circle then
-        pcall(function()
-            env.__op1_silent_fov_circle:Remove()
-        end)
-    end
+    local circle, stroke = createUICircle(self._fovRadius, screenGui)
 
-    local circle = Drawing.new("Circle")
-    circle.Visible = false
-    circle.Filled = false
-    circle.Thickness = 1.5
-    circle.NumSides = 72
-    circle.Color = Color3.fromRGB(255, 255, 255)
-    circle.Transparency = 1
-    circle.Radius = self._fovRadius
-    circle.Position = self:_getMousePosition()
-
-    local square = Drawing.new("Square")
-    square.Visible = false
-    square.Filled = false
-    square.Thickness = 1.5
-    square.Color = Color3.fromRGB(255, 255, 255)
-    square.Transparency = 1
-    square.Size = Vector2.new(self._fovRadius * 2, self._fovRadius * 2)
-    square.Position = Vector2.new(circle.Position.X - self._fovRadius, circle.Position.Y - self._fovRadius)
-
-    if type(env) == "table" then
-        env.__op1_silent_fov_circle = circle
-    end
-
+    self._fovGui = screenGui
     self._fovCircle = circle
-    self._fovSquare = square
+    self._fovStroke = stroke
 end
 
 function Module:_createSnapline()
@@ -761,6 +747,13 @@ function Module:unload()
         self._renderConn:Disconnect()
         self._renderConn = nil
     end
+
+    if self._fovGui then
+    pcall(function() self._fovGui:Destroy() end)
+    self._fovGui = nil
+    self._fovCircle = nil
+    self._fovStroke = nil
+end
 
     if self._fovCircle then
         pcall(function()
