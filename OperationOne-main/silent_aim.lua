@@ -28,7 +28,6 @@ local Module = {
     _scopeButtonToggled = false,
     _renderConn = nil,
     _fovCircle = nil,
-    _fovSquare = nil,
     _snapline = nil,
     _viewmodelsFolder = nil,
     _hookInstalled = false,
@@ -355,11 +354,6 @@ function Module:_isAimAssistInputActive()
         return self:_isMobileScopePressed()
     end
 
-    if UserInputService.TouchEnabled and not UserInputService.MouseEnabled then
-        local touches = UserInputService:GetTouches()
-        return type(touches) == "table" and #touches > 0
-    end
-
     if self._aimAssistActivation == "mb1" then
         return UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
     end
@@ -548,7 +542,7 @@ local function createUICircle(radius, parent)
 end
 
 function Module:_createFovCircle()
-    if self._fovCircle or self._fovSquare then
+    if self._fovCircle then
         return
     end
 
@@ -630,6 +624,7 @@ function Module:setEnabled(state)
 
     self._enabled = state == true
     self:_updateFovCircle()
+    self:_updateSnapline()
     return true
 end
 
@@ -714,6 +709,7 @@ end
 function Module:setSnaplinesEnabled(state)
     self._showSnaplines = state == true
     self:_updateSnapline()
+    return true
 end
 
 function Module:setSnaplineColor(color)
@@ -749,27 +745,12 @@ function Module:unload()
     end
 
     if self._fovGui then
-    pcall(function() self._fovGui:Destroy() end)
-    self._fovGui = nil
+        pcall(function() self._fovGui:Destroy() end)
+        self._fovGui = nil
+    end
+
     self._fovCircle = nil
     self._fovStroke = nil
-end
-
-    if self._fovCircle then
-        pcall(function()
-            self._fovCircle.Visible = false
-            self._fovCircle:Remove()
-        end)
-        self._fovCircle = nil
-    end
-
-    if self._fovSquare then
-        pcall(function()
-            self._fovSquare.Visible = false
-            self._fovSquare:Remove()
-        end)
-        self._fovSquare = nil
-    end
 
     if self._snapline then
         pcall(function()
