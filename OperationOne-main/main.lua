@@ -795,6 +795,28 @@ local SaveManager  = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))(
 local Options      = Library.Options
 local Toggles      = Library.Toggles
 
+local function getUiDpiScale()
+    local camera = workspace.CurrentCamera
+    local viewport = camera and camera.ViewportSize
+    if not viewport then
+        return 1
+    end
+
+    return math.clamp(math.min(viewport.X / 1920, viewport.Y / 1080), 0.8, 1.25)
+end
+
+if type(Library.DPIScale) == "number" then
+    Library.DPIScale = getUiDpiScale()
+end
+
+if workspace.CurrentCamera then
+    workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+        if type(Library.DPIScale) == "number" then
+            Library.DPIScale = getUiDpiScale()
+        end
+    end)
+end
+
 local function buildObsidianUi()
     local Window = Library:CreateWindow({
         Title            = "ASTRO.WTF",
