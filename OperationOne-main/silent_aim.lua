@@ -15,7 +15,6 @@ local Module = {
     _smoothness = 1,
     _fovRadius = 60,
     _fovRadiusSq = 60 * 60,
-    _fovShape = "circle",
     _snaplineOrigin = "Bottom",
     _snaplineColor = Color3.fromRGB(255, 255, 255),
     _snaplineThickness = 1,
@@ -396,7 +395,7 @@ function Module:_updateFovCircle()
     end
 
     local mousePos = self:_getMousePosition()
-    local visible = self._enabled and self._showFovCircle and self._fovShape == "circle"
+    local visible = self._enabled and self._showFovCircle
 
     self._fovCircle.Visible = visible
     self._fovCircle.Position = UDim2.fromOffset(mousePos.X, mousePos.Y)
@@ -631,17 +630,6 @@ end
 function Module:setFov(value)
     self._fovRadius = clampNumber(value, 10, 400, 60)
     self._fovRadiusSq = self._fovRadius * self._fovRadius
-    self:_updateFovCircle()
-    return true
-end
-
-function Module:setFovShape(shape)
-    local s = toLower(shape)
-    if s ~= "circle" and s ~= "square" then
-        return false, "invalid fov shape"
-    end
-
-    self._fovShape = s
     self:_updateFovCircle()
     return true
 end

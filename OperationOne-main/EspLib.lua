@@ -1136,7 +1136,7 @@ local function updateObjectLabels()
 
         label.Text = getObjectLabelText(child.Name)
         label.Position = Vector2.new(screenPos.X, screenPos.Y - 18)
-        label.Color = (cfg.Name and cfg.Name.RGB) or cfg.OutlineRGB or cfg.FillRGB
+        label.Color = cfg.OutlineRGB or cfg.FillRGB
         label.Transparency = 1
         label.Visible = true
     end
