@@ -1150,16 +1150,17 @@ local function buildObsidianUi()
         Text = "Custom Cursor", Default = false,
         Callback = function(v) Library.ShowCustomCursor = v end,
     })
-       MenuGroup:AddSlider("DPIScale", {
-    Text = "UI Scale",
-    Default = 100,
-    Min = 50,
-    Max = 200,
-    Rounding = 0,
-    Suffix = "%",
-    Tooltip = "Resizes the entire menu",
+    
+    MenuGroup:AddDropdown("DPIScale", {
+    Values = { "50%", "75%", "100%", "125%", "150%", "175%", "200%" },
+    Default = "100%",
+    Text = "DPI Scale",
     Callback = function(v)
-        Library:SetDPIScale(v)
+        v = v:gsub("%%", "")
+        local dpi = tonumber(v)
+        if dpi then
+            Library:SetDPIScale(dpi)
+        end
     end,
 })
 
