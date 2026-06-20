@@ -1891,13 +1891,11 @@ local function CreateESP(CharacterModel)
     Tracer.Transparency = ESP.Drawing.Tracers.Transparency
     Tracer.ZIndex       = 1
 
-    local OffscreenArrow = Drawing.new("Triangle")
     local OffscreenArrow = Drawing.new("Quad")
     OffscreenArrow.Visible      = false
     OffscreenArrow.Filled       = true
     OffscreenArrow.Color        = ESP.Drawing.OffscreenArrows.RGB
     OffscreenArrow.Transparency = ESP.Drawing.OffscreenArrows.Transparency
-    OffscreenArrow.Radius       = ESP.Drawing.OffscreenArrows.Size
     OffscreenArrow.ZIndex       = 1
 
     local OffscreenDistance = Drawing.new("Text")
