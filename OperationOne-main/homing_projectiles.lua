@@ -45,12 +45,16 @@ function Module:_applyHoming(throwableModel)
     if not silent_aim then return end
 
     local target = silent_aim:_getClosestTargetToCursor()
-    if not target or not target.Parent then return end
+    if not target or not target.Parent then
+        -- No target found: revert to original behavior
+        throwableModel:SetAttribute("HomingApplied", true)
+        throwableModel:SetAttribute("UseOriginalCallback", true)
+        return
+    end
 
     local root = self:_getMainPart(throwableModel)
     if not root then return end
 
-    throwableModel:SetAttribute("HomingAttached", true)
     throwableModel:SetAttribute("HomingApplied", true)
     root.CanCollide = false
 
