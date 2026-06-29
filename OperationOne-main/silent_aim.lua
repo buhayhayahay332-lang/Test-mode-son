@@ -245,21 +245,42 @@ function Module:_isWallBlocked(targetPart)
 
     local params = RaycastParams.new()
     params.FilterType = Enum.RaycastFilterType.Exclude
-    params.FilterDescendantsInstances = blacklist
     params.IgnoreWater = true
 
-    local hit = Workspace:Raycast(origin, direction, params)
-    if not hit then
-        return false
-    end
+    local currentOrigin = origin
+    local remaining = direction
+    local stepDir = direction.Unit
 
-    local instance = hit.Instance
-    if not instance then
-        return false
-    end
+    -- Loop up to 8 times to bypass fully transparent parts (invisible walls/barriers)
+    for _ = 1, 8 do
+        params.FilterDescendantsInstances = blacklist
+        local hit = Workspace:Raycast(currentOrigin, remaining, params)
+        if not hit then
+            return false
+        end
 
-    if instance == targetPart or instance:IsDescendantOf(targetPart.Parent) then
-        return false
+        local instance = hit.Instance
+        if not instance then
+            return false
+        end
+
+        if instance == targetPart or instance:IsDescendantOf(targetPart.Parent) then
+            return false
+        end
+
+        -- If it hits a part that is fully transparent/invisible (Transparency >= 0.99), bypass it
+        if instance:IsA("BasePart") and instance.Transparency >= 0.99 then
+            table.insert(blacklist, instance)
+            local nextOrigin = hit.Position + stepDir * 0.05
+            remaining = targetPart.Position - nextOrigin
+            if remaining.Magnitude <= 0.05 then
+                return false
+            end
+            currentOrigin = nextOrigin
+        else
+            -- Solid opaque obstacle
+            return true
+        end
     end
 
     return true
