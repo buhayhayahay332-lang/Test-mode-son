@@ -933,7 +933,7 @@ local function buildObsidianUi()
         Callback = function(v) setGunModConfig("force_auto", v) end,
     })
 
-    local HomingR = Tabs.Combat:AddRightGroupbox("Homing Projectiles")
+    local HomingR = Tabs.Combat:AddRightGroupbox("THROWABLES/HK69 SILENT AIM")
     HomingR:AddToggle("HM_Tombrady", {
         Text = "Tombrady Throw", Default = false,
         Tooltip = "Enables homing on standard throwables (grenades, c4, etc.)",

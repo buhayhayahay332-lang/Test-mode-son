@@ -10,7 +10,7 @@ local Module = {
     _homingSpeed = 60,
     _smoothness = 1,
     _explosionRadius = 5,
-    _delayTime = 1.0,
+    _delayTime = 0.5,
     _descendantAddedConn = nil,
     _fastTouchedHooked = false,
 }
@@ -18,7 +18,7 @@ local Module = {
 local THROWABLE_NAMES = {
     "FragGrenade", "Flashbang", "SmokeGrenade", "StickyCamera",
     "ProximityAlarm", "Grenade", "Projectile", "IncendiaryGrenade",
-    "RemoteC4"
+    "RemoteC4", "ImpactGrenade"
 }
 
 function Module:setShared(shared)
@@ -40,17 +40,19 @@ end
 
 function Module:_applyHoming(throwableModel)
     if throwableModel:GetAttribute("HomingApplied") then return end
-    local root = self:_getMainPart(throwableModel)
-    if not root then return end
-    throwableModel:SetAttribute("HomingApplied", true)
-
-    root.CanCollide = false
 
     local silent_aim = self.shared and self.shared.modules and self.shared.modules.silent_aim
     if not silent_aim then return end
 
     local target = silent_aim:_getClosestTargetToCursor()
     if not target or not target.Parent then return end
+
+    local root = self:_getMainPart(throwableModel)
+    if not root then return end
+
+    throwableModel:SetAttribute("HomingAttached", true)
+    throwableModel:SetAttribute("HomingApplied", true)
+    root.CanCollide = false
 
     local connection
     connection = RunService.Heartbeat:Connect(function()
@@ -156,11 +158,9 @@ function Module:init(force)
         local isHK69 = (name == "HK69")
 
         if isNormal and self._tombradyEnabled then
-            descendant:SetAttribute("HomingAttached", true)
             task.wait(0.05)
             self:_applyHoming(descendant)
         elseif isHK69 and self._hk69Enabled then
-            descendant:SetAttribute("HomingAttached", true)
             task.wait(0.05)
             self:_applyHoming(descendant)
         end
