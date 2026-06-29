@@ -162,9 +162,11 @@ function Module:init(force)
         local isHK69 = (name == "HK69")
 
         if isNormal and self._tombradyEnabled then
+            descendant:SetAttribute("HomingAttached", true)
             task.wait(0.05)
             self:_applyHoming(descendant)
         elseif isHK69 and self._hk69Enabled then
+            descendant:SetAttribute("HomingAttached", true)
             task.wait(0.05)
             self:_applyHoming(descendant)
         end
