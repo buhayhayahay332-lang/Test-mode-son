@@ -52,11 +52,6 @@ function Module:_applyHoming(throwableModel)
     local target = silent_aim:_getClosestTargetToCursor()
     if not target or not target.Parent then return end
 
-    local speed = self._homingSpeed
-    local smoothness = self._smoothness
-    local explosionRadius = self._explosionRadius
-    local delayTime = self._delayTime
-
     local connection
     connection = RunService.Heartbeat:Connect(function()
         if not root.Parent or not target.Parent then
@@ -66,12 +61,12 @@ function Module:_applyHoming(throwableModel)
 
         local distance = (root.Position - target.Position).Magnitude
 
-        if distance < explosionRadius then
+        if distance < self._explosionRadius then
             if not throwableModel:GetAttribute("EnteredRadiusTime") then
                 throwableModel:SetAttribute("EnteredRadiusTime", os.clock())
             end
             local startTime = throwableModel:GetAttribute("EnteredRadiusTime")
-            if os.clock() - startTime >= delayTime then
+            if os.clock() - startTime >= self._delayTime then
                 if not throwableModel:GetAttribute("UseOriginalCallback") then
                     throwableModel:SetAttribute("UseOriginalCallback", true)
                     root.CanCollide = true
@@ -91,8 +86,8 @@ function Module:_applyHoming(throwableModel)
         end
 
         local direction = (target.Position - root.Position).Unit
-        local targetVel = direction * speed
-        root.AssemblyLinearVelocity = root.AssemblyLinearVelocity:Lerp(targetVel, smoothness)
+        local targetVel = direction * self._homingSpeed
+        root.AssemblyLinearVelocity = root.AssemblyLinearVelocity:Lerp(targetVel, self._smoothness)
     end)
 
     root.AncestryChanged:Connect(function()
@@ -186,6 +181,16 @@ end
 
 function Module:setHk69Enabled(state)
     self._hk69Enabled = state == true
+    return true
+end
+
+function Module:setHomingSpeed(value)
+    self._homingSpeed = tonumber(value) or 60
+    return true
+end
+
+function Module:setHomingSmoothness(value)
+    self._smoothness = tonumber(value) or 1
     return true
 end
 
