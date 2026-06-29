@@ -24,6 +24,10 @@ local MODULE_SOURCES = {
         local_path = "attachment_editor.lua",
         url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/attachment_editor.lua",
     },
+    homing_projectiles = {
+        local_path = "homing_projectiles.lua",
+        url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/homing_projectiles.lua",
+    },
 }
 
 local moduleCache        = {}
@@ -85,6 +89,8 @@ local function initModule(name, forceReload)
     local moduleObj, loadErr = compile(source, name)
     if not moduleObj then log(name .. " load error -> " .. tostring(loadErr)) return nil end
     if sharedRuntime then
+        sharedRuntime.modules = sharedRuntime.modules or {}
+        sharedRuntime.modules[name] = moduleObj
         if type(moduleObj.setShared) == "function" then
             pcall(function() moduleObj:setShared(sharedRuntime) end)
         elseif type(moduleObj) == "table" and moduleObj.shared == nil then
@@ -190,6 +196,18 @@ end
 local function setSilentAimSnaplineColor(color)
     withModule("silent_aim", function(m)
         if type(m.setSnaplineColor) == "function" then m:setSnaplineColor(color) end
+    end)
+end
+
+local function setTombradyEnabled(state)
+    withModule("homing_projectiles", function(m)
+        if type(m.setTombradyEnabled) == "function" then m:setTombradyEnabled(state) end
+    end)
+end
+
+local function setHk69Enabled(state)
+    withModule("homing_projectiles", function(m)
+        if type(m.setHk69Enabled) == "function" then m:setHk69Enabled(state) end
     end)
 end
 
@@ -707,6 +725,7 @@ local function applyDefaults()
     setSilentAimTargetGadgets(false); setSilentAimVisibleCheck(false)
     setSilentAimFovCircleVisual(true)
     setSilentAimSnaplines(false); setSilentAimSnaplineOrigin("Center")
+    setTombradyEnabled(false); setHk69Enabled(false)
 
     setGunModEnabled(false); setGunModConfig("recoil_reduction", 0)
     setGunModConfig("horizontal_recoil", 0); setGunModConfig("no_spread", false)
@@ -782,7 +801,7 @@ local function applyDefaults()
 end
 
 local function runStartupInit()
-    local initOrder = { "silent_aim", "gun_modification", ESP_MODULE_NAME, "fullbright" }
+    local initOrder = { "silent_aim", "homing_projectiles", "gun_modification", ESP_MODULE_NAME, "fullbright" }
     for _, name in ipairs(initOrder) do initModule(name, false) end
     applyDefaults()
     log("init complete")
@@ -899,6 +918,18 @@ local function buildObsidianUi()
     AimR:AddToggle("GM_ForceAuto", {
         Text = "Force Automatic", Default = false,
         Callback = function(v) setGunModConfig("force_auto", v) end,
+    })
+
+    local HomingR = Tabs.Combat:AddRightGroupbox("Homing Projectiles")
+    HomingR:AddToggle("HM_Tombrady", {
+        Text = "Tombrady Throw", Default = false,
+        Tooltip = "Enables homing on standard throwables (grenades, c4, etc.)",
+        Callback = setTombradyEnabled,
+    })
+    HomingR:AddToggle("HM_HK69", {
+        Text = "HK69 Homing", Default = false,
+        Tooltip = "Enables homing on HK69 projectiles",
+        Callback = setHk69Enabled,
     })
 
     local EspCoreL  = Tabs.Visuals:AddLeftGroupbox("ESP")
@@ -1191,6 +1222,8 @@ local function buildObsidianUi()
 
     Library:OnUnload(function()
         setSilentAim(false)
+        setTombradyEnabled(false)
+        setHk69Enabled(false)
         setEspEnabled(false)
         setEspGadgetsEnabled(false)
         setRadarFlag("Enabled", false)

@@ -234,26 +234,30 @@ function Module:_isWallBlocked(targetPart)
         return false
     end
 
-    local blacklist = { camera }
-    local viewmodelsFolder = self._viewmodelsFolder
-    if viewmodelsFolder then
-        local localViewmodel = viewmodelsFolder:FindFirstChild("LocalViewmodel")
-        if localViewmodel then
-            table.insert(blacklist, localViewmodel)
-        end
-    end
-
-    local params = RaycastParams.new()
-    params.FilterType = Enum.RaycastFilterType.Exclude
-    params.IgnoreWater = true
-
+    local extraIgnore = {}
     local currentOrigin = origin
     local remaining = direction
     local stepDir = direction.Unit
 
-    -- Loop up to 8 times to bypass fully transparent parts (invisible walls/barriers)
-    for _ = 1, 8 do
+    for _ = 1, 12 do
+        local blacklist = { camera }
+        local viewmodelsFolder = self._viewmodelsFolder
+        if viewmodelsFolder then
+            local localViewmodel = viewmodelsFolder:FindFirstChild("LocalViewmodel")
+            if localViewmodel then
+                table.insert(blacklist, localViewmodel)
+            end
+        end
+
+        for _, inst in ipairs(extraIgnore) do
+            table.insert(blacklist, inst)
+        end
+
+        local params = RaycastParams.new()
+        params.FilterType = Enum.RaycastFilterType.Exclude
         params.FilterDescendantsInstances = blacklist
+        params.IgnoreWater = true
+
         local hit = Workspace:Raycast(currentOrigin, remaining, params)
         if not hit then
             return false
@@ -268,9 +272,8 @@ function Module:_isWallBlocked(targetPart)
             return false
         end
 
-        -- If it hits a part that is fully transparent/invisible (Transparency >= 0.99), bypass it
-        if instance:IsA("BasePart") and instance.Transparency >= 0.99 then
-            table.insert(blacklist, instance)
+        if instance:IsA("BasePart") and instance.Transparency > 0 then
+            table.insert(extraIgnore, instance)
             local nextOrigin = hit.Position + stepDir * 0.05
             remaining = targetPart.Position - nextOrigin
             if remaining.Magnitude <= 0.05 then
@@ -278,7 +281,6 @@ function Module:_isWallBlocked(targetPart)
             end
             currentOrigin = nextOrigin
         else
-            -- Solid opaque obstacle
             return true
         end
     end
