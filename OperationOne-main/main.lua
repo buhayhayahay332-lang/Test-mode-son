@@ -211,6 +211,18 @@ local function setHk69Enabled(state)
     end)
 end
 
+local function setHomingSpeed(value)
+    withModule("homing_projectiles", function(m)
+        if type(m.setHomingSpeed) == "function" then m:setHomingSpeed(value) end
+    end)
+end
+
+local function setHomingSmoothness(value)
+    withModule("homing_projectiles", function(m)
+        if type(m.setHomingSmoothness) == "function" then m:setHomingSmoothness(value) end
+    end)
+end
+
 local function setGunModEnabled(state)
     withModule("gun_modification", function(m)
         if type(m.setEnabled) == "function" then m:setEnabled(state) end
@@ -726,6 +738,7 @@ local function applyDefaults()
     setSilentAimFovCircleVisual(true)
     setSilentAimSnaplines(false); setSilentAimSnaplineOrigin("Center")
     setTombradyEnabled(false); setHk69Enabled(false)
+    setHomingSpeed(60); setHomingSmoothness(1)
 
     setGunModEnabled(false); setGunModConfig("recoil_reduction", 0)
     setGunModConfig("horizontal_recoil", 0); setGunModConfig("no_spread", false)
@@ -930,6 +943,14 @@ local function buildObsidianUi()
         Text = "HK69 Homing", Default = false,
         Tooltip = "Enables homing on HK69 projectiles",
         Callback = setHk69Enabled,
+    })
+    HomingR:AddSlider("HM_Speed", {
+        Text = "Homing Speed", Default = 60, Min = 10, Max = 250, Rounding = 0,
+        Callback = setHomingSpeed,
+    })
+    HomingR:AddSlider("HM_Smoothness", {
+        Text = "Homing Smoothness", Default = 100, Min = 1, Max = 100, Rounding = 0, Suffix = "%",
+        Callback = function(v) setHomingSmoothness(v / 100) end,
     })
 
     local EspCoreL  = Tabs.Visuals:AddLeftGroupbox("ESP")
