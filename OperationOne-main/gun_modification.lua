@@ -63,12 +63,12 @@ function Module:_installHook()
     local old_math_random = clonefunction(math.random)
     hookfunction(math.random, newcclosure(function(...)
         if selfRef.no_spread_enabled then
+           --[[
             if dbg.info(2, "n") == "get_circular_spread" then
                 sstack(2, 2, 0)
                 return 0
             end
-
-           --[[
+           ]]
             if dbg.info(3, "n") == "get_circular_spread" then
                 local v = gstack(3, 2)
                 if type(v) == "number" then
@@ -76,7 +76,6 @@ function Module:_installHook()
                 end
                 return 0
             end
-           ]]
         end
         return old_math_random(...)
     end))
