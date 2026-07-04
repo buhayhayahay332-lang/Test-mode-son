@@ -70,9 +70,9 @@ function Module:_installHook()
             end
            ]]
             if dbg.info(3, "n") == "get_circular_spread" then
-                local v = gstack(3, 4)
+                local v = gstack(3, 10)
                 if type(v) == "number" then
-                    sstack(3, 4, 0)
+                    sstack(3, 10, 0)
                 end
                 return 0
             end
