@@ -68,6 +68,7 @@ function Module:_installHook()
                 return 0
             end
 
+           --[[
             if dbg.info(3, "n") == "get_circular_spread" then
                 local v = gstack(3, 2)
                 if type(v) == "number" then
@@ -75,6 +76,7 @@ function Module:_installHook()
                 end
                 return 0
             end
+           ]]
         end
         return old_math_random(...)
     end))
