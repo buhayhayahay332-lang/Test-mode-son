@@ -49,13 +49,17 @@ function Module:_installHook()
     if self._hooked then
         return true
     end
-
     local selfRef = self
+    local GUN_SOURCE = "ReplicatedStorage.Modules.Items.Item.Gun"
+
     local old_tweenInfo_new = clonefunction(TweenInfo.new)
     hookfunction(TweenInfo.new, newcclosure(function(...)
         if dbg.info(3, "n") == "recoil_function" then
-            sstack(3, 5, gstack(3, 5) * selfRef.recoil_x)
-            sstack(3, 6, gstack(3, 6) * selfRef.recoil_y)
+            local source = dbg.info(3, "s")
+            if source and source:find(GUN_SOURCE, 1, true) then
+                sstack(3, 5, gstack(3, 5) * selfRef.recoil_x)
+                sstack(3, 6, gstack(3, 6) * selfRef.recoil_y)
+            end
         end
         return old_tweenInfo_new(...)
     end))
@@ -63,18 +67,15 @@ function Module:_installHook()
     local old_math_random = clonefunction(math.random)
     hookfunction(math.random, newcclosure(function(...)
         if selfRef.no_spread_enabled then
-           --[[
-            if dbg.info(2, "n") == "get_circular_spread" then
-                sstack(2, 2, 0)
-                return 0
-            end
-           ]]
             if dbg.info(3, "n") == "get_circular_spread" then
-                local v = gstack(3, 2)
-                if type(v) == "number" then
-                    sstack(3, 2, 0)
+                local source = dbg.info(3, "s")
+                if source and source:find(GUN_SOURCE, 1, true) then
+                    local v = gstack(3, 2)
+                    if type(v) == "number" then
+                        sstack(3, 2, 0)
+                    end
+                    return 0
                 end
-                return 0
             end
         end
         return old_math_random(...)
