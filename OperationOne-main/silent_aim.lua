@@ -489,10 +489,23 @@ function Module:_installHook()
                 return oldCF(...)
             end
 
+            local function isGunModuleSendShoot(level)
+                if infoFn(level, "n") ~= "send_shoot" then
+                    return false
+                end
+
+                local source = infoFn(level, "s")
+                if type(source) ~= "string" then
+                    return false
+                end
+
+                return  source:find("Modules.Items.Item.Gun", 1, true) ~= nil
+            end
+
             local stackLevel = nil
-            if infoFn(2, "n") == "send_shoot" then
+            if isGunModuleSendShoot(2) then
                 stackLevel = 2
-            elseif infoFn(3, "n") == "send_shoot" then
+            elseif isGunModuleSendShoot(3) then
                 stackLevel = 3
             end
 
