@@ -470,45 +470,48 @@ function Module:_installHook()
     local oldCF = clonefn(CFrame.new)
     local selfRef = self
 
-    local ok, err = pcall(function()
-        hookfn(CFrame.new, closure(function(...)
-            if not selfRef._enabled or selfRef._mode ~= "silent" then
-                return oldCF(...)
+  local ok, err = pcall(function()
+    hookfn(CFrame.new, closure(function(...)
+        if not selfRef._enabled or selfRef._mode ~= "silent" then
+            return oldCF(...)
+        end
+
+        local dbgApi = getDebugApi()
+        if not dbgApi then
+            return oldCF(...)
+        end
+
+        local infoFn = dbgApi.info
+        local getStackFn = dbgApi.getstack or getstack
+        local setStackFn = dbgApi.setstack or setstack
+
+        if type(infoFn) ~= "function" or type(getStackFn) ~= "function" or type(setStackFn) ~= "function" then
+            return oldCF(...)
+        end
+
+        local stackLevel = nil
+        for _, lvl in ipairs({2, 3}) do
+            local name = infoFn(lvl, "n")
+            local source = infoFn(lvl, "s")
+            if name == "send_shoot" and source and source:find("ReplicatedStorage.Modules.Items.Item.Gun", 1, true) then
+                stackLevel = lvl
+                break
             end
+        end
 
-            local dbgApi = getDebugApi()
-            if not dbgApi then
-                return oldCF(...)
-            end
-
-            local infoFn = dbgApi.info
-            local getStackFn = dbgApi.getstack or getstack
-            local setStackFn = dbgApi.setstack or setstack
-
-            if type(infoFn) ~= "function" or type(getStackFn) ~= "function" or type(setStackFn) ~= "function" then
-                return oldCF(...)
-            end
-
-            local stackLevel = nil
-            if infoFn(2, "n") == "send_shoot" then
-                stackLevel = 2
-            elseif infoFn(3, "n") == "send_shoot" then
-                stackLevel = 3
-            end
-
-            if stackLevel then
-                local target = selfRef:_getClosestTargetToCursor()
-                if target then
-                    local origin = getStackFn(stackLevel, 3)
-                    if origin and origin.Position then
-                        setStackFn(stackLevel, 5, CFrame.lookAt(origin.Position, target.Position))
-                    end
+        if stackLevel then
+            local target = selfRef:_getClosestTargetToCursor()
+            if target then
+                local origin = getStackFn(stackLevel, 3)
+                if origin and origin.Position then
+                    setStackFn(stackLevel, 5, CFrame.lookAt(origin.Position, target.Position))
                 end
             end
+        end
 
-            return oldCF(...)
-        end))
-    end)
+        return oldCF(...)
+    end))
+end)
 
     if not ok then
         return false, tostring(err)
