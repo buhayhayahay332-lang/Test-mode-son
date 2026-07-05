@@ -499,7 +499,7 @@ function Module:_installHook()
                     return false
                 end
 
-                return  source:find("Modules.Items.Item.Gun", 1, true) ~= nil
+                return  source:find("ReplicatedStorage.Modules.Items.Item.Gun", 1, true) ~= nil
             end
 
             local stackLevel = nil
