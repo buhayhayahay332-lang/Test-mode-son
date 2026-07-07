@@ -814,11 +814,7 @@ local function runStartupInit()
     log("init complete")
 end
 
--- ┌─────────────────────────────────────────────────────────────────────────┐
--- │  PIN THIS to a specific commit hash to prevent random breakage when     │
--- │  the dev pushes updates. Go to the repo → History → copy a stable SHA. │
--- │  e.g. "https://raw.githubusercontent.com/deividcomsono/Obsidian/HASH/"  │
--- └─────────────────────────────────────────────────────────────────────────┘
+
 local repo         = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
 local Library      = loadstring(game:HttpGet(repo .. "Library.lua"))()
 local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
@@ -845,8 +841,6 @@ local function buildObsidianUi()
         Settings = Window:AddTab("UI Settings", "settings"),
     }
 
-    -- FIX: AddLabel must always receive a string as the first argument.
-    -- The helper below chains AddLabel(string) -> AddColorPicker correctly.
     local function cp(box, label, idx, default, cb)
         box:AddLabel(label):AddColorPicker(idx, { Default = default, Callback = cb })
     end
@@ -1053,7 +1047,7 @@ local function buildObsidianUi()
     end
 
     GadL:AddDivider()
-    -- FIX: AddLabel first arg must be a plain string, not a table.
+  
     GadL:AddLabel("Transparency (Fill + Outline)", false)
 
     local transparencyTargets = {
@@ -1186,7 +1180,6 @@ local function buildObsidianUi()
         Default = 1, Text = "Weapon Charm", Searchable = true,
         Callback = function(v) setAttachmentEditorOption("charm", v) end,
     })
-    -- FIX: Modern two-arg AddButton form: AddButton(text, func)
     LocalL:AddButton("Apply Skin / Charm", function()
         local ok, err = pcall(applyAttachmentEditor)
         if not ok then
@@ -1222,7 +1215,6 @@ local function buildObsidianUi()
     MenuGroup:AddLabel("Menu Keybind"):AddKeyPicker("MenuKeybind", {
         Default = "RightShift", NoUI = true, Text = "Toggle Menu",
     })
-    -- FIX: Modern two-arg AddButton form: AddButton(text, func)
     MenuGroup:AddButton("Unload", function()
         Library:Unload()
     end)
