@@ -1,4 +1,4 @@
-setthreadidentity(8) --instace shit
+setthreadidentity(8)
 local moduleRepo = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/"
 
 local MODULE_FILES = {
