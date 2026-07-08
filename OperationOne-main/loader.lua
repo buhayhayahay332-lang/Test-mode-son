@@ -3,6 +3,9 @@ local MAIN_URL   = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/re
 local UI_LIB_URL = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/ui_lib.lua"
 local REJOIN_MSG = "REJOIN THE GAME FUCK FURRY."
 
+local RETRY_COUNT = 3
+local RETRY_DELAY = 1.5 
+
 local UNSUPPORTED = {
     xeno     = true,
     solara   = true,
@@ -14,18 +17,41 @@ local UNSUPPORTED = {
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
 
-local function compileChunk(src, label)
-    local compile = loadstring or load
-    if type(compile) ~= "function" then return nil end
-    local ok, chunk = pcall(compile, src, "@" .. tostring(label))
-    return (ok and type(chunk) == "function") and chunk or nil
+local function fetchSource(url)
+    for attempt = 1, RETRY_COUNT do
+        local ok, result = pcall(function()
+            return game:HttpGet(url, true)
+        end)
+
+        if ok and type(result) == "string" and #result > 0 then
+            return result
+        end
+
+        warn(string.format("[Loader] HttpGet attempt %d/%d failed for: %s", attempt, RETRY_COUNT, url))
+
+        if attempt < RETRY_COUNT then
+            task.wait(RETRY_DELAY)
+        end
+    end
+
+    warn("[Loader] All HttpGet attempts exhausted for: " .. url)
+    return nil
 end
 
-local function fetchSource(url)
-    local ok, result = pcall(function()
-        return game:HttpGet(url)
-    end)
-    return (ok and type(result) == "string" and result ~= "") and result or nil
+local function compileChunk(src, label)
+    local compile = loadstring or load
+    if type(compile) ~= "function" then
+        warn("[Loader] No loadstring available")
+        return nil
+    end
+
+    local ok, result = pcall(compile, src, "@" .. tostring(label))
+    if not ok or type(result) ~= "function" then
+        warn("[Loader] Compile failed for " .. tostring(label) .. ": " .. tostring(result))
+        return nil
+    end
+
+    return result
 end
 
 local function tryGlobals(names, ...)
@@ -117,21 +143,43 @@ local function getActor()
     return nil
 end
 
-local function runOnActor(actor, url)
+local function runOnActor(actor, src)
     if typeof(actor) ~= "Instance" or not actor:IsA("Actor") then return false end
     if type(run_on_actor) ~= "function" then return false end
 
     local actorCode = string.format([[
-        local ok, src = pcall(function() return game:HttpGet(%q) end)
-        if not ok or type(src) ~= "string" or src == "" then return end
-        local ok2, chunk = pcall(loadstring, src, "@operationone_main")
-        if not ok2 or type(chunk) ~= "function" then return end
-        pcall(chunk)
-    ]], url)
+        local compile = loadstring or load
+        if type(compile) ~= "function" then return end
 
+        local ok, chunk = pcall(compile, %q, "@operationone_main")
+        if not ok or type(chunk) ~= "function" then
+            warn("[Actor] Compile failed: " .. tostring(chunk))
+            return
+        end
+
+        local runOk, err = pcall(chunk)
+        if not runOk then
+            warn("[Actor] Runtime error: " .. tostring(err))
+        end
+    ]], src)
+
+    local done = false
     task.spawn(function()
         pcall(run_on_actor, actor, actorCode)
+        done = true
     end)
+
+    local timeout = 10
+    local elapsed = 0
+    while not done and elapsed < timeout do
+        task.wait(0.1)
+        elapsed += 0.1
+    end
+
+    if not done then
+        warn("[Loader] Actor execution timed out")
+        return false
+    end
 
     return true
 end
@@ -144,8 +192,14 @@ if UNSUPPORTED[executorName:lower()] then
     return
 end
 
+local src = fetchSource(MAIN_URL)
+if not src then
+    warn("[Loader] Could not fetch main source after all retries. Aborting.")
+    return
+end
+
 local actor = getActor()
-if actor and runOnActor(actor, MAIN_URL) then
+if actor and runOnActor(actor, src) then
     return
 end
 
@@ -155,10 +209,10 @@ if not isFlagEnabled(readFlag(FLAG_NAME)) then
     return
 end
 
-local src   = fetchSource(MAIN_URL)
-if not src then return end
-
 local chunk = compileChunk(src, "operationone_main")
 if not chunk then return end
 
-pcall(chunk)
+local ok, err = pcall(chunk)
+if not ok then
+    warn("[Loader] Main chunk error: " .. tostring(err))
+end
