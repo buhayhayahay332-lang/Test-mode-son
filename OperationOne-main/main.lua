@@ -28,6 +28,10 @@ local MODULE_SOURCES = {
         local_path = "homing_projectiles.lua",
         url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/homing_projectiles.lua",
     },
+    auto_shoot = {
+        local_path = "auto_shoot.lua",
+        url = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/auto_shoot.lua",
+    },
 }
 
 local moduleCache        = {}
@@ -196,6 +200,22 @@ end
 local function setSilentAimSnaplineColor(color)
     withModule("silent_aim", function(m)
         if type(m.setSnaplineColor) == "function" then m:setSnaplineColor(color) end
+    end)
+end
+
+local function setAutoShoot(state)
+    withModule("auto_shoot", function(m)
+        if type(m.setEnabled) == "function" then m:setEnabled(state) end
+    end)
+end
+local function setAutoShootDelay(value)
+    withModule("auto_shoot", function(m)
+        if type(m.setDelay) == "function" then m:setDelay(value) end
+    end)
+end
+local function setAutoShootTeamCheck(state)
+    withModule("auto_shoot", function(m)
+        if type(m.setTeamCheck) == "function" then m:setTeamCheck(state) end
     end)
 end
 
@@ -737,6 +757,7 @@ local function applyDefaults()
     setSilentAimTargetGadgets(false); setSilentAimVisibleCheck(false)
     setSilentAimFovCircleVisual(true)
     setSilentAimSnaplines(false); setSilentAimSnaplineOrigin("Center")
+    setAutoShoot(false); setAutoShootDelay(0); setAutoShootTeamCheck(true)
     setTombradyEnabled(false); setHk69Enabled(false)
     setHomingSpeed(60); setHomingSmoothness(1)
 
@@ -814,7 +835,7 @@ local function applyDefaults()
 end
 
 local function runStartupInit()
-    local initOrder = { "silent_aim", "homing_projectiles", "gun_modification", ESP_MODULE_NAME, "fullbright" }
+    local initOrder = { "silent_aim", "auto_shoot", "homing_projectiles", "gun_modification", ESP_MODULE_NAME, "fullbright" }
     for _, name in ipairs(initOrder) do initModule(name, false) end
     applyDefaults()
     log("init complete")
@@ -906,6 +927,23 @@ local function buildObsidianUi()
         Text = "Snapline Origin",
         Callback = setSilentAimSnaplineOrigin,
     })
+    AimL:AddDivider()
+    AimL:AddToggle("SA_AutoShoot", {
+        Text = "Auto Shoot / Triggerbot", Default = false, Risky = true,
+        Tooltip = "Automatically fires when crosshair is on an enemy",
+        Callback = setAutoShoot,
+    })
+    AimL:AddSlider("SA_AutoShootDelay", {
+        Text = "Auto Shoot Delay", Default = 0, Min = 0, Max = 200, Rounding = 0, Suffix = "ms",
+        Tooltip = "Delay before firing after acquiring a target",
+        Callback = setAutoShootDelay,
+    })
+    AimL:AddToggle("SA_AutoShootTeam", {
+        Text = "Auto Shoot Team Check", Default = true,
+        Tooltip = "Skip teammates when auto shooting",
+        Callback = setAutoShootTeamCheck,
+    })
+    AimL:AddDivider()
     AimL:AddToggle("SA_TargetGadgets", {
         Text = "Target Gadgets", Default = false,
         Callback = setSilentAimTargetGadgets,
@@ -1243,6 +1281,7 @@ local function buildObsidianUi()
 
     Library:OnUnload(function()
         setSilentAim(false)
+        setAutoShoot(false)
         setTombradyEnabled(false)
         setHk69Enabled(false)
         setEspEnabled(false)
