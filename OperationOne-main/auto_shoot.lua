@@ -166,11 +166,13 @@ function Module:_getTarget()
         self._viewmodelsFolder = Workspace:FindFirstChild("Viewmodels")
     end
 
-    local origin = camera.CFrame.Position
-    local direction = camera.CFrame.LookVector * 500
+    local viewmodelsFolder = self._viewmodelsFolder
+    local maxDistance = 500
+    local lookDir = camera.CFrame.LookVector
+    local currentOrigin = camera.CFrame.Position
+    local remainingDistance = maxDistance
 
     local blacklist = { camera }
-    local viewmodelsFolder = self._viewmodelsFolder
     if viewmodelsFolder then
         local localViewmodel = viewmodelsFolder:FindFirstChild("LocalViewmodel")
         if localViewmodel then
@@ -178,22 +180,38 @@ function Module:_getTarget()
         end
     end
 
-    local params = RaycastParams.new()
-    params.FilterType = Enum.RaycastFilterType.Exclude
-    params.FilterDescendantsInstances = blacklist
-    params.IgnoreWater = true
+    for _ = 1, 10 do
+        if remainingDistance <= 0.05 then
+            break
+        end
 
-    local hit = Workspace:Raycast(origin, direction, params)
-    if not hit or not hit.Instance then
-        return nil
-    end
+        local params = RaycastParams.new()
+        params.FilterType = Enum.RaycastFilterType.Exclude
+        params.FilterDescendantsInstances = blacklist
+        params.IgnoreWater = true
 
-    if self:_isEnemyViewmodel(hit.Instance) then
-        return hit.Instance
-    end
+        local hit = Workspace:Raycast(currentOrigin, lookDir * remainingDistance, params)
+        if not hit or not hit.Instance then
+            break
+        end
 
-    if self:_isGadget(hit.Instance) then
-        return hit.Instance
+        local hitPart = hit.Instance
+
+        if self:_isEnemyViewmodel(hitPart) then
+            return hitPart
+        end
+
+        if self:_isGadget(hitPart) then
+            return hitPart
+        end
+
+        if hitPart:IsA("BasePart") and (hitPart.Transparency > 0 or not hitPart.CanCollide) then
+            table.insert(blacklist, hitPart)
+            currentOrigin = hit.Position + lookDir * 0.05
+            remainingDistance = maxDistance - (currentOrigin - camera.CFrame.Position).Magnitude
+        else
+            break
+        end
     end
 
     return nil
