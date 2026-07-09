@@ -182,6 +182,11 @@ local function setAutoShootTeamCheck(state)
         if type(m.setTeamCheck) == "function" then m:setTeamCheck(state) end
     end)
 end
+local function setAutoShootTargetGadgets(state)
+    withModule("auto_shoot", function(m)
+        if type(m.setTargetGadgets) == "function" then m:setTargetGadgets(state) end
+    end)
+end
 
 local function setTombradyEnabled(state)
     withModule("homing_projectiles", function(m)
@@ -697,7 +702,7 @@ local function applyDefaults()
     setSilentAimTargetGadgets(false); setSilentAimVisibleCheck(false)
     setSilentAimFovCircleVisual(true)
     setSilentAimSnaplines(false); setSilentAimSnaplineOrigin("Center")
-    setAutoShoot(false); setAutoShootDelay(0); setAutoShootTeamCheck(true)
+    setAutoShoot(false); setAutoShootDelay(0); setAutoShootTeamCheck(true); setAutoShootTargetGadgets(false)
     setTombradyEnabled(false); setHk69Enabled(false)
     setHomingSpeed(60); setHomingSmoothness(1)
 
@@ -882,6 +887,11 @@ local function buildObsidianUi()
         Text = "Auto Shoot Team Check", Default = true,
         Tooltip = "Skip teammates when auto shooting",
         Callback = setAutoShootTeamCheck,
+    })
+    AimL:AddToggle("SA_AutoShootGadgets", {
+        Text = "Auto Shoot Target Gadgets", Default = false,
+        Tooltip = "Also auto fire at gadgets (drones, claymores, etc.)",
+        Callback = setAutoShootTargetGadgets,
     })
     AimL:AddDivider()
     AimL:AddToggle("SA_TargetGadgets", {

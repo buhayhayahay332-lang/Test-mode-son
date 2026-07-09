@@ -7,10 +7,19 @@ local Module = {
     _enabled = false,
     _delay = 0,
     _teamCheck = true,
+    _targetGadgets = false,
     _active = false,
     _targetAcquiredAt = nil,
     _renderConn = nil,
     _viewmodelsFolder = nil,
+}
+
+local GADGET_TARGETS = {
+    Drone = "HumanoidRootPart",
+    Claymore = "Laser",
+    ProximityAlarm = "RedDot",
+    StickyCamera = "Cam",
+    SignalDisruptor = "Screen",
 }
 
 local TEAM_COLOR = Color3.fromRGB(0, 150, 0)
@@ -131,6 +140,22 @@ function Module:_isEnemyViewmodel(instance)
     return false
 end
 
+function Module:_isGadget(instance)
+    if not self._targetGadgets then
+        return false
+    end
+
+    local current = instance
+    while current and current ~= Workspace do
+        if current:IsA("Model") and GADGET_TARGETS[current.Name] then
+            return true
+        end
+        current = current.Parent
+    end
+
+    return false
+end
+
 function Module:_getTarget()
     local camera = Workspace.CurrentCamera
     if not camera then
@@ -164,6 +189,10 @@ function Module:_getTarget()
     end
 
     if self:_isEnemyViewmodel(hit.Instance) then
+        return hit.Instance
+    end
+
+    if self:_isGadget(hit.Instance) then
         return hit.Instance
     end
 
@@ -258,6 +287,11 @@ end
 
 function Module:setTeamCheck(state)
     self._teamCheck = state == true
+    return true
+end
+
+function Module:setTargetGadgets(state)
+    self._targetGadgets = state == true
     return true
 end
 
