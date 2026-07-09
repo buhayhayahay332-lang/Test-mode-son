@@ -879,17 +879,17 @@ local function buildObsidianUi()
         Callback = setAutoShoot,
     })
     AimL:AddSlider("SA_AutoShootDelay", {
-        Text = "Auto Shoot Delay", Default = 0, Min = 0, Max = 200, Rounding = 0, Suffix = "ms",
+        Text = "TriggerBot Delay", Default = 0, Min = 0, Max = 200, Rounding = 0, Suffix = "ms",
         Tooltip = "Delay before firing after acquiring a target",
         Callback = setAutoShootDelay,
     })
     AimL:AddToggle("SA_AutoShootTeam", {
-        Text = "Auto Shoot Team Check", Default = true,
+        Text = "TriggerBot Team Check", Default = true,
         Tooltip = "Skip teammates when auto shooting",
         Callback = setAutoShootTeamCheck,
     })
     AimL:AddToggle("SA_AutoShootGadgets", {
-        Text = "Auto Shoot Target Gadgets", Default = false,
+        Text = "TriggberBot Target Gadgets", Default = false,
         Tooltip = "Also auto fire at gadgets (drones, claymores, etc.)",
         Callback = setAutoShootTargetGadgets,
     })
