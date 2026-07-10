@@ -52,22 +52,28 @@ local function getShootButton()
     local gameGui = playerGui and playerGui:FindFirstChild("Game")
     local right = gameGui and gameGui:FindFirstChild("Right")
     local center = right and right:FindFirstChild("Center")
-    local shootButton = center and center:FindFirstChild("ShootJoystickFrame")
-    if shootButton then
-        cachedShootButton = shootButton
-        return shootButton
+    local shootFrame = center and center:FindFirstChild("ShootJoystickFrame")
+    if shootFrame then
+        local shootButton = shootFrame:IsA("GuiButton") and shootFrame or shootFrame:FindFirstChildWhichIsA("GuiButton", true)
+        if shootButton then
+            cachedShootButton = shootButton
+            return shootButton
+        end
+
+        cachedShootButton = shootFrame
+        return shootFrame
     end
 
     return nil
 end
 
 local function pressMouse()
-    if type(sethiddenproperty) == "function" then
-        local btn = getShootButton()
-        if btn then
-            pcall(sethiddenproperty, btn, "GuiState", Enum.GuiState.Press)
-            return
-        end
+    local btn = getShootButton()
+    if btn and type(btn.Activate) == "function" then
+        pcall(function()
+            btn:Activate()
+        end)
+        return
     end
 
     if type(mouse1press) == "function" then
@@ -82,15 +88,10 @@ local function pressMouse()
 end
 
 local function releaseMouse()
-
-    if type(sethiddenproperty) == "function" then
-        local btn = getShootButton()
-        if btn then
-            pcall(sethiddenproperty, btn, "GuiState", Enum.GuiState.Idle)
-            return
-        end
+    local btn = getShootButton()
+    if btn and type(btn.Activate) == "function" then
+        return
     end
-
 
     if type(mouse1release) == "function" then
         mouse1release()
