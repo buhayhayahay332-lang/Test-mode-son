@@ -41,6 +41,20 @@ local function isColorMatch(color, expected)
 end
 
 local cachedShootButton = nil
+local touchId = 0
+local cachedVim = nil
+
+local function getVim()
+    if cachedVim then return cachedVim end
+    local ok, vim = pcall(function()
+        return cloneref(game:GetService("VirtualInputManager"))
+    end)
+    if ok and vim then
+        cachedVim = vim
+        return vim
+    end
+    return nil
+end
 
 local function getShootButton()
     if cachedShootButton and cachedShootButton.Parent then
@@ -53,10 +67,13 @@ local function getShootButton()
     local right = gameGui and gameGui:FindFirstChild("Right")
     local center = right and right:FindFirstChild("Center")
     local shootFrame = center and center:FindFirstChild("ShootJoystickFrame")
+
+    if shootFrame then
+        cachedShootButton = shootFrame
+    end
+
     return shootFrame
 end
-
-local touchId = 0
 
 local function pressMouse()
     if UserInputService.TouchEnabled then
@@ -64,15 +81,13 @@ local function pressMouse()
         if btn then
             touchId = (touchId % 10) + 1
             local center = btn.AbsolutePosition + (btn.AbsoluteSize / 2)
-
-            local vimOk = pcall(function()
-                local vim = cloneref(game:GetService("VirtualInputManager"))
-                vim:SendTouchEvent(touchId, center.X, center.Y, 0, game) -- 0 = Begin
-            end)
-            if vimOk then return end
-
+            local vim = getVim()
+            if vim then
+                pcall(vim.SendTouchEvent, vim, touchId, center.X, center.Y, 0, game)
+                pcall(vim.SendTouchEvent, vim, touchId, center.X, center.Y, 1, game)
+            end
+            return
         end
-        return
     end
 
     if type(mouse1press) == "function" then
@@ -81,8 +96,10 @@ local function pressMouse()
     end
 
     pcall(function()
-        local vim = cloneref(game:GetService("VirtualInputManager"))
-        vim:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+        local vim = getVim()
+        if vim then
+            vim:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+        end
     end)
 end
 
@@ -91,11 +108,10 @@ local function releaseMouse()
         local btn = getShootButton()
         if btn then
             local center = btn.AbsolutePosition + (btn.AbsoluteSize / 2)
-
-            pcall(function()
-                local vim = cloneref(game:GetService("VirtualInputManager"))
-                vim:SendTouchEvent(touchId, center.X, center.Y, 2, game) -- 2 = End
-            end)
+            local vim = getVim()
+            if vim then
+                pcall(vim.SendTouchEvent, vim, touchId, center.X, center.Y, 2, game)
+            end
         end
         return
     end
@@ -106,8 +122,10 @@ local function releaseMouse()
     end
 
     pcall(function()
-        local vim = cloneref(game:GetService("VirtualInputManager"))
-        vim:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+        local vim = getVim()
+        if vim then
+            vim:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+        end
     end)
 end
 
@@ -134,6 +152,7 @@ function Module:setShared(shared)
         Workspace = ref(game:GetService("Workspace"))
         Players = ref(game:GetService("Players"))
         UserInputService = ref(game:GetService("UserInputService"))
+        cachedVim = nil 
     end
 
     return true
@@ -467,6 +486,8 @@ function Module:unload()
     self._targetAcquiredAt = nil
     self._mobileScopeButton = nil
     self._scopeButtonToggled = false
+    cachedVim = nil
+    cachedShootButton = nil
 
     if self._scopeButtonConn then
         self._scopeButtonConn:Disconnect()
