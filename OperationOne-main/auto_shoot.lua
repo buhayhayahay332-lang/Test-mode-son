@@ -68,12 +68,17 @@ local function getShootButton()
 end
 
 local function pressMouse()
-    local btn = getShootButton()
-    if btn and type(btn.Activate) == "function" then
-        pcall(function()
-            btn:Activate()
-        end)
-        return
+    if UserInputService.TouchEnabled then
+        local btn = getShootButton()
+        if btn then
+            local center = btn.AbsolutePosition + (btn.AbsoluteSize / 2)
+            
+            pcall(function()
+                local vim = cloneref(game:GetService("VirtualInputManager"))
+                vim:SendTouchEvent(1, center.X, center.Y, Enum.UserInputState.Begin, game)
+            end)
+            return
+        end
     end
 
     if type(mouse1press) == "function" then
@@ -88,9 +93,17 @@ local function pressMouse()
 end
 
 local function releaseMouse()
-    local btn = getShootButton()
-    if btn and type(btn.Activate) == "function" then
-        return
+    if UserInputService.TouchEnabled then
+        local btn = getShootButton()
+        if btn then
+            local center = btn.AbsolutePosition + (btn.AbsoluteSize / 2)
+
+            pcall(function()
+                local vim = cloneref(game:GetService("VirtualInputManager"))
+                vim:SendTouchEvent(1, center.X, center.Y, Enum.UserInputState.End, game)
+            end)
+            return
+        end
     end
 
     if type(mouse1release) == "function" then
