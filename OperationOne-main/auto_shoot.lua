@@ -53,26 +53,16 @@ local function getShootButton()
     local right = gameGui and gameGui:FindFirstChild("Right")
     local center = right and right:FindFirstChild("Center")
     local shootFrame = center and center:FindFirstChild("ShootJoystickFrame")
-    if shootFrame then
-        local shootButton = shootFrame:IsA("GuiButton") and shootFrame or shootFrame:FindFirstChildWhichIsA("GuiButton", true)
-        if shootButton then
-            cachedShootButton = shootButton
-            return shootButton
-        end
-
-        cachedShootButton = shootFrame
-        return shootFrame
-    end
-
-    return nil
+    return shootFrame
 end
 
-local touchId = 1 
+local touchId = 0
 
 local function pressMouse()
     if UserInputService.TouchEnabled then
         local btn = getShootButton()
         if btn then
+            touchId = (touchId % 10) + 1
             local center = btn.AbsolutePosition + (btn.AbsoluteSize / 2)
 
             local vimOk = pcall(function()
@@ -81,11 +71,10 @@ local function pressMouse()
             end)
             if vimOk then return end
 
-            local touchOk = pcall(function()
+            pcall(function()
                 firetouchinterest(btn, Vector3.new(center.X, center.Y, 0), 0)
             end)
-            if touchOk then return end
-
+            return
         end
     end
 
@@ -115,8 +104,8 @@ local function releaseMouse()
             pcall(function()
                 firetouchinterest(btn, Vector3.new(center.X, center.Y, 0), 1)
             end)
+            return  
         end
-        return
     end
 
     if type(mouse1release) == "function" then
