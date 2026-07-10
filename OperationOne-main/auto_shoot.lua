@@ -170,12 +170,7 @@ function Module:_getMobileScopeButton()
     local right = gameGui and gameGui:FindFirstChild("Right")
     local center = right and right:FindFirstChild("Center")
     local scopeButton = center and center:FindFirstChild("ScopeButton")
-    if scopeButton and scopeButton:IsA("GuiButton") then
-        self._mobileScopeButton = scopeButton
-        return scopeButton
-    end
-
-    return nil
+    return scopeButton
 end
 
 function Module:_isMobileScopePressed()
