@@ -1,5 +1,7 @@
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 
 local Module = {
     shared = nil,
@@ -8,6 +10,10 @@ local Module = {
     _delay = 0,
     _teamCheck = true,
     _targetGadgets = false,
+    _activation = "always",
+    _scopeButtonToggled = false,
+    _scopeButtonConn = nil,
+    _mobileScopeButton = nil,
     _active = false,
     _targetAcquiredAt = nil,
     _renderConn = nil,
@@ -79,9 +85,84 @@ function Module:setShared(shared)
     if type(ref) == "function" then
         RunService = ref(game:GetService("RunService"))
         Workspace = ref(game:GetService("Workspace"))
+        Players = ref(game:GetService("Players"))
+        UserInputService = ref(game:GetService("UserInputService"))
     end
 
     return true
+end
+
+function Module:_getMobileScopeButton()
+    local cached = self._mobileScopeButton
+    if cached and cached.Parent then
+        return cached
+    end
+
+    local localPlayer = Players and Players.LocalPlayer
+    local playerGui = localPlayer and localPlayer:FindFirstChild("PlayerGui")
+    local gameGui = playerGui and playerGui:FindFirstChild("Game")
+    local right = gameGui and gameGui:FindFirstChild("Right")
+    local center = right and right:FindFirstChild("Center")
+    local scopeButton = center and center:FindFirstChild("ScopeButton")
+    if scopeButton and scopeButton:IsA("GuiButton") then
+        self._mobileScopeButton = scopeButton
+        return scopeButton
+    end
+
+    return nil
+end
+
+function Module:_isMobileScopePressed()
+    if type(gethiddenproperty) ~= "function" then
+        return false
+    end
+
+    local scopeButton = self:_getMobileScopeButton()
+    if not scopeButton then
+        return false
+    end
+
+    local ok, guiState = pcall(gethiddenproperty, scopeButton, "GuiState")
+    return ok and guiState and guiState.Name == "Press" or false
+end
+
+function Module:_isInputActive()
+    if self._activation == "always" then
+        return true
+    end
+
+    if self._activation == "mobile_hold" then
+        return self:_isMobileScopePressed()
+    end
+
+    if self._activation == "mobile_toggle" then
+        return self._scopeButtonToggled
+    end
+
+    if UserInputService.TouchEnabled and not UserInputService.MouseEnabled then
+        return self:_isMobileScopePressed()
+    end
+
+    if self._activation == "mb1" then
+        return UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
+    end
+
+    return UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)
+end
+
+function Module:_checkMobileScopeConnection()
+    if not self._scopeButtonConn then
+        local scopeButton = self:_getMobileScopeButton()
+        if scopeButton then
+            self._scopeButtonConn = scopeButton.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    if self._activation == "mobile_toggle" then
+                        self._scopeButtonToggled = not self._scopeButtonToggled
+                    end
+                end
+            end)
+        end
+    end
 end
 
 function Module:_getViewmodelTeamMap()
@@ -218,7 +299,7 @@ function Module:_getTarget()
 end
 
 function Module:_run()
-    if not self._enabled then
+    if not self._enabled or not self:_isInputActive() then
         if self._active then
             releaseMouse()
             self._active = false
@@ -226,6 +307,8 @@ function Module:_run()
         end
         return
     end
+
+    self:_checkMobileScopeConnection()
 
     local target = self:_getTarget()
 
@@ -313,6 +396,19 @@ function Module:setTargetGadgets(state)
     return true
 end
 
+function Module:setActivation(mode)
+    local m = string.lower(tostring(mode))
+    local valid = {["always"] = true, ["mb1"] = true, ["mb2"] = true, ["mobile_hold"] = true, ["mobile_toggle"] = true}
+    if valid[m] then
+        self._activation = m
+        if m ~= "mobile_toggle" then
+            self._scopeButtonToggled = false
+        end
+        return true
+    end
+    return false, "invalid activation mode"
+end
+
 function Module:unload()
     self._enabled = false
 
@@ -322,6 +418,13 @@ function Module:unload()
     end
 
     self._targetAcquiredAt = nil
+    self._mobileScopeButton = nil
+    self._scopeButtonToggled = false
+
+    if self._scopeButtonConn then
+        self._scopeButtonConn:Disconnect()
+        self._scopeButtonConn = nil
+    end
 
     if self._renderConn then
         self._renderConn:Disconnect()

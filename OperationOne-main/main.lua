@@ -187,6 +187,11 @@ local function setAutoShootTargetGadgets(state)
         if type(m.setTargetGadgets) == "function" then m:setTargetGadgets(state) end
     end)
 end
+local function setAutoShootActivation(mode)
+    withModule("auto_shoot", function(m)
+        if type(m.setActivation) == "function" then m:setActivation(mode) end
+    end)
+end
 
 local function setTombradyEnabled(state)
     withModule("homing_projectiles", function(m)
@@ -702,7 +707,7 @@ local function applyDefaults()
     setSilentAimTargetGadgets(false); setSilentAimVisibleCheck(false)
     setSilentAimFovCircleVisual(true)
     setSilentAimSnaplines(false); setSilentAimSnaplineOrigin("Center")
-    setAutoShoot(false); setAutoShootDelay(0); setAutoShootTeamCheck(true); setAutoShootTargetGadgets(false)
+    setAutoShoot(false); setAutoShootDelay(0); setAutoShootTeamCheck(true); setAutoShootTargetGadgets(false); setAutoShootActivation("always")
     setTombradyEnabled(false); setHk69Enabled(false)
     setHomingSpeed(60); setHomingSmoothness(1)
 
@@ -892,6 +897,12 @@ local function buildObsidianUi()
         Text = "TriggberBot Target Gadgets", Default = false,
         Tooltip = "Also auto fire at gadgets (drones, claymores, etc.)",
         Callback = setAutoShootTargetGadgets,
+    })
+    AimL:AddDropdown("SA_AutoShootActivation", {
+        Values = { "always", "mb1", "mb2", "mobile_hold", "mobile_toggle" }, Default = 1,
+        Text = "TriggerBot Activation",
+        Tooltip = "Condition to enable auto shooting",
+        Callback = setAutoShootActivation,
     })
     AimL:AddDivider()
     AimL:AddToggle("SA_TargetGadgets", {
