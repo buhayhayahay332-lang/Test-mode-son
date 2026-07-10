@@ -67,15 +67,12 @@ local function pressMouse()
 
             local vimOk = pcall(function()
                 local vim = cloneref(game:GetService("VirtualInputManager"))
-                vim:SendTouchEvent(touchId, center.X, center.Y, Enum.UserInputState.Begin, game)
+                vim:SendTouchEvent(touchId, center.X, center.Y, 0, game) -- 0 = Begin
             end)
             if vimOk then return end
 
-            pcall(function()
-                firetouchinterest(btn, Vector3.new(center.X, center.Y, 0), 0)
-            end)
-            return
         end
+        return
     end
 
     if type(mouse1press) == "function" then
@@ -95,17 +92,12 @@ local function releaseMouse()
         if btn then
             local center = btn.AbsolutePosition + (btn.AbsoluteSize / 2)
 
-            local vimOk = pcall(function()
-                local vim = cloneref(game:GetService("VirtualInputManager"))
-                vim:SendTouchEvent(touchId, center.X, center.Y, Enum.UserInputState.End, game)
-            end)
-            if vimOk then return end
-
             pcall(function()
-                firetouchinterest(btn, Vector3.new(center.X, center.Y, 0), 1)
+                local vim = cloneref(game:GetService("VirtualInputManager"))
+                vim:SendTouchEvent(touchId, center.X, center.Y, 2, game) -- 2 = End
             end)
-            return  
         end
+        return
     end
 
     if type(mouse1release) == "function" then
