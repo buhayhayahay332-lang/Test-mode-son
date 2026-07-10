@@ -40,7 +40,33 @@ local function isColorMatch(color, expected)
         and math.floor(color.B * 255 + 0.5) == math.floor(expected.B * 255 + 0.5)
 end
 
+local lastFiredGun = nil
+
+local function getActiveGun()
+    if type(getgc) ~= "function" then
+        return nil
+    end
+    for _, v in ipairs(getgc(true)) do
+        if type(v) == "table" and rawget(v, "send_shoot") and rawget(v, "inputs") then
+            local owner = rawget(v, "owner")
+            if owner and type(owner) == "table" and owner.values and owner.values.equipped == v then
+                return v
+            end
+        end
+    end
+    return nil
+end
+
 local function pressMouse()
+    local gun = getActiveGun()
+    if gun and type(gun.input_shoot) == "function" then
+        pcall(function()
+            gun:input_shoot(true)
+        end)
+        lastFiredGun = gun
+        return
+    end
+
     if type(mouse1press) == "function" then
         mouse1press()
         return
@@ -53,6 +79,22 @@ local function pressMouse()
 end
 
 local function releaseMouse()
+    if lastFiredGun then
+        pcall(function()
+            lastFiredGun:input_shoot(false)
+        end)
+        lastFiredGun = nil
+        return
+    end
+
+    local gun = getActiveGun()
+    if gun and type(gun.input_shoot) == "function" then
+        pcall(function()
+            gun:input_shoot(false)
+        end)
+        return
+    end
+
     if type(mouse1release) == "function" then
         mouse1release()
         return
