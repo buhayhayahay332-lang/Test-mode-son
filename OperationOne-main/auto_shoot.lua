@@ -40,31 +40,34 @@ local function isColorMatch(color, expected)
         and math.floor(color.B * 255 + 0.5) == math.floor(expected.B * 255 + 0.5)
 end
 
-local lastFiredGun = nil
+local cachedShootButton = nil
 
-local function getActiveGun()
-    if type(getgc) ~= "function" then
-        return nil
+local function getShootButton()
+    if cachedShootButton and cachedShootButton.Parent then
+        return cachedShootButton
     end
-    for _, v in ipairs(getgc(true)) do
-        if type(v) == "table" and rawget(v, "send_shoot") and rawget(v, "inputs") then
-            local owner = rawget(v, "owner")
-            if owner and type(owner) == "table" and owner.values and owner.values.equipped == v then
-                return v
-            end
-        end
+
+    local localPlayer = Players and Players.LocalPlayer
+    local playerGui = localPlayer and localPlayer:FindFirstChild("PlayerGui")
+    local gameGui = playerGui and playerGui:FindFirstChild("Game")
+    local right = gameGui and gameGui:FindFirstChild("Right")
+    local center = right and right:FindFirstChild("Center")
+    local shootButton = center and center:FindFirstChild("ShootJoystickFrame")
+    if shootButton then
+        cachedShootButton = shootButton
+        return shootButton
     end
+
     return nil
 end
 
 local function pressMouse()
-    local gun = getActiveGun()
-    if gun and type(gun.input_shoot) == "function" then
-        pcall(function()
-            gun:input_shoot(true)
-        end)
-        lastFiredGun = gun
-        return
+    if type(sethiddenproperty) == "function" then
+        local btn = getShootButton()
+        if btn then
+            pcall(sethiddenproperty, btn, "GuiState", Enum.GuiState.Press)
+            return
+        end
     end
 
     if type(mouse1press) == "function" then
@@ -79,21 +82,15 @@ local function pressMouse()
 end
 
 local function releaseMouse()
-    if lastFiredGun then
-        pcall(function()
-            lastFiredGun:input_shoot(false)
-        end)
-        lastFiredGun = nil
-        return
+
+    if type(sethiddenproperty) == "function" then
+        local btn = getShootButton()
+        if btn then
+            pcall(sethiddenproperty, btn, "GuiState", Enum.GuiState.Idle)
+            return
+        end
     end
 
-    local gun = getActiveGun()
-    if gun and type(gun.input_shoot) == "function" then
-        pcall(function()
-            gun:input_shoot(false)
-        end)
-        return
-    end
 
     if type(mouse1release) == "function" then
         mouse1release()
