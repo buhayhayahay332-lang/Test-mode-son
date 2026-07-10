@@ -67,17 +67,25 @@ local function getShootButton()
     return nil
 end
 
+local touchId = 1 
+
 local function pressMouse()
     if UserInputService.TouchEnabled then
         local btn = getShootButton()
         if btn then
             local center = btn.AbsolutePosition + (btn.AbsoluteSize / 2)
-            
-            pcall(function()
+
+            local vimOk = pcall(function()
                 local vim = cloneref(game:GetService("VirtualInputManager"))
-                vim:SendTouchEvent(1, center.X, center.Y, Enum.UserInputState.Begin, game)
+                vim:SendTouchEvent(touchId, center.X, center.Y, Enum.UserInputState.Begin, game)
             end)
-            return
+            if vimOk then return end
+
+            local touchOk = pcall(function()
+                firetouchinterest(btn, Vector3.new(center.X, center.Y, 0), 0)
+            end)
+            if touchOk then return end
+
         end
     end
 
@@ -98,12 +106,17 @@ local function releaseMouse()
         if btn then
             local center = btn.AbsolutePosition + (btn.AbsoluteSize / 2)
 
-            pcall(function()
+            local vimOk = pcall(function()
                 local vim = cloneref(game:GetService("VirtualInputManager"))
-                vim:SendTouchEvent(1, center.X, center.Y, Enum.UserInputState.End, game)
+                vim:SendTouchEvent(touchId, center.X, center.Y, Enum.UserInputState.End, game)
             end)
-            return
+            if vimOk then return end
+
+            pcall(function()
+                firetouchinterest(btn, Vector3.new(center.X, center.Y, 0), 1)
+            end)
         end
+        return
     end
 
     if type(mouse1release) == "function" then
