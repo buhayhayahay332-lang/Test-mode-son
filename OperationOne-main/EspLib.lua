@@ -8,6 +8,8 @@ local RunService = cloneref(game:GetService("RunService"))
 local Players    = cloneref(game:GetService("Players"))
 local CoreGui    = cloneref(game:GetService("CoreGui"))
 local GuiService = cloneref(game:GetService("GuiService"))
+local ReplicatedStorage = cloneref(game:GetService("ReplicatedStorage"))
+local TextService = cloneref(game:GetService("TextService"))
 
 local LocalPlayer = Players.LocalPlayer
 
@@ -107,6 +109,7 @@ local ESP = {
         Weapons = {
             Enabled = false,
             RGB     = Color3.fromRGB(255, 255, 255),
+            IconEnabled = false,
         },
         Boxes = {
             Animate          = false,
@@ -324,6 +327,8 @@ local _GuiInsetY = 0
 local ScreenGui  = nil
 
 local _Viewmodels = nil
+local WeaponIconCache = {}
+local WeaponIconCacheBuilt = false
 
 local ActiveNames = {}
 
@@ -1286,6 +1291,76 @@ local function findWeaponInCharacter(character)
     return nil
 end
 
+local function normalizeWeaponIconKey(value)
+    if type(value) ~= "string" then
+        return nil
+    end
+
+    local key = string.lower(value)
+    key = key:gsub("[%s%p]+", "")
+    if key == "" then
+        return nil
+    end
+    return key
+end
+
+local function cacheWeaponIcon(key, icon)
+    key = normalizeWeaponIconKey(key)
+    if not key then
+        return
+    end
+    WeaponIconCache[key] = icon
+end
+
+local function buildWeaponIconCache()
+    if WeaponIconCacheBuilt then
+        return
+    end
+
+    local gunRoot = ReplicatedStorage
+        and ReplicatedStorage:FindFirstChild("Modules")
+        and ReplicatedStorage.Modules:FindFirstChild("Items")
+        and ReplicatedStorage.Modules.Items:FindFirstChild("Item")
+        and ReplicatedStorage.Modules.Items.Item:FindFirstChild("Gun")
+
+    if not gunRoot then
+        return
+    end
+
+    local function scan(node)
+        for _, child in ipairs(node:GetChildren()) do
+            if child:IsA("ModuleScript") then
+                local ok, moduleData = pcall(require, child)
+                if ok and type(moduleData) == "table" then
+                    local icon = moduleData.icon
+                    if type(icon) == "string" and icon ~= "" then
+                        cacheWeaponIcon(child.Name, icon)
+                        cacheWeaponIcon(moduleData.display_name, icon)
+                    end
+                end
+            end
+            if #child:GetChildren() > 0 then
+                scan(child)
+            end
+        end
+    end
+
+    scan(gunRoot)
+    WeaponIconCacheBuilt = true
+end
+
+local function getWeaponIconForName(name)
+    if not WeaponIconCacheBuilt then
+        buildWeaponIconCache()
+    end
+
+    local key = normalizeWeaponIconKey(name)
+    if not key then
+        return nil
+    end
+    return WeaponIconCache[key]
+end
+
 local function createSkeletonESP(character)
     if not character or ActiveSkeletons[character] then return end
     if not isValidPlayer(character) then return end
@@ -1447,10 +1522,14 @@ end
 
 local function ProcessESP(model, espData)
     local el = espData.elements
+    local weaponTransparency = 0
 
     local function Hide()
         el.Box.Visible         = false
+        el.WeaponContainer.Visible = false
         el.Weapon.Visible      = false
+        el.WeaponIcon.Visible  = false
+        el.WeaponIcon.Image    = ""
         if el.Name then el.Name.Visible = false end
         el.Chams.Enabled       = false
         el.HealthBarBG.Visible = false
@@ -1555,8 +1634,12 @@ local function ProcessESP(model, espData)
     if ESP.FadeOut.OnDistance then
         local fade = math.max(0.1, 1 - (Dist / ESP.MaxDistance))
         local inv  = 1 - fade
+        weaponTransparency = inv
         el.Outline.Transparency    = inv
+        el.WeaponContainer.BackgroundTransparency = 1
         el.Weapon.TextTransparency = inv
+        el.Weapon.TextStrokeTransparency = inv
+        el.WeaponIcon.ImageTransparency = inv
         el.LTH.BackgroundTransparency = inv; el.LTV.BackgroundTransparency = inv
         el.RTH.BackgroundTransparency = inv; el.RTV.BackgroundTransparency = inv
         el.LBH.BackgroundTransparency = inv; el.LBV.BackgroundTransparency = inv
@@ -1662,15 +1745,44 @@ local function ProcessESP(model, espData)
         )
     end
 
-    el.Weapon.Visible = ESP.Drawing.Weapons.Enabled
+    el.WeaponContainer.Visible = ESP.Drawing.Weapons.Enabled
     if ESP.Drawing.Weapons.Enabled then
         local wm = findWeaponInCharacter(model)
         if wm then
-            el.Weapon.Text       = wm.Name
-            el.Weapon.TextColor3 = ESP.Drawing.Weapons.RGB
-            el.Weapon.Position   = UDim2.new(0, x0 + w * 0.5, 0, y1yi + 2)
+            local weaponName = wm.Name or ""
+            local iconId = getWeaponIconForName(weaponName)
+            local iconSize = ESP.FontSize + 4
+            local padding = 4
+            local textBounds = Vector2.new(0, 0)
+            pcall(function()
+                textBounds = TextService:GetTextSize(weaponName, ESP.FontSize, Enum.Font.Code, Vector2.new(1000, 1000))
+            end)
+            local textWidth = math.max(0, math.ceil(textBounds.X))
+            local showIcon = ESP.Drawing.Weapons.IconEnabled and type(iconId) == "string" and iconId ~= ""
+            local totalWidth = textWidth + (showIcon and (iconSize + padding) or 0)
+
+            el.Weapon.Text               = weaponName
+            el.Weapon.TextColor3         = ESP.Drawing.Weapons.RGB
+            el.Weapon.TextTransparency   = weaponTransparency
+            el.Weapon.TextStrokeTransparency = weaponTransparency
+            el.Weapon.Visible             = true
+            el.Weapon.Position            = UDim2.new(0, showIcon and (iconSize + padding) or 0, 0, 0)
+            el.Weapon.Size                = UDim2.new(0, textWidth, 1, 0)
+
+            el.WeaponContainer.Position   = UDim2.new(0, x0 + w * 0.5, 0, y1yi + 2)
+            el.WeaponContainer.Size       = UDim2.new(0, math.max(totalWidth, textWidth), 0, iconSize)
+            el.WeaponContainer.Visible    = true
+
+            el.WeaponIcon.Visible         = showIcon
+            el.WeaponIcon.Image           = showIcon and iconId or ""
+            el.WeaponIcon.ImageTransparency = weaponTransparency
+            el.WeaponIcon.Size            = UDim2.new(0, showIcon and iconSize or 0, 0, showIcon and iconSize or 0)
+            el.WeaponIcon.BackgroundTransparency = 1
         else
+            el.WeaponContainer.Visible = false
             el.Weapon.Visible = false
+            el.WeaponIcon.Visible = false
+            el.WeaponIcon.Image = ""
         end
     end
 
@@ -1797,11 +1909,29 @@ local function CreateESP(CharacterModel)
     ESPCounter = ESPCounter + 1
     local folder = Functions:Create("Folder", { Parent = ScreenGui, Name = "E_" .. ESPCounter })
 
-    local Weapon = Functions:Create("TextLabel", {
-        Parent               = folder, Name = "W",
+    local WeaponContainer = Functions:Create("Frame", {
+        Parent               = folder, Name = "WC",
         Position             = UDim2.new(0.5, 0, 0, 0),
-        Size                 = UDim2.new(0, 200, 0, ESP.FontSize + 4),
+        Size                 = UDim2.new(0, 0, 0, ESP.FontSize + 4),
         AnchorPoint          = Vector2.new(0.5, 0),
+        BackgroundTransparency = 1,
+        BorderSizePixel      = 0,
+        ClipsDescendants     = false,
+    })
+
+    local WeaponIcon = Functions:Create("ImageLabel", {
+        Parent               = WeaponContainer, Name = "WI",
+        BackgroundTransparency = 1,
+        BorderSizePixel      = 0,
+        Image                = "",
+        ImageTransparency    = 0,
+        ScaleType            = Enum.ScaleType.Fit,
+        Size                 = UDim2.new(0, ESP.FontSize + 4, 0, ESP.FontSize + 4),
+    })
+
+    local Weapon = Functions:Create("TextLabel", {
+        Parent               = WeaponContainer, Name = "W",
+        Size                 = UDim2.new(0, 0, 1, 0),
         BackgroundTransparency = 1,
         TextColor3           = Color3.fromRGB(255, 255, 255),
         Font                 = Enum.Font.Code,
@@ -1810,6 +1940,16 @@ local function CreateESP(CharacterModel)
         TextStrokeColor3     = Color3.fromRGB(0, 0, 0),
         RichText             = true,
         TextScaled           = false,
+        TextXAlignment       = Enum.TextXAlignment.Left,
+        LayoutOrder          = 2,
+    })
+
+    local WeaponLayout = Functions:Create("UIListLayout", {
+        Parent               = WeaponContainer,
+        FillDirection        = Enum.FillDirection.Horizontal,
+        SortOrder            = Enum.SortOrder.LayoutOrder,
+        VerticalAlignment    = Enum.VerticalAlignment.Center,
+        Padding              = UDim.new(0, 4),
     })
 
     local Box = Functions:Create("Frame", {
@@ -1914,7 +2054,10 @@ local function CreateESP(CharacterModel)
             OffscreenArrow    = OffscreenArrow,
             OffscreenDistance = OffscreenDistance,
             Tracer      = Tracer,
+            WeaponContainer = WeaponContainer,
+            WeaponIcon  = WeaponIcon,
             Weapon      = Weapon,
+            WeaponLayout = WeaponLayout,
             Box         = Box,
             Gradient1   = Gradient1,
             Gradient2   = Gradient2,

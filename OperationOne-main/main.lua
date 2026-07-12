@@ -305,6 +305,11 @@ local function setEspWeapons(state)
         if m.Drawing and m.Drawing.Weapons then m.Drawing.Weapons.Enabled = state == true end
     end)
 end
+local function setEspWeaponIcons(state)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Weapons then m.Drawing.Weapons.IconEnabled = state == true end
+    end)
+end
 local function setEspChams(state)
     withModule(ESP_MODULE_NAME, function(m)
         if m.Drawing and m.Drawing.Chams then m.Drawing.Chams.Enabled = state == true end
@@ -719,7 +724,7 @@ local function applyDefaults()
     setEspCorners(false); setEspFilled(false); setEspBoxGradient(true)
     setEspBoxAnimate(false); setEspBoxGradientFill(true); setEspHealthBar(false)
     setEspSkeleton(false); setEspFadeOut(false); setEspNames(false)
-    setEspDistances(false); setEspWeapons(false); setEspChams(false)
+    setEspDistances(false); setEspWeapons(false); setEspWeaponIcons(false); setEspChams(false)
     setEspChamsThermal(false); setEspChamsVisibleCheck(false)
     setEspMaxDistance(1000); setEspFontSize(11); setEspCornerThickness(1)
     setEspTracers(false); setEspTracersOrigin("Bottom")
@@ -968,6 +973,7 @@ local function buildObsidianUi()
     EspCoreL:AddToggle("ESP_Names",   { Text = "Name ESP",          Default = false, Callback = setEspNames })
     EspCoreL:AddToggle("ESP_Dist",    { Text = "Distance ESP",      Default = false, Callback = setEspDistances })
     EspCoreL:AddToggle("ESP_Weps",    { Text = "Weapon ESP",        Default = false, Callback = setEspWeapons })
+    EspCoreL:AddToggle("ESP_WepsIcon",{ Text = "Weapon Icons",      Default = false, Callback = setEspWeaponIcons })
     EspCoreL:AddToggle("ESP_Chams",   { Text = "Chams",             Default = false, Callback = setEspChams })
     EspCoreL:AddToggle("ESP_Thermal", { Text = "Chams Thermal",     Default = false, Callback = setEspChamsThermal })
     EspCoreL:AddToggle("ESP_ChamsVC", { Text = "Chams Visible Chk", Default = false, Callback = setEspChamsVisibleCheck })
