@@ -30,6 +30,9 @@ local Module = {
     _snapline = nil,
     _viewmodelsFolder = nil,
     _hookInstalled = false,
+    _originalCircularSpread = nil,
+    _originalCircularSpreadPresent = false,
+    _gunModuleEnv = nil,
 }
 
 local TARGET_PARTS = {
@@ -459,59 +462,65 @@ function Module:_installHook()
         return true
     end
 
-    local clonefn = clonefunction or function(fn) return fn end
-    local closure = newcclosure or function(fn) return fn end
-    local hookfn = hookfunction
-
-    if type(hookfn) ~= "function" then
-        return false, "hookfunction unavailable"
-    end
-
-    local oldCF = clonefn(CFrame.new)
     local selfRef = self
 
-  local ok, err = pcall(function()
-    hookfn(CFrame.new, closure(function(...)
-        if not selfRef._enabled or selfRef._mode ~= "silent" then
-            return oldCF(...)
+    local ok, err = pcall(function()
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local GunModule = require(ReplicatedStorage.Modules.Items.Item.Gun)
+        local sendShoot = rawget(GunModule, "send_shoot")
+
+        if type(sendShoot) ~= "function" then
+            error("GunModule.send_shoot unavailable")
         end
 
-        local dbgApi = getDebugApi()
-        if not dbgApi then
-            return oldCF(...)
+        local envGetter = getfenv
+        if type(envGetter) ~= "function" then
+            error("getfenv unavailable")
         end
 
-        local infoFn = dbgApi.info
-        local getStackFn = dbgApi.getstack or getstack
-        local setStackFn = dbgApi.setstack or setstack
-
-        if type(infoFn) ~= "function" or type(getStackFn) ~= "function" or type(setStackFn) ~= "function" then
-            return oldCF(...)
+        local env = envGetter(sendShoot)
+        if type(env) ~= "table" then
+            error("send_shoot environment unavailable")
         end
 
-        local stackLevel = nil
-        for _, lvl in ipairs({2, 3}) do
-            local name = infoFn(lvl, "n")
-            local source = infoFn(lvl, "s")
-            if name == "send_shoot" and source and source:find("ReplicatedStorage.Modules.Items.Item.Gun", 1, true) then
-                stackLevel = lvl
-                break
-            end
+        selfRef._gunModuleEnv = env
+
+        if not selfRef._originalCircularSpreadPresent then
+            selfRef._originalCircularSpreadPresent = true
+            selfRef._originalCircularSpread = rawget(env, "get_circular_spread")
         end
 
-        if stackLevel then
-            local target = selfRef:_getClosestTargetToCursor()
-            if target then
-                local origin = getStackFn(stackLevel, 3)
-                if origin and origin.Position then
-                    setStackFn(stackLevel, 5, CFrame.lookAt(origin.Position, target.Position))
+        rawset(env, "get_circular_spread", function(...)
+            local dbgApi = getDebugApi()
+            local getStackFn = dbgApi and dbgApi.getstack or getstack
+            if type(getStackFn) == "function" then
+                local gun = getStackFn(2, 1)
+                if gun and type(gun) == "table" then
+                    if gun.get_shoot_look and not gun._op1_silentAimLookHooked then
+                        local originalLook = gun.get_shoot_look
+                        gun._op1_original_get_shoot_look = originalLook
+                        gun.get_shoot_look = function(s, ...)
+                            if selfRef._enabled and selfRef._mode == "silent" then
+                                local target = selfRef:_getClosestTargetToCursor()
+                                if target and s and s.shot and s.shot.CFrame then
+                                    return CFrame.lookAt(s.shot.CFrame.Position, target.Position)
+                                end
+                            end
+
+                            return originalLook(s, ...)
+                        end
+                        gun._op1_silentAimLookHooked = true
+                    end
                 end
             end
-        end
 
-        return oldCF(...)
-    end))
-end)
+            if type(selfRef._originalCircularSpread) == "function" then
+                return selfRef._originalCircularSpread(...)
+            end
+
+            return Vector3.new(0, 0, 0)
+        end)
+    end)
 
     if not ok then
         return false, tostring(err)
@@ -750,6 +759,17 @@ function Module:unload()
         end)
         self._snapline = nil
     end
+
+    if self._gunModuleEnv and self._originalCircularSpreadPresent then
+        pcall(function()
+            rawset(self._gunModuleEnv, "get_circular_spread", self._originalCircularSpread)
+        end)
+    end
+
+    self._gunModuleEnv = nil
+    self._originalCircularSpread = nil
+    self._originalCircularSpreadPresent = false
+    self._hookInstalled = false
 
     local env = (getgenv and getgenv()) or _G
     if type(env) == "table" then
