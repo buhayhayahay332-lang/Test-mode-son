@@ -110,6 +110,7 @@ local ESP = {
             Enabled = false,
             RGB     = Color3.fromRGB(255, 255, 255),
             IconEnabled = false,
+            IconSize = 15,
         },
         Boxes = {
             Animate          = false,
@@ -1630,6 +1631,9 @@ local function ProcessESP(model, espData)
     el.OffscreenDistance.Visible = false
 
     local yInset = _GuiInsetY
+    local iconSizeSetting = ESP.Drawing.Weapons.IconSize or (ESP.FontSize + 4)
+    local iconSize = math.max(8, math.floor(iconSizeSetting + 0.5))
+    local weaponRowHeight = math.max(iconSize, ESP.FontSize + 4)
 
     if ESP.FadeOut.OnDistance then
         local fade = math.max(0.1, 1 - (Dist / ESP.MaxDistance))
@@ -1751,7 +1755,6 @@ local function ProcessESP(model, espData)
         if wm then
             local weaponName = wm.Name or ""
             local iconId = getWeaponIconForName(weaponName)
-            local iconSize = ESP.FontSize + 4
             local padding = 4
             local textBounds = Vector2.new(0, 0)
             pcall(function()
@@ -1770,7 +1773,7 @@ local function ProcessESP(model, espData)
             el.Weapon.Size                = UDim2.new(0, textWidth, 1, 0)
 
             el.WeaponContainer.Position   = UDim2.new(0, x0 + w * 0.5, 0, y1yi + 2)
-            el.WeaponContainer.Size       = UDim2.new(0, math.max(totalWidth, textWidth), 0, iconSize)
+            el.WeaponContainer.Size       = UDim2.new(0, math.max(totalWidth, textWidth), 0, weaponRowHeight)
             el.WeaponContainer.Visible    = true
 
             el.WeaponIcon.Visible         = showIcon
@@ -1908,11 +1911,13 @@ local function CreateESP(CharacterModel)
 
     ESPCounter = ESPCounter + 1
     local folder = Functions:Create("Folder", { Parent = ScreenGui, Name = "E_" .. ESPCounter })
+    local iconSize = math.max(8, math.floor((ESP.Drawing.Weapons.IconSize or (ESP.FontSize + 4)) + 0.5))
+    local weaponRowHeight = math.max(iconSize, ESP.FontSize + 4)
 
     local WeaponContainer = Functions:Create("Frame", {
         Parent               = folder, Name = "WC",
         Position             = UDim2.new(0.5, 0, 0, 0),
-        Size                 = UDim2.new(0, 0, 0, ESP.FontSize + 4),
+        Size                 = UDim2.new(0, 0, 0, weaponRowHeight),
         AnchorPoint          = Vector2.new(0.5, 0),
         BackgroundTransparency = 1,
         BorderSizePixel      = 0,
@@ -1926,7 +1931,7 @@ local function CreateESP(CharacterModel)
         Image                = "",
         ImageTransparency    = 0,
         ScaleType            = Enum.ScaleType.Fit,
-        Size                 = UDim2.new(0, ESP.FontSize + 4, 0, ESP.FontSize + 4),
+        Size                 = UDim2.new(0, iconSize, 0, iconSize),
     })
 
     local Weapon = Functions:Create("TextLabel", {

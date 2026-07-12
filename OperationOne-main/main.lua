@@ -310,6 +310,13 @@ local function setEspWeaponIcons(state)
         if m.Drawing and m.Drawing.Weapons then m.Drawing.Weapons.IconEnabled = state == true end
     end)
 end
+local function setEspWeaponIconSize(size)
+    withModule(ESP_MODULE_NAME, function(m)
+        if m.Drawing and m.Drawing.Weapons and type(size) == "number" and size > 0 then
+            m.Drawing.Weapons.IconSize = size
+        end
+    end)
+end
 local function setEspChams(state)
     withModule(ESP_MODULE_NAME, function(m)
         if m.Drawing and m.Drawing.Chams then m.Drawing.Chams.Enabled = state == true end
@@ -742,6 +749,7 @@ local function applyDefaults()
     setEspNameColor(Color3.fromRGB(255,255,255))
     setEspDistanceColor(Color3.fromRGB(255,255,255))
     setEspWeaponColor(Color3.fromRGB(255,255,255))
+    setEspWeaponIconSize(15)
     setEspChamsFillColor(Color3.fromRGB(255,80,80))
     setEspChamsOutlineColor(Color3.fromRGB(255,255,255))
     setEspOffscreenArrowsColor(Color3.fromRGB(255,255,255))
@@ -983,6 +991,7 @@ local function buildObsidianUi()
 
     EspStyleR:AddSlider("ESP_MaxDist",   { Text = "Max Distance",           Default = 1000, Min = 100,  Max = 3000, Rounding = 0, Callback = setEspMaxDistance })
     EspStyleR:AddSlider("ESP_FontSz",    { Text = "Font Size",              Default = 11,   Min = 8,    Max = 24,   Rounding = 0, Callback = setEspFontSize })
+    EspStyleR:AddSlider("ESP_WepsIconSz",{ Text = "Weapon Icon Size",       Default = 15,   Min = 8,    Max = 40,   Rounding = 0, Callback = setEspWeaponIconSize })
     EspStyleR:AddSlider("ESP_CornThk",   { Text = "Corner Thickness",       Default = 1,    Min = 1,    Max = 5,    Rounding = 0, Callback = setEspCornerThickness })
     EspStyleR:AddSlider("ESP_CornLen",   { Text = "Corner Length",          Default = 15,   Min = 5,    Max = 35,   Rounding = 0, Callback = setEspCornerLength })
     EspStyleR:AddSlider("ESP_SkelThk",   { Text = "Skeleton Thickness",     Default = 1,    Min = 1,    Max = 5,    Rounding = 0, Callback = setEspSkeletonThickness })
