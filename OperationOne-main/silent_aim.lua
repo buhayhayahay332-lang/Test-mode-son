@@ -470,7 +470,7 @@ function Module:_installHook()
         local sendShoot = rawget(GunModule, "send_shoot")
 
         if type(sendShoot) ~= "function" then
-            error("GunModule.send_shoot unavailable")
+            error("Gun shoot function unavailable")
         end
 
         local envGetter = getfenv
@@ -480,7 +480,7 @@ function Module:_installHook()
 
         local env = envGetter(sendShoot)
         if type(env) ~= "table" then
-            error("send_shoot environment unavailable")
+            error("shoot env unavailable")
         end
 
         selfRef._gunModuleEnv = env
