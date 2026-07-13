@@ -16,6 +16,8 @@ local Module = {
     _mobileScopeButton = nil,
     _active = false,
     _targetAcquiredAt = nil,
+    _targetLostAt = nil,
+    _releaseGrace = 0.12,
     _renderConn = nil,
     _viewmodelsFolder = nil,
 }
@@ -380,6 +382,7 @@ function Module:_run()
             releaseMouse()
             self._active = false
             self._targetAcquiredAt = nil
+            self._targetLostAt = nil
         end
         return
     end
@@ -392,6 +395,7 @@ function Module:_run()
         if not self._targetAcquiredAt then
             self._targetAcquiredAt = os.clock()
         end
+        self._targetLostAt = nil
 
         local elapsed = os.clock() - self._targetAcquiredAt
         if elapsed >= self._delay and not self._active then
@@ -399,11 +403,17 @@ function Module:_run()
             self._active = true
         end
     else
-        if self._active then
-            releaseMouse()
-            self._active = false
-        end
         self._targetAcquiredAt = nil
+
+        if self._active then
+            if not self._targetLostAt then
+                self._targetLostAt = os.clock()
+            elseif os.clock() - self._targetLostAt >= self._releaseGrace then
+                releaseMouse()
+                self._active = false
+                self._targetLostAt = nil
+            end
+        end
     end
 end
 
@@ -449,6 +459,7 @@ function Module:setEnabled(state)
         releaseMouse()
         self._active = false
         self._targetAcquiredAt = nil
+        self._targetLostAt = nil
     end
 
     return true
@@ -494,6 +505,7 @@ function Module:unload()
     end
 
     self._targetAcquiredAt = nil
+    self._targetLostAt = nil
     self._mobileScopeButton = nil
     self._scopeButtonToggled = false
     cachedVim = nil
