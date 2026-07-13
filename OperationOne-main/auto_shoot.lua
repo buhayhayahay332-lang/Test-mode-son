@@ -2,6 +2,8 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Input = require(ReplicatedStorage.Modules.Input)
 
 local Module = {
     shared = nil,
@@ -42,7 +44,6 @@ local function isColorMatch(color, expected)
         and math.floor(color.B * 255 + 0.5) == math.floor(expected.B * 255 + 0.5)
 end
 
-local Input = require(game.ReplicatedStorage.Modules.Input)
 
 local function fireShootInput(state)
     local activeDicts = Input.get_active_dictionaries()
@@ -91,6 +92,8 @@ function Module:setShared(shared)
         Workspace = ref(game:GetService("Workspace"))
         Players = ref(game:GetService("Players"))
         UserInputService = ref(game:GetService("UserInputService"))
+        ReplicatedStorage = ref(game:GetService("ReplicatedStorage"))
+        Input = require(ReplicatedStorage.Modules.Input)
     end
 
     return true
