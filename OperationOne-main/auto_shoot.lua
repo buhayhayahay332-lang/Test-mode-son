@@ -41,6 +41,7 @@ local function isColorMatch(color, expected)
 end
 
 local cachedShootButton = nil
+local cachedShootTouchTarget = nil
 local touchId = 0
 local cachedVim = nil
 
@@ -64,9 +65,22 @@ local function getShootButton()
     local localPlayer = Players and Players.LocalPlayer
     local playerGui = localPlayer and localPlayer:FindFirstChild("PlayerGui")
     local gameGui = playerGui and playerGui:FindFirstChild("Game")
+    local left = gameGui and gameGui:FindFirstChild("Left")
+    local leftCenter = left and left:FindFirstChild("Center")
+    local shootButton = leftCenter and leftCenter:FindFirstChild("ShootLeftButton")
+
+    if not shootButton and gameGui then
+        shootButton = gameGui:FindFirstChild("ShootLeftButton", true)
+    end
+
     local right = gameGui and gameGui:FindFirstChild("Right")
     local center = right and right:FindFirstChild("Center")
     local shootFrame = center and center:FindFirstChild("ShootJoystickFrame")
+
+    if shootButton then
+        cachedShootButton = shootButton
+        return shootButton
+    end
 
     if shootFrame then
         cachedShootButton = shootFrame
@@ -80,11 +94,11 @@ local function pressMouse()
         local btn = getShootButton()
         if btn then
             touchId = (touchId % 10) + 1
+            cachedShootTouchTarget = btn
             local center = btn.AbsolutePosition + (btn.AbsoluteSize / 2)
             local vim = getVim()
             if vim then
                 pcall(vim.SendTouchEvent, vim, touchId, center.X, center.Y, 0, game)
-                pcall(vim.SendTouchEvent, vim, touchId, center.X, center.Y, 1, game)
             end
             return
         end
@@ -105,7 +119,7 @@ end
 
 local function releaseMouse()
     if UserInputService.TouchEnabled then
-        local btn = getShootButton()
+        local btn = cachedShootTouchTarget or getShootButton()
         if btn then
             local center = btn.AbsolutePosition + (btn.AbsoluteSize / 2)
             local vim = getVim()
@@ -113,6 +127,7 @@ local function releaseMouse()
                 pcall(vim.SendTouchEvent, vim, touchId, center.X, center.Y, 2, game)
             end
         end
+        cachedShootTouchTarget = nil
         return
     end
 
@@ -483,6 +498,8 @@ function Module:unload()
     self._scopeButtonToggled = false
     cachedVim = nil
     cachedShootButton = nil
+    cachedShootTouchTarget = nil
+    touchId = 0
 
     if self._scopeButtonConn then
         self._scopeButtonConn:Disconnect()
