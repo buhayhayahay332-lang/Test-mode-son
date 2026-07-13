@@ -42,108 +42,30 @@ local function isColorMatch(color, expected)
         and math.floor(color.B * 255 + 0.5) == math.floor(expected.B * 255 + 0.5)
 end
 
-local cachedShootButton = nil
-local cachedShootTouchTarget = nil
-local touchId = 0
-local cachedVim = nil
+local Input = require(game.ReplicatedStorage.Modules.Input)
 
-local function getVim()
-    if cachedVim then return cachedVim end
-    local ok, vim = pcall(function()
-        return cloneref(game:GetService("VirtualInputManager"))
-    end)
-    if ok and vim then
-        cachedVim = vim
-        return vim
+local function fireShootInput(state)
+    local activeDicts = Input.get_active_dictionaries()
+    for _, dict in pairs(activeDicts) do
+        local shootInput = dict.inputs["shoot_joystick"]
+        if shootInput then
+            for _, hook in pairs(shootInput.hooks) do
+                if hook.set then
+                    hook:set(state)
+                elseif hook.fire then
+                    hook:fire(state)
+                end
+            end
+        end
     end
-    return nil
-end
-
-local function getShootButton()
-    if cachedShootButton and cachedShootButton.Parent then
-        return cachedShootButton
-    end
-
-    local localPlayer = Players and Players.LocalPlayer
-    local playerGui = localPlayer and localPlayer:FindFirstChild("PlayerGui")
-    local gameGui = playerGui and playerGui:FindFirstChild("Game")
-    local left = gameGui and gameGui:FindFirstChild("Left")
-    local leftCenter = left and left:FindFirstChild("Center")
-    local shootButton = leftCenter and leftCenter:FindFirstChild("ShootLeftButton")
-
-    if not shootButton and gameGui then
-        shootButton = gameGui:FindFirstChild("ShootLeftButton", true)
-    end
-
-    local right = gameGui and gameGui:FindFirstChild("Right")
-    local center = right and right:FindFirstChild("Center")
-    local shootFrame = center and center:FindFirstChild("ShootJoystickFrame")
-
-    if shootButton then
-        cachedShootButton = shootButton
-        return shootButton
-    end
-
-    if shootFrame then
-        cachedShootButton = shootFrame
-    end
-
-    return shootFrame
 end
 
 local function pressMouse()
-    if UserInputService.TouchEnabled then
-        local btn = getShootButton()
-        if btn then
-            touchId = (touchId % 10) + 1
-            cachedShootTouchTarget = btn
-            local center = btn.AbsolutePosition + (btn.AbsoluteSize / 2)
-            local vim = getVim()
-            if vim then
-                pcall(vim.SendTouchEvent, vim, touchId, center.X, center.Y, 0, game)
-            end
-            return
-        end
-    end
-
-    if type(mouse1press) == "function" then
-        mouse1press()
-        return
-    end
-
-    pcall(function()
-        local vim = getVim()
-        if vim then
-            vim:SendMouseButtonEvent(0, 0, 0, true, game, 1)
-        end
-    end)
+    fireShootInput(true)
 end
 
 local function releaseMouse()
-    if UserInputService.TouchEnabled then
-        local btn = cachedShootTouchTarget or getShootButton()
-        if btn then
-            local center = btn.AbsolutePosition + (btn.AbsoluteSize / 2)
-            local vim = getVim()
-            if vim then
-                pcall(vim.SendTouchEvent, vim, touchId, center.X, center.Y, 2, game)
-            end
-        end
-        cachedShootTouchTarget = nil
-        return
-    end
-
-    if type(mouse1release) == "function" then
-        mouse1release()
-        return
-    end
-
-    pcall(function()
-        local vim = getVim()
-        if vim then
-            vim:SendMouseButtonEvent(0, 0, 0, false, game, 1)
-        end
-    end)
+    fireShootInput(false)
 end
 
 function Module:setShared(shared)
@@ -169,7 +91,6 @@ function Module:setShared(shared)
         Workspace = ref(game:GetService("Workspace"))
         Players = ref(game:GetService("Players"))
         UserInputService = ref(game:GetService("UserInputService"))
-        cachedVim = nil 
     end
 
     return true
@@ -508,10 +429,6 @@ function Module:unload()
     self._targetLostAt = nil
     self._mobileScopeButton = nil
     self._scopeButtonToggled = false
-    cachedVim = nil
-    cachedShootButton = nil
-    cachedShootTouchTarget = nil
-    touchId = 0
 
     if self._scopeButtonConn then
         self._scopeButtonConn:Disconnect()
