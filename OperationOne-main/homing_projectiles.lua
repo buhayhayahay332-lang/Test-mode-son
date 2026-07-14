@@ -129,9 +129,8 @@ function Module:_setupFastTouched()
             end
         end)
         self._fastTouchedHooked = true
-        print("[Smart FastTouched] Active1")
     else
-        warn("[FastTouched] Failed to load HitDetection module")
+        warn("failed to shits")
     end
 end
 

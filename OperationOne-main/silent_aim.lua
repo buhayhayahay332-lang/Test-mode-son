@@ -30,6 +30,14 @@ local Module = {
     _snapline = nil,
     _viewmodelsFolder = nil,
     _hookInstalled = false,
+    _originalCircularSpread = nil,
+    _originalCircularSpreadPresent = false,
+    _gunModuleEnv = nil,
+    _hookStrategy = nil,
+    _gunModule = nil,
+    _originalSendShoot = nil,
+    _originalCFrameNew = nil,
+    _hookedGuns = nil,
 }
 
 local TARGET_PARTS = {
@@ -88,6 +96,22 @@ local function getDebugApi()
     return nil
 end
 
+local function getRuntimeEnv()
+    return (getgenv and getgenv()) or _G
+end
+
+local function getRuntimeHelper(name, fallback)
+    local env = getRuntimeEnv()
+    if type(env) == "table" then
+        local value = env[name]
+        if value ~= nil then
+            return value
+        end
+    end
+
+    return fallback
+end
+
 function Module:setShared(shared)
     if type(shared) ~= "table" then
         return false, "shared must be table"
@@ -114,6 +138,57 @@ function Module:setShared(shared)
     end
 
     return true
+end
+
+function Module:_wrapGunShootLook(gun)
+    if type(gun) ~= "table" then
+        return false
+    end
+
+    self._hookedGuns = self._hookedGuns or setmetatable({}, { __mode = "k" })
+    if self._hookedGuns[gun] then
+        return true
+    end
+
+    local originalLook = rawget(gun, "get_shoot_look")
+    if type(originalLook) ~= "function" then
+        return false
+    end
+
+    self._hookedGuns[gun] = originalLook
+    gun._op1_original_get_shoot_look = originalLook
+
+    gun.get_shoot_look = function(s, ...)
+        if self._enabled and self._mode == "silent" then
+            local target = self:_getClosestTargetToCursor()
+            if target and s and s.shot and s.shot.CFrame then
+                return CFrame.lookAt(s.shot.CFrame.Position, target.Position)
+            end
+        end
+
+        return originalLook(s, ...)
+    end
+
+    gun._op1_silentAimLookHooked = true
+    return true
+end
+
+function Module:_restoreGunShootLookHooks()
+    if not self._hookedGuns then
+        return
+    end
+
+    for gun, originalLook in pairs(self._hookedGuns) do
+        if type(gun) == "table" then
+            pcall(function()
+                gun.get_shoot_look = originalLook
+                gun._op1_silentAimLookHooked = nil
+                gun._op1_original_get_shoot_look = nil
+            end)
+        end
+    end
+
+    self._hookedGuns = nil
 end
 
 function Module:_getMousePosition()
@@ -420,7 +495,7 @@ function Module:_updateSnapline()
             startPos = Vector2.new(viewportSize.X / 2, 0)
         elseif self._snaplineOrigin == "Center" then
             startPos = Vector2.new(viewportSize.X / 2, viewportSize.Y / 2)
-        else -- Bottom
+        else 
             startPos = Vector2.new(viewportSize.X / 2, viewportSize.Y)
         end
 
@@ -459,62 +534,150 @@ function Module:_installHook()
         return true
     end
 
-    local clonefn = clonefunction or function(fn) return fn end
-    local closure = newcclosure or function(fn) return fn end
-    local hookfn = hookfunction
-
-    if type(hookfn) ~= "function" then
-        return false, "hookfunction unavailable"
-    end
-
-    local oldCF = clonefn(CFrame.new)
     local selfRef = self
 
-  local ok, err = pcall(function()
-    hookfn(CFrame.new, closure(function(...)
-        if not selfRef._enabled or selfRef._mode ~= "silent" then
-            return oldCF(...)
+    local execName = ""
+    local ok, name = pcall(function()
+        if type(identifyexecutor) == "function" then
+            return identifyexecutor()
+        elseif type(getexecutorname) == "function" then
+            return getexecutorname()
         end
+        return ""
+    end)
+    if ok and type(name) == "string" then
+        execName = name:lower()
+    end
 
-        local dbgApi = getDebugApi()
-        if not dbgApi then
-            return oldCF(...)
-        end
+    local isDelta = execName:find("delta") ~= nil
 
-        local infoFn = dbgApi.info
-        local getStackFn = dbgApi.getstack or getstack
-        local setStackFn = dbgApi.setstack or setstack
+    if isDelta then
+        local ok, err = pcall(function()
+            local ReplicatedStorage = game:GetService("ReplicatedStorage")
+            local GunModule = require(ReplicatedStorage.Modules.Items.Item.Gun)
+            local sendShoot = rawget(GunModule, "send_shoot")
+            selfRef._gunModule = GunModule
 
-        if type(infoFn) ~= "function" or type(getStackFn) ~= "function" or type(setStackFn) ~= "function" then
-            return oldCF(...)
-        end
-
-        local stackLevel = nil
-        for _, lvl in ipairs({2, 3}) do
-            local name = infoFn(lvl, "n")
-            local source = infoFn(lvl, "s")
-            if name == "send_shoot" and source and source:find("ReplicatedStorage.Modules.Items.Item.Gun", 1, true) then
-                stackLevel = lvl
-                break
+            if type(sendShoot) ~= "function" then
+                error("Gun shoot function unavailable")
             end
-        end
 
-        if stackLevel then
-            local target = selfRef:_getClosestTargetToCursor()
-            if target then
-                local origin = getStackFn(stackLevel, 3)
-                if origin and origin.Position then
-                    setStackFn(stackLevel, 5, CFrame.lookAt(origin.Position, target.Position))
+            local envGetter = getfenv
+            if type(envGetter) ~= "function" then
+                error("getfenv unavailable")
+            end
+
+            local env = envGetter(sendShoot)
+            if type(env) ~= "table" then
+                error("shoot env unavailable")
+            end
+
+            selfRef._hookStrategy = "delta"
+            selfRef._gunModuleEnv = env
+
+            if not selfRef._originalCircularSpreadPresent then
+                selfRef._originalCircularSpreadPresent = true
+                selfRef._originalCircularSpread = rawget(env, "get_circular_spread")
+            end
+
+            rawset(env, "get_circular_spread", function(...)
+                local dbgApi = getDebugApi()
+                local getStackFn = dbgApi and dbgApi.getstack or getstack
+                if type(getStackFn) == "function" then
+                    local gun = getStackFn(2, 1)
+                    if gun and type(gun) == "table" then
+                        if gun.get_shoot_look and not gun._op1_silentAimLookHooked then
+                            local originalLook = gun.get_shoot_look
+                            gun._op1_original_get_shoot_look = originalLook
+                            gun.get_shoot_look = function(s, ...)
+                                if selfRef._enabled and selfRef._mode == "silent" then
+                                    local target = selfRef:_getClosestTargetToCursor()
+                                    if target and s and s.shot and s.shot.CFrame then
+                                        return CFrame.lookAt(s.shot.CFrame.Position, target.Position)
+                                    end
+                                end
+                                return originalLook(s, ...)
+                            end
+                            gun._op1_silentAimLookHooked = true
+                        end
+                    end
                 end
-            end
+
+                if type(selfRef._originalCircularSpread) == "function" then
+                    return selfRef._originalCircularSpread(...)
+                end
+
+                return Vector3.new(0, 0, 0)
+            end)
+        end)
+
+        if not ok then
+            selfRef:_restoreGunShootLookHooks()
+            selfRef._gunModule = nil
+            selfRef._gunModuleEnv = nil
+            selfRef._originalCircularSpread = nil
+            selfRef._originalCircularSpreadPresent = false
+            selfRef._originalSendShoot = nil
+            selfRef._originalCFrameNew = nil
+            selfRef._hookStrategy = nil
+            return false, tostring(err)
+        end
+    else
+        local clonefn = getRuntimeHelper("clonefunction", clonefunction or function(fn) return fn end)
+        local closure = getRuntimeHelper("newcclosure", newcclosure or function(fn) return fn end)
+        local hookfn = getRuntimeHelper("hookfunction", hookfunction)
+
+        if type(hookfn) ~= "function" then
+            return false, "hookfunction unavailable"
         end
 
-        return oldCF(...)
-    end))
-end)
+        local oldCF = clonefn(CFrame.new)
+        selfRef._hookStrategy = "stack"
+        selfRef._originalCFrameNew = oldCF
 
-    if not ok then
-        return false, tostring(err)
+        local ok, err = pcall(function()
+            hookfn(CFrame.new, closure(function(...)
+                if not selfRef._enabled or selfRef._mode ~= "silent" then
+                    return oldCF(...)
+                end
+
+                local dbgApi = getDebugApi()
+                local getStackFn = (dbgApi and dbgApi.getstack) or getstack
+                local setStackFn = (dbgApi and dbgApi.setstack) or setstack
+
+                if type(getStackFn) ~= "function" or type(setStackFn) ~= "function" then
+                    return oldCF(...)
+                end
+
+                local stackLevel = nil
+                for _, lvl in ipairs({2, 3}) do
+                    local name = dbgApi and dbgApi.info and dbgApi.info(lvl, "n")
+                    local source = dbgApi and dbgApi.info and dbgApi.info(lvl, "s")
+                    if name == "send_shoot" and source and source:find("ReplicatedStorage.Modules.Items.Item.Gun", 1, true) then
+                        stackLevel = lvl
+                        break
+                    end
+                end
+
+                if stackLevel then
+                    local target = selfRef:_getClosestTargetToCursor()
+                    if target then
+                        local origin = getStackFn(stackLevel, 3)
+                        if origin and origin.Position then
+                            setStackFn(stackLevel, 5, CFrame.lookAt(origin.Position, target.Position))
+                        end
+                    end
+                end
+
+                return oldCF(...)
+            end))
+        end)
+
+        if not ok then
+            selfRef._hookStrategy = nil
+            selfRef._originalCFrameNew = nil
+            return false, tostring(err)
+        end
     end
 
     self._hookInstalled = true
@@ -537,7 +700,7 @@ local function createUICircle(radius, parent)
     stroke.Parent = circle
 
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0.5, 0)  -- 0.5 scale = perfect circle
+    corner.CornerRadius = UDim.new(0.5, 0)  
     corner.Parent = circle
 
     return circle, stroke
@@ -751,11 +914,35 @@ function Module:unload()
         self._snapline = nil
     end
 
+    self:_restoreGunShootLookHooks()
+
+    if self._hookStrategy == "delta" and self._gunModuleEnv and self._originalCircularSpreadPresent then
+        pcall(function()
+            rawset(self._gunModuleEnv, "get_circular_spread", self._originalCircularSpread)
+        end)
+    elseif self._hookStrategy == "stack" and self._originalCFrameNew then
+        pcall(function()
+            local hookfn = getRuntimeHelper("hookfunction", hookfunction)
+            if type(hookfn) == "function" then
+                hookfn(CFrame.new, self._originalCFrameNew)
+            end
+        end)
+    end
+
     local env = (getgenv and getgenv()) or _G
     if type(env) == "table" then
         env.__op1_silent_fov_circle = nil
         env.__op1_silent_snapline = nil
     end
+
+    self._gunModule = nil
+    self._gunModuleEnv = nil
+    self._originalCircularSpread = nil
+    self._originalCircularSpreadPresent = false
+    self._originalSendShoot = nil
+    self._originalCFrameNew = nil
+    self._hookStrategy = nil
+    self._hookInstalled = false
 
     self._initialized = false
     return true
