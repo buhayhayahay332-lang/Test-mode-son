@@ -549,9 +549,10 @@ function Module:_installHook()
         execName = name:lower()
     end
 
-    local isDelta = execName:find("delta") ~= nil
+    local isDelta = execName:find("delta") ~= nil 
 
     if isDelta then
+        print("HES A FURRY DELTA")
         local ok, err = pcall(function()
             local ReplicatedStorage = game:GetService("ReplicatedStorage")
             local GunModule = require(ReplicatedStorage.Modules.Items.Item.Gun)
@@ -623,6 +624,7 @@ function Module:_installHook()
             return false, tostring(err)
         end
     else
+        print("HES COOL CUS HES NOT USING DELTA")
         local clonefn = getRuntimeHelper("clonefunction", clonefunction or function(fn) return fn end)
         local closure = getRuntimeHelper("newcclosure", newcclosure or function(fn) return fn end)
         local hookfn = getRuntimeHelper("hookfunction", hookfunction)
