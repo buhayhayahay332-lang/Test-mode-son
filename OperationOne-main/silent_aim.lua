@@ -586,7 +586,7 @@ function Module:_installHook()
                 local dbgApi = getDebugApi()
                 local getStackFn = dbgApi and dbgApi.getstack or getstack
                 if type(getStackFn) == "function" then
-                    local gun = getStackFn(2, 1)
+                    local gun = getStackFn(3, 1)
                     if gun and type(gun) == "table" then
                         if gun.get_shoot_look and not gun._op1_silentAimLookHooked then
                             local originalLook = gun.get_shoot_look
