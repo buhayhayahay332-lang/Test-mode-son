@@ -30,7 +30,7 @@ local Module = {
     _snapline = nil,
     _viewmodelsFolder = nil,
     _hookInstalled = false,
-    _originalOsClock = nil,        
+    _originalOsClock = nil,       
     _gunModuleEnv = nil,
     _hookStrategy = nil,
     _gunModule = nil,
@@ -535,21 +535,20 @@ function Module:_installHook()
 
     local selfRef = self
 
-    local execName = "";
-local ok, name = pcall(function()
-    if (type(identifyexecutor) == "function") then
-        return identifyexecutor();
-    elseif (type(getexecutorname) == "function") then
-        return getexecutorname();
-    end;
-    return "";
-end);
+    local execName = ""
+    local ok, name = pcall(function()
+        if type(identifyexecutor) == "function" then
+            return identifyexecutor()
+        elseif type(getexecutorname) == "function" then
+            return getexecutorname()
+        end
+        return ""
+    end)
+    if ok and type(name) == "string" then
+        execName = name:lower()
+    end
 
-if (ok and type(name) == "string") then
-    execName = name:lower();
-end;
-
-local isDelta = (execName:find("delta") ~= nil or execName:find("potassium") ~= nil or execName:find("madium") ~= nil);
+    local isDelta = execName:find("delta") ~= nil
 
     if isDelta then
         print("HES A FURRY DELTA")
@@ -582,7 +581,8 @@ local isDelta = (execName:find("delta") ~= nil or execName:find("potassium") ~= 
             local oldClock = env.os.clock
             selfRef._originalOsClock = oldClock
 
-            env.os.clock = function(...)
+            local closure = getRuntimeHelper("newcclosure", newcclosure or function(fn) return fn end)
+            env.os.clock = closure(function(...)
                 local dbgApi = getDebugApi()
                 local getStackFn = dbgApi and dbgApi.getstack or getstack
                 if type(getStackFn) == "function" then
@@ -606,7 +606,7 @@ local isDelta = (execName:find("delta") ~= nil or execName:find("potassium") ~= 
                 end
 
                 return oldClock(...)
-            end
+            end)
 
             setreadonly(env.os, true)
         end)
@@ -914,6 +914,7 @@ function Module:unload()
 
     self:_restoreGunShootLookHooks()
 
+    -- CHANGED: restore os.clock in the env and lock it back
     if self._hookStrategy == "delta" and self._gunModuleEnv and self._originalOsClock then
         pcall(function()
             setreadonly(self._gunModuleEnv.os, false)
@@ -937,7 +938,7 @@ function Module:unload()
 
     self._gunModule = nil
     self._gunModuleEnv = nil
-    self._originalOsClock = nil    
+    self._originalOsClock = nil   
     self._originalSendShoot = nil
     self._originalCFrameNew = nil
     self._hookStrategy = nil
