@@ -38,6 +38,9 @@ local Module = {
     _originalCircularSpread = nil,
     _originalCircularSpreadPresent = false,
     _originalCFrameNew = nil,
+    _originalInputShoot = nil,
+    _originalInputShootEnv = nil,
+    _inputShootHooked = false,
     _hookedGuns = nil,
 }
 
@@ -72,6 +75,33 @@ local function getRuntimeHelper(name, fallback)
         if v ~= nil then return v end
     end
     return fallback
+end
+
+local function noVirtualize(fn)
+    local nv = getRuntimeHelper("LPH_NO_VIRTUALIZE", LPH_NO_VIRTUALIZE)
+    if type(nv) == "function" then
+        return nv(fn)
+    end
+    return fn
+end
+
+local function replaceEnvironment(fn, replacement)
+    local helper = getRuntimeHelper("replace_environment", replace_environment)
+    if type(helper) == "function" then
+        return helper(fn, replacement)
+    end
+
+    if type(getfenv) == "function" and type(setfenv) == "function" and type(fn) == "function" then
+        local oldEnv = getfenv(fn)
+        if type(oldEnv) == "table" then
+            local clonefn = getRuntimeHelper("clonefunction", clonefunction or function(v) return v end)
+            local oldFn = type(clonefn) == "function" and clonefn(fn) or fn
+            setfenv(fn, replacement)
+            return oldFn, oldEnv
+        end
+    end
+
+    return nil
 end
 
 
@@ -380,42 +410,43 @@ function Module:_installHook()
     if isDelta then
         local ok, err = pcall(function()
             local GunModule = require(game:GetService("ReplicatedStorage").Modules.Items.Item.Gun)
-            local sendShoot = rawget(GunModule, "send_shoot")
-            if type(sendShoot) ~= "function" then error("send_shoot unavailable") end
-            if type(getfenv) ~= "function" then error("getfenv unavailable") end
-            local env = getfenv(sendShoot)
-            if type(env) ~= "table" then error("shoot env unavailable") end
+            local inputShoot = rawget(GunModule, "input_shoot")
+            if type(inputShoot) ~= "function" then error("input_shoot unavailable") end
 
             selfRef._gunModule = GunModule
-            selfRef._gunModuleEnv = env
             selfRef._hookStrategy = "delta"
 
-            if not selfRef._originalCircularSpreadPresent then
-                selfRef._originalCircularSpreadPresent = true
-                selfRef._originalCircularSpread = rawget(env, "get_circular_spread")
-            end
-
-            rawset(env, "get_circular_spread", function(...)
-                local d = dbgApi()
-                local getStack = d and d.getstack or getstack
-                if type(getStack) == "function" then
-                    local gun = getStack(2, 1)
-                    if type(gun) == "table" and not gun._op1_silentAimLookHooked then
-                        selfRef:_wrapGunShootLook(gun)
+            local oldInputShoot, oldInputShootEnv
+            oldInputShoot, oldInputShootEnv = replaceEnvironment(inputShoot, noVirtualize(newcclosure(function(_, global)
+                if global == "os" then
+                    local d = dbgApi()
+                    local getStack = d and d.getstack or gstack or getstack
+                    if type(getStack) == "function" then
+                        local gun = getStack(3, 1)
+                        if type(gun) == "table" then
+                            selfRef:_wrapGunShootLook(gun)
+                        end
                     end
                 end
-                return type(selfRef._originalCircularSpread) == "function"
-                    and selfRef._originalCircularSpread(...)
-                    or Vector3.new(0, 0, 0)
-            end)
+
+                return oldInputShoot(_, global)
+            end)))
+
+            if type(oldInputShoot) ~= "function" then
+                error("replace_environment unavailable")
+            end
+
+            selfRef._originalInputShoot = oldInputShoot
+            selfRef._originalInputShootEnv = oldInputShootEnv
+            selfRef._inputShootHooked = true
         end)
 
         if not ok then
-            selfRef:_restoreGunShootLookHooks()
             selfRef._gunModule = nil
             selfRef._gunModuleEnv = nil
-            selfRef._originalCircularSpread = nil
-            selfRef._originalCircularSpreadPresent = false
+            selfRef._originalInputShoot = nil
+            selfRef._originalInputShootEnv = nil
+            selfRef._inputShootHooked = false
             selfRef._hookStrategy = nil
             return false, tostring(err)
         end
@@ -505,8 +536,17 @@ function Module:unload()
 
     self:_restoreGunShootLookHooks()
 
-    if self._hookStrategy == "delta" and self._gunModuleEnv and self._originalCircularSpreadPresent then
-        pcall(function() rawset(self._gunModuleEnv, "get_circular_spread", self._originalCircularSpread) end)
+    if self._hookStrategy == "delta" and self._gunModule and (self._originalInputShoot or self._originalInputShootEnv) then
+        pcall(function()
+            local inputShoot = rawget(self._gunModule, "input_shoot")
+            if type(inputShoot) == "function" then
+                if type(self._originalInputShootEnv) == "table" and type(setfenv) == "function" then
+                    setfenv(inputShoot, self._originalInputShootEnv)
+                elseif self._originalInputShoot then
+                    replaceEnvironment(inputShoot, self._originalInputShoot)
+                end
+            end
+        end)
     elseif self._hookStrategy == "stack" and self._originalCFrameNew then
         pcall(function()
             local hookfn = getRuntimeHelper("hookfunction", hookfunction)
@@ -519,6 +559,9 @@ function Module:unload()
     self._originalCircularSpread = nil
     self._originalCircularSpreadPresent = false
     self._originalCFrameNew = nil
+    self._originalInputShoot = nil
+    self._originalInputShootEnv = nil
+    self._inputShootHooked = false
     self._hookStrategy = nil
     self._hookInstalled = false
     self._initialized = false
