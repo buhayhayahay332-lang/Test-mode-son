@@ -408,6 +408,7 @@ function Module:_installHook()
     local isDelta = execName:find("delta") ~= nil or execName:find("potassium") ~= nil
 
     if isDelta then
+        print("DELTA IT IS FUCK NIGGA")
         local ok, err = pcall(function()
             local GunModule = require(game:GetService("ReplicatedStorage").Modules.Items.Item.Gun)
             local inputShoot = rawget(GunModule, "input_shoot")
@@ -451,6 +452,7 @@ function Module:_installHook()
             return false, tostring(err)
         end
     else
+        print("DIFF EXEC HO")
         local clonefn = clonefunction or function(fn) return fn end
         local closure = newcclosure or function(fn) return fn end
         local hookfn = getRuntimeHelper("hookfunction", hookfunction)
