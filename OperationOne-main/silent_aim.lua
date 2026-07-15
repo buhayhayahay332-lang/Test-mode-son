@@ -30,8 +30,7 @@ local Module = {
     _snapline = nil,
     _viewmodelsFolder = nil,
     _hookInstalled = false,
-    _originalCircularSpread = nil,
-    _originalCircularSpreadPresent = false,
+    _originalOsClock = nil,        
     _gunModuleEnv = nil,
     _hookStrategy = nil,
     _gunModule = nil,
@@ -549,18 +548,18 @@ function Module:_installHook()
         execName = name:lower()
     end
 
-    local isDelta = execName:find("delta") ~= nil 
+    local isDelta = execName:find("delta") ~= nil or execName:find("potassium") ~= nil
 
     if isDelta then
         print("HES A FURRY DELTA")
         local ok, err = pcall(function()
             local ReplicatedStorage = game:GetService("ReplicatedStorage")
             local GunModule = require(ReplicatedStorage.Modules.Items.Item.Gun)
-            local sendShoot = rawget(GunModule, "send_shoot")
             selfRef._gunModule = GunModule
 
-            if type(sendShoot) ~= "function" then
-                error("Gun shoot function unavailable")
+            local inputShoot = rawget(GunModule, "input_shoot")
+            if type(inputShoot) ~= "function" then
+                error("input_shoot unavailable")
             end
 
             local envGetter = getfenv
@@ -568,20 +567,21 @@ function Module:_installHook()
                 error("getfenv unavailable")
             end
 
-            local env = envGetter(sendShoot)
+            local env = envGetter(inputShoot)
             if type(env) ~= "table" then
-                error("shoot env unavailable")
+                error("input_shoot env unavailable")
             end
 
             selfRef._hookStrategy = "delta"
             selfRef._gunModuleEnv = env
 
-            if not selfRef._originalCircularSpreadPresent then
-                selfRef._originalCircularSpreadPresent = true
-                selfRef._originalCircularSpread = rawget(env, "get_circular_spread")
-            end
+            env.os = table.clone(os)
+            setreadonly(env.os, false)
 
-            rawset(env, "get_circular_spread", function(...)
+            local oldClock = env.os.clock
+            selfRef._originalOsClock = oldClock
+
+            env.os.clock = function(...)
                 local dbgApi = getDebugApi()
                 local getStackFn = dbgApi and dbgApi.getstack or getstack
                 if type(getStackFn) == "function" then
@@ -604,22 +604,17 @@ function Module:_installHook()
                     end
                 end
 
-                if type(selfRef._originalCircularSpread) == "function" then
-                    return selfRef._originalCircularSpread(...)
-                end
+                return oldClock(...)
+            end
 
-                return Vector3.new(0, 0, 0)
-            end)
+            setreadonly(env.os, true)
         end)
 
         if not ok then
             selfRef:_restoreGunShootLookHooks()
             selfRef._gunModule = nil
             selfRef._gunModuleEnv = nil
-            selfRef._originalCircularSpread = nil
-            selfRef._originalCircularSpreadPresent = false
-            selfRef._originalSendShoot = nil
-            selfRef._originalCFrameNew = nil
+            selfRef._originalOsClock = nil
             selfRef._hookStrategy = nil
             return false, tostring(err)
         end
@@ -702,7 +697,7 @@ local function createUICircle(radius, parent)
     stroke.Parent = circle
 
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0.5, 0)  
+    corner.CornerRadius = UDim.new(0.5, 0)
     corner.Parent = circle
 
     return circle, stroke
@@ -918,9 +913,11 @@ function Module:unload()
 
     self:_restoreGunShootLookHooks()
 
-    if self._hookStrategy == "delta" and self._gunModuleEnv and self._originalCircularSpreadPresent then
+    if self._hookStrategy == "delta" and self._gunModuleEnv and self._originalOsClock then
         pcall(function()
-            rawset(self._gunModuleEnv, "get_circular_spread", self._originalCircularSpread)
+            setreadonly(self._gunModuleEnv.os, false)
+            self._gunModuleEnv.os.clock = self._originalOsClock
+            setreadonly(self._gunModuleEnv.os, true)
         end)
     elseif self._hookStrategy == "stack" and self._originalCFrameNew then
         pcall(function()
@@ -939,8 +936,7 @@ function Module:unload()
 
     self._gunModule = nil
     self._gunModuleEnv = nil
-    self._originalCircularSpread = nil
-    self._originalCircularSpreadPresent = false
+    self._originalOsClock = nil    
     self._originalSendShoot = nil
     self._originalCFrameNew = nil
     self._hookStrategy = nil
