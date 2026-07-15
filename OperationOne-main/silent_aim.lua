@@ -405,7 +405,7 @@ function Module:_installHook()
     end)
     if ok and type(name) == "string" then execName = name:lower() end
 
-    local isDelta = execName:find("delta") ~= nil
+    local isDelta = execName:find("delta") ~= nil or execName:find("potassium") ~= nil
 
     if isDelta then
         local ok, err = pcall(function()
