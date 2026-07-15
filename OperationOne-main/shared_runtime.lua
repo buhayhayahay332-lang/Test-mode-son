@@ -5,7 +5,6 @@ Runtime.cloneref = cloneref or function(obj) return obj end
 Runtime.clonefunction = clonefunction or function(fn) return fn end
 Runtime.newcclosure = newcclosure or function(fn) return fn end
 Runtime.hookfunction = hookfunction or function(fn) return fn end
-Runtime.replace_environment = replace_environment
 Runtime.ref = Runtime.cloneref
 Runtime.cfn = Runtime.clonefunction
 Runtime.closure = Runtime.newcclosure
@@ -29,7 +28,6 @@ function Runtime:applyToEnv()
         env.clonefunction = env.clonefunction or self.clonefunction
         env.newcclosure = env.newcclosure or self.newcclosure
         env.hookfunction = env.hookfunction or self.hookfunction
-        env.replace_environment = env.replace_environment or self.replace_environment
         env.checkcaller_safe = env.checkcaller_safe or self.checkcaller or function() return false end
         env.ref = env.ref or self.ref
         env.cfn = env.cfn or self.cfn
