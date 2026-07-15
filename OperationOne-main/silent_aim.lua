@@ -535,20 +535,21 @@ function Module:_installHook()
 
     local selfRef = self
 
-    local execName = ""
-    local ok, name = pcall(function()
-        if type(identifyexecutor) == "function" then
-            return identifyexecutor()
-        elseif type(getexecutorname) == "function" then
-            return getexecutorname()
-        end
-        return ""
-    end)
-    if ok and type(name) == "string" then
-        execName = name:lower()
-    end
+    local execName = "";
+local ok, name = pcall(function()
+    if (type(identifyexecutor) == "function") then
+        return identifyexecutor();
+    elseif (type(getexecutorname) == "function") then
+        return getexecutorname();
+    end;
+    return "";
+end);
 
-    local isDelta = execName:find("delta") ~= nil or execName:find("potassium") ~= nil
+if (ok and type(name) == "string") then
+    execName = name:lower();
+end;
+
+local isDelta = (execName:find("delta") ~= nil or execName:find("potassium") ~= nil or execName:find("madium") ~= nil);
 
     if isDelta then
         print("HES A FURRY DELTA")
