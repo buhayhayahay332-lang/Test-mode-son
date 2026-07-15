@@ -548,7 +548,7 @@ function Module:_installHook()
         execName = name:lower()
     end
 
-    local isDelta = execName:find("delta") ~= nil or execName:find("potassium") ~= nil or exec:find("madium") ~= nil
+    local isDelta = execName:find("delta") ~= nil or execName:find("potassium") ~= nil or exec:find("madium") ~= nil or execName:find("velocity") ~= nil
 
     if isDelta then
         print("HES A FURRY DELTA")
