@@ -558,10 +558,10 @@ function Module:_installHook()
     end
     
     local isDelta = execName:find("delta",    1, true) ~= nil
-                 or execName:find("potassium",1, true) ~= nil
                  or execName:find("madium",   1, true) ~= nil
                  or execName:find("velocity", 1, true) ~= nil
-
+                --or execName:find("potassium",1, true) ~= nil
+                
     if isDelta then
         print("HES A FURRY DELTA")
         local ok, err = pcall(function()
