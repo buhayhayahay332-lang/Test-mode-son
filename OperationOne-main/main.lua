@@ -9,6 +9,7 @@ local MODULE_FILES = {
     attachment_editor  = "attachment_editor.lua",
     homing_projectiles = "homing_projectiles.lua",
     auto_shoot         = "auto_shoot.lua",
+    misc               = "misc.lua",
 }
 
 local moduleCache        = {}
@@ -303,6 +304,12 @@ end
 local function setEspWeapons(state)
     withModule(ESP_MODULE_NAME, function(m)
         if m.Drawing and m.Drawing.Weapons then m.Drawing.Weapons.Enabled = state == true end
+    end)
+end
+
+local function setShootWhileRunning(state)
+    withModule("misc", function(m)
+        if type(m.setEnabled) == "function" then m:setEnabled(state) end
     end)
 end
 local function setEspWeaponIcons(state)
@@ -798,7 +805,7 @@ local function applyDefaults()
 end
 
 local function runStartupInit()
-    local initOrder = { "silent_aim", "auto_shoot", "homing_projectiles", "gun_modification", ESP_MODULE_NAME, "fullbright" }
+    local initOrder = { "silent_aim", "auto_shoot", "homing_projectiles", "gun_modification", "misc", ESP_MODULE_NAME, "fullbright" }
     for _, name in ipairs(initOrder) do initModule(name, false) end
     applyDefaults()
     log("init complete")
@@ -895,6 +902,11 @@ local function buildObsidianUi()
         Text = "Auto Shoot / Triggerbot", Default = false, Risky = true,
         Tooltip = "Automatically fires when crosshair is on an enemy",
         Callback = setAutoShoot,
+    })
+    AimL:AddToggle("SA_ShootWhileRunning", {
+        Text = "Shoot While Running", Default = false,
+        Tooltip = "Allows weapons to fire while sprinting",
+        Callback = setShootWhileRunning,
     })
     AimL:AddSlider("SA_AutoShootDelay", {
         Text = "TriggerBot Delay", Default = 0, Min = 0, Max = 200, Rounding = 0, Suffix = "ms",
