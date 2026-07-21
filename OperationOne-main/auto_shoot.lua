@@ -246,7 +246,10 @@ function Module:_getTarget()
     end
 
     local silentAim = self.shared and self.shared.modules and self.shared.modules.silent_aim
-    if silentAim and silentAim._mode == "rage" and type(silentAim._getClosestTargetToCursor) == "function" then
+    if silentAim
+        and silentAim._enabled == true
+        and silentAim._mode == "rage"
+        and type(silentAim._getClosestTargetToCursor) == "function" then
         return silentAim:_getClosestTargetToCursor()
     end
 
