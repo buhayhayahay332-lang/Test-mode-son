@@ -871,7 +871,7 @@ local function buildObsidianUi()
         Callback = function(v) setSilentAimSmoothness(v / 100) end,
     })
     AimL:AddDropdown("SA_Mode", {
-        Values = { "silent", "aim_assist" }, Default = 1,
+        Values = { "silent", "aim_assist", "rage" }, Default = 1,
         Text = "Aim Mode",
         Callback = setSilentAimMode,
     })

@@ -158,7 +158,7 @@ function Module:_wrapGunShootLook(gun)
     gun._op1_original_get_shoot_look = originalLook
 
     gun.get_shoot_look = function(s, ...)
-        if self._enabled and self._mode == "silent" then
+        if self._enabled and self._mode ~= "aim_assist" then
             local target = self:_getClosestTargetToCursor()
             if target and s and s.shot and s.shot.CFrame then
                 return CFrame.lookAt(s.shot.CFrame.Position, target.Position)
@@ -237,12 +237,21 @@ function Module:_checkPart(part, mousePos, closestPart, closestDistSq)
         return closestPart, closestDistSq
     end
 
-    if self._visibleCheck and self:_isWallBlocked(part) then
+    local rageMode = self._mode == "rage"
+    if (rageMode or self._visibleCheck) and self:_isWallBlocked(part) then
         return closestPart, closestDistSq
     end
 
     local camera = Workspace.CurrentCamera
     if not camera then
+        return closestPart, closestDistSq
+    end
+
+    if rageMode then
+        local distanceSq = (part.Position - camera.CFrame.Position).Magnitude ^ 2
+        if distanceSq < closestDistSq then
+            return part, distanceSq
+        end
         return closestPart, closestDistSq
     end
 
@@ -595,7 +604,7 @@ function Module:_installHook()
                             local originalLook = gun.get_shoot_look
                             gun._op1_original_get_shoot_look = originalLook
                             gun.get_shoot_look = function(s, ...)
-                                if selfRef._enabled and selfRef._mode == "silent" then
+                                if selfRef._enabled and selfRef._mode ~= "aim_assist" then
                                     local target = selfRef:_getClosestTargetToCursor()
                                     if target and s and s.shot and s.shot.CFrame then
                                         return CFrame.lookAt(s.shot.CFrame.Position, target.Position)
@@ -638,7 +647,7 @@ function Module:_installHook()
 
         local ok, err = pcall(function()
             hookfn(CFrame.new, closure(function(...)
-                if not selfRef._enabled or selfRef._mode ~= "silent" then
+                if not selfRef._enabled or selfRef._mode == "aim_assist" then
                     return oldCF(...)
                 end
 
@@ -808,7 +817,7 @@ end
 
 function Module:setMode(mode)
     local m = toLower(mode)
-    if m ~= "silent" and m ~= "aim_assist" then
+    if m ~= "silent" and m ~= "aim_assist" and m ~= "rage" then
         return false, "invalid mode"
     end
 

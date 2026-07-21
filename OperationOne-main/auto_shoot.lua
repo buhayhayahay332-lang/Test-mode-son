@@ -245,6 +245,11 @@ function Module:_getTarget()
         return nil
     end
 
+    local silentAim = self.shared and self.shared.modules and self.shared.modules.silent_aim
+    if silentAim and silentAim._mode == "rage" and type(silentAim._getClosestTargetToCursor) == "function" then
+        return silentAim:_getClosestTargetToCursor()
+    end
+
     if not self._viewmodelsFolder or not self._viewmodelsFolder.Parent then
         self._viewmodelsFolder = Workspace:FindFirstChild("Viewmodels")
     end
