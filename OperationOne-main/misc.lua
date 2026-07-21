@@ -4,6 +4,7 @@ local Module = {
     _initialized = false,
     _gunModule = nil,
     _originalInputShoot = nil,
+    _originalInputRender = nil,
 }
 
 local function getGunModule()
@@ -39,7 +40,7 @@ function Module:setEnabled(state)
 end
 
 function Module:_installRunningFireHook()
-    if self._originalInputShoot then
+    if self._originalInputShoot and self._originalInputRender then
         return true
     end
     if type(hookfunction) ~= "function" then
@@ -47,7 +48,7 @@ function Module:_installRunningFireHook()
     end
 
     local gunModule, err = getGunModule()
-    if not gunModule or type(gunModule.input_shoot) ~= "function" then
+    if not gunModule or type(gunModule.input_shoot) ~= "function" or type(gunModule.input_render) ~= "function" then
         return false, err or "input_shoot unavailable"
     end
 
@@ -79,6 +80,34 @@ function Module:_installRunningFireHook()
     end)
 
     self._originalInputShoot = originalInputShoot
+
+    local originalInputRender
+    originalInputRender = hookfunction(gunModule.input_render, function(gun, ...)
+        if not self._enabled then
+            return originalInputRender(gun, ...)
+        end
+
+        local owner = gun and gun.owner
+        local runningState = owner and owner.states and owner.states.running
+        local wasRunning = runningState
+            and type(runningState.get) == "function"
+            and type(runningState.set) == "function"
+            and runningState:get() == true
+
+        if wasRunning then
+            runningState:set(false)
+        end
+
+        local results = table.pack(originalInputRender(gun, ...))
+
+        if wasRunning then
+            runningState:set(true)
+        end
+
+        return table.unpack(results, 1, results.n)
+    end)
+
+    self._originalInputRender = originalInputRender
     return true
 end
 
@@ -108,8 +137,12 @@ function Module:unload()
     if self._gunModule and self._originalInputShoot then
         self._gunModule.input_shoot = self._originalInputShoot
     end
+    if self._gunModule and self._originalInputRender then
+        self._gunModule.input_render = self._originalInputRender
+    end
     self._gunModule = nil
     self._originalInputShoot = nil
+    self._originalInputRender = nil
     self._initialized = false
 end
 
