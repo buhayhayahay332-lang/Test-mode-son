@@ -317,26 +317,58 @@ function Module:_isWallBlocked(targetPart)
         return false
     end
 
-    local blacklist = { camera }
-    local viewmodelsFolder = self._viewmodelsFolder
-    if viewmodelsFolder then
-        local localViewmodel = viewmodelsFolder:FindFirstChild("LocalViewmodel")
-        if localViewmodel then
-            table.insert(blacklist, localViewmodel)
+    local extraIgnore = {}
+    local currentOrigin = origin
+    local remaining = direction
+    local stepDir = direction.Unit
+
+    for _ = 1, 12 do
+        local blacklist = { camera }
+        local viewmodelsFolder = self._viewmodelsFolder
+        if viewmodelsFolder then
+            local localViewmodel = viewmodelsFolder:FindFirstChild("LocalViewmodel")
+            if localViewmodel then
+                table.insert(blacklist, localViewmodel)
+            end
+        end
+
+        for _, inst in ipairs(extraIgnore) do
+            table.insert(blacklist, inst)
+        end
+
+        local params = RaycastParams.new()
+        params.FilterType = Enum.RaycastFilterType.Exclude
+        params.FilterDescendantsInstances = blacklist
+        params.IgnoreWater = true
+
+        local hit = Workspace:Raycast(currentOrigin, remaining, params)
+        if not hit then
+            return false
+        end
+
+        local instance = hit.Instance
+        if not instance then
+            return false
+        end
+
+        if instance == targetPart or instance:IsDescendantOf(targetPart.Parent) then
+            return false
+        end
+
+        if instance:IsA("BasePart") and instance.Transparency > 0 then
+            table.insert(extraIgnore, instance)
+            local nextOrigin = hit.Position + stepDir * 0.05
+            remaining = targetPart.Position - nextOrigin
+            if remaining.Magnitude <= 0.05 then
+                return false
+            end
+            currentOrigin = nextOrigin
+        else
+            return true
         end
     end
 
-    local params = RaycastParams.new()
-    params.FilterType = Enum.RaycastFilterType.Exclude
-    params.FilterDescendantsInstances = blacklist
-    params.IgnoreWater = true
-
-    local hit = Workspace:Raycast(origin, direction, params)
-    if not hit or not hit.Instance then
-        return false
-    end
-
-    return not (hit.Instance == targetPart or hit.Instance:IsDescendantOf(targetPart.Parent))
+    return true
 end
 
 function Module:_getClosestTargetToCursor()
