@@ -354,8 +354,8 @@ function Module:_isWallBlocked(targetPart)
         if instance == targetPart or instance:IsDescendantOf(targetPart.Parent) then
             return false
         end
-
-        if instance:IsA("BasePart") and instance.Transparency > 0 then
+        --instance.Transparency > 0
+        if instance:IsA("BasePart")  then
             table.insert(extraIgnore, instance)
             local nextOrigin = hit.Position + stepDir * 0.05
             remaining = targetPart.Position - nextOrigin
