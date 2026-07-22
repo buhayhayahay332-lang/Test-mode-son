@@ -355,6 +355,20 @@ function Module:_isWallBlocked(targetPart)
             return false
         end
 
+        local parent = instance.Parent
+        local isSoftWall = instance:GetAttribute("Soft") == true
+            or (parent and parent:GetAttribute("Soft") == true)
+        local isHardWall = instance:GetAttribute("Hard") == true
+            or (parent and parent:GetAttribute("Hard") == true)
+        local isBreakable = (instance.HasTag and instance:HasTag("Breakable"))
+            or (parent and parent.HasTag and parent:HasTag("Breakable"))
+
+        if isHardWall or isSoftWall or isBreakable then
+            if instance.CanCollide or instance.CanQuery then
+                return true
+            end
+        end
+
         if instance:IsA("BasePart") and instance.Transparency > 0 then
             table.insert(extraIgnore, instance)
             local nextOrigin = hit.Position + stepDir * 0.05
