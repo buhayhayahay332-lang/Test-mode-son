@@ -841,86 +841,237 @@ local function buildNeverloseUi()
     local SettingsTab = window:AddTab({ Icon = 'settings', Name = "Settings" })
 
     -- RAGE TAB
-    local AimMain = RageTab:AddSection({ Name = "MAIN", Position = 'left' })
+    local AimMain = RageTab:AddSection({ Name = "MAIN" })
     local AimSettings = RageTab:AddSection({ Name = "SETTINGS", Position = 'left' })
     local AimWeapon = RageTab:AddSection({ Name = "WEAPON", Position = 'right' })
     local AimHoming = RageTab:AddSection({ Name = "HOMING", Position = 'right' })
 
-    local sa_enabled = AimMain:AddLabel("Silent Aim")
-    sa_enabled:AddToggle({ Default = false, Callback = setSilentAim, Flag = "sa_enabled" })
+    local sa_label = AimMain:AddLabel("Silent Aim")
+    sa_label:AddToggle({ 
+        Default = false, 
+        Callback = setSilentAim, 
+        Flag = "sa_enabled" 
+    })
     
-    local sa_team = AimMain:AddLabel("Team Check")
-    sa_team:AddToggle({ Default = true, Callback = setSilentAimTeamCheck, Flag = "sa_team" })
+    local sa_opt = sa_label:AddOption()
+    sa_opt:AddLabel("Team Check"):AddToggle({ 
+        Default = true, 
+        Callback = setSilentAimTeamCheck, 
+        Flag = "sa_team" 
+    })
     
-    local sa_vis = AimMain:AddLabel("Visible Check")
-    sa_vis:AddToggle({ Default = false, Callback = setSilentAimVisibleCheck, Flag = "sa_vis" })
+    sa_opt:AddLabel("Visible Check"):AddToggle({ 
+        Default = false, 
+        Callback = setSilentAimVisibleCheck, 
+        Flag = "sa_vis" 
+    })
     
-    local sa_fov_circ = AimMain:AddLabel("FOV Circle")
-    sa_fov_circ:AddToggle({ Default = true, Callback = setSilentAimFovCircleVisual, Flag = "sa_fov_circ" })
+    sa_opt:AddLabel("FOV Circle"):AddToggle({ 
+        Default = true, 
+        Callback = setSilentAimFovCircleVisual, 
+        Flag = "sa_fov_circ" 
+    })
 
-    local sa_snap = AimMain:AddLabel("Snaplines")
-    sa_snap:AddToggle({ Default = false, Callback = setSilentAimSnaplines, Flag = "sa_snap" })
-    -- Assuming AddColorPicker exists as it's standard for this lib type
-    pcall(function() sa_snap:AddColorPicker({ Default = Color3.fromRGB(255,255,255), Callback = setSilentAimSnaplineColor, Flag = "sa_snap_clr" }) end)
+    local sa_snap_tog = sa_opt:AddLabel("Snaplines"):AddToggle({ 
+        Default = false, 
+        Callback = setSilentAimSnaplines, 
+        Flag = "sa_snap" 
+    })
+    pcall(function() sa_snap_tog:AddColorPicker({ Default = Color3.fromRGB(255,255,255), Callback = setSilentAimSnaplineColor, Flag = "sa_snap_clr" }) end)
 
-    AimSettings:AddLabel("FOV Radius"):AddSlider({ Min = 10, Max = 400, Default = 60, Callback = setSilentAimFov, Flag = "sa_fov" })
-    AimSettings:AddLabel("Smoothness"):AddSlider({ Min = 1, Max = 100, Default = 100, Suffix = "%", Callback = function(v) setSilentAimSmoothness(v / 100) end, Flag = "sa_smooth" })
+    AimSettings:AddLabel("FOV Radius"):AddSlider({ 
+        Min = 10, 
+        Max = 400, 
+        Default = 60, 
+        Callback = setSilentAimFov, 
+        Flag = "sa_fov" 
+    })
+
+    AimSettings:AddLabel("Smoothness"):AddSlider({ 
+        Min = 1, 
+        Max = 100, 
+        Default = 100, 
+        Suffix = "%", 
+        Callback = function(v) setSilentAimSmoothness(v / 100) end, 
+        Flag = "sa_smooth" 
+    })
     
-    AimSettings:AddLabel("Aim Mode"):AddDropdown({ Values = { "silent", "aim_assist", "rage" }, Default = "silent", Callback = setSilentAimMode, Flag = "sa_mode" })
-    AimSettings:AddLabel("Activation"):AddDropdown({ Values = { "mb2", "mb1", "always", "mobile_hold", "mobile_toggle" }, Default = "mb2", Callback = setAimAssistActivation, Flag = "sa_act" })
-    AimSettings:AddLabel("Target Mode"):AddDropdown({ Values = { "custom_parts", "head_only" }, Default = "custom_parts", Callback = setSilentAimTargetMode, Flag = "sa_targ" })
-    AimSettings:AddLabel("Snapline Origin"):AddDropdown({ Values = { "Top", "Center", "Bottom" }, Default = "Center", Callback = setSilentAimSnaplineOrigin, Flag = "sa_snap_orig" })
+    AimSettings:AddLabel("Aim Mode"):AddDropdown({ 
+        Values = { "silent", "aim_assist", "rage" }, 
+        Default = "silent", 
+        Callback = setSilentAimMode, 
+        Flag = "sa_mode" 
+    })
 
-    local as_enabled = AimWeapon:AddLabel("Auto Shoot")
-    as_enabled:AddToggle({ Default = false, Callback = setAutoShoot, Flag = "as_enabled" })
+    AimSettings:AddLabel("Activation"):AddDropdown({ 
+        Values = { "mb2", "mb1", "always", "mobile_hold", "mobile_toggle" }, 
+        Default = "mb2", 
+        Callback = setAimAssistActivation, 
+        Flag = "sa_act" 
+    })
+
+    AimSettings:AddLabel("Target Mode"):AddDropdown({ 
+        Values = { "custom_parts", "head_only" }, 
+        Default = "custom_parts", 
+        Callback = setSilentAimTargetMode, 
+        Flag = "sa_targ" 
+    })
+
+    AimSettings:AddLabel("Snapline Origin"):AddDropdown({ 
+        Values = { "Top", "Center", "Bottom" }, 
+        Default = "Center", 
+        Callback = setSilentAimSnaplineOrigin, 
+        Flag = "sa_snap_orig" 
+    })
+
+    local as_label = AimWeapon:AddLabel("Auto Shoot")
+    as_label:AddToggle({ 
+        Default = false, 
+        Callback = setAutoShoot, 
+        Flag = "as_enabled" 
+    })
     
-    AimWeapon:AddLabel("Shoot While Running"):AddToggle({ Default = false, Callback = setShootWhileRunning, Flag = "as_run" })
-    AimWeapon:AddLabel("TriggerBot Delay"):AddSlider({ Min = 0, Max = 200, Default = 0, Suffix = "ms", Callback = setAutoShootDelay, Flag = "as_delay" })
-    AimWeapon:AddLabel("TriggerBot Team"):AddToggle({ Default = true, Callback = setAutoShootTeamCheck, Flag = "as_team" })
-    AimWeapon:AddLabel("TriggerBot Gadgets"):AddToggle({ Default = false, Callback = setAutoShootTargetGadgets, Flag = "as_gadgets" })
-    AimWeapon:AddLabel("TriggerBot Act"):AddDropdown({ Values = { "always", "mb1", "mb2", "mobile_hold", "mobile_toggle" }, Default = "always", Callback = setAutoShootActivation, Flag = "as_act" })
+    local as_opt = as_label:AddOption()
+    as_opt:AddLabel("Shoot While Running"):AddToggle({ 
+        Default = false, 
+        Callback = setShootWhileRunning, 
+        Flag = "as_run" 
+    })
+    
+    as_opt:AddLabel("TriggerBot Delay"):AddSlider({ 
+        Min = 0, 
+        Max = 200, 
+        Default = 0, 
+        Suffix = "ms", 
+        Callback = setAutoShootDelay, 
+        Flag = "as_delay" 
+    })
+    
+    as_opt:AddLabel("TriggerBot Team"):AddToggle({ 
+        Default = true, 
+        Callback = setAutoShootTeamCheck, 
+        Flag = "as_team" 
+    })
+    
+    as_opt:AddLabel("TriggerBot Gadgets"):AddToggle({ 
+        Default = false, 
+        Callback = setAutoShootTargetGadgets, 
+        Flag = "as_gadgets" 
+    })
+    
+    as_opt:AddLabel("TriggerBot Act"):AddDropdown({ 
+        Values = { "always", "mb1", "mb2", "mobile_hold", "mobile_toggle" }, 
+        Default = "always", 
+        Callback = setAutoShootActivation, 
+        Flag = "as_act" 
+    })
 
-    AimWeapon:AddLabel("Gun Mod"):AddToggle({ Default = false, Callback = setGunModEnabled, Flag = "gm_enabled" })
-    AimWeapon:AddLabel("Recoil Reduc"):AddSlider({ Min = 0, Max = 100, Default = 0, Suffix = "%", Callback = function(v) setGunModConfig("recoil_reduction", v / 100) end, Flag = "gm_recoil" })
-    AimWeapon:AddLabel("H-Recoil"):AddSlider({ Min = 0, Max = 100, Default = 0, Suffix = "%", Callback = function(v) setGunModConfig("horizontal_recoil", v / 100) end, Flag = "gm_hrecoil" })
-    AimWeapon:AddLabel("No Spread"):AddToggle({ Default = false, Callback = function(v) setGunModConfig("no_spread", v) end, Flag = "gm_spread" })
-    AimWeapon:AddLabel("Force Auto"):AddToggle({ Default = false, Callback = function(v) setGunModConfig("force_auto", v) end, Flag = "gm_auto" })
+    local gm_label = AimWeapon:AddLabel("Gun Mod")
+    gm_label:AddToggle({ 
+        Default = false, 
+        Callback = setGunModEnabled, 
+        Flag = "gm_enabled" 
+    })
+    
+    local gm_opt = gm_label:AddOption()
+    gm_opt:AddLabel("Recoil Reduc"):AddSlider({ 
+        Min = 0, 
+        Max = 100, 
+        Default = 0, 
+        Suffix = "%", 
+        Callback = function(v) setGunModConfig("recoil_reduction", v / 100) end, 
+        Flag = "gm_recoil" 
+    })
+    
+    gm_opt:AddLabel("H-Recoil"):AddSlider({ 
+        Min = 0, 
+        Max = 100, 
+        Default = 0, 
+        Suffix = "%", 
+        Callback = function(v) setGunModConfig("horizontal_recoil", v / 100) end, 
+        Flag = "gm_hrecoil" 
+    })
+    
+    gm_opt:AddLabel("No Spread"):AddToggle({ 
+        Default = false, 
+        Callback = function(v) setGunModConfig("no_spread", v) end, 
+        Flag = "gm_spread" 
+    })
+    
+    gm_opt:AddLabel("Force Auto"):AddToggle({ 
+        Default = false, 
+        Callback = function(v) setGunModConfig("force_auto", v) end, 
+        Flag = "gm_auto" 
+    })
 
-    AimHoming:AddLabel("Tombrady"):AddToggle({ Default = false, Callback = setTombradyEnabled, Flag = "hm_tomb" })
-    AimHoming:AddLabel("HK69 Homing"):AddToggle({ Default = false, Callback = setHk69Enabled, Flag = "hm_hk" })
-    AimHoming:AddLabel("Speed"):AddSlider({ Min = 10, Max = 250, Default = 60, Callback = setHomingSpeed, Flag = "hm_spd" })
-    AimHoming:AddLabel("Smoothness"):AddSlider({ Min = 1, Max = 100, Default = 100, Suffix = "%", Callback = function(v) setHomingSmoothness(v / 100) end, Flag = "hm_smooth" })
+    local hm_label = AimHoming:AddLabel("Tombrady")
+    hm_label:AddToggle({ 
+        Default = false, 
+        Callback = setTombradyEnabled, 
+        Flag = "hm_tomb" 
+    })
+    
+    local hm_opt = hm_label:AddOption()
+    hm_opt:AddLabel("HK69 Homing"):AddToggle({ 
+        Default = false, 
+        Callback = setHk69Enabled, 
+        Flag = "hm_hk" 
+    })
+    
+    hm_opt:AddLabel("Speed"):AddSlider({ 
+        Min = 10, 
+        Max = 250, 
+        Default = 60, 
+        Callback = setHomingSpeed, 
+        Flag = "hm_spd" 
+    })
+    
+    hm_opt:AddLabel("Smoothness"):AddSlider({ 
+        Min = 1, 
+        Max = 100, 
+        Default = 100, 
+        Suffix = "%", 
+        Callback = function(v) setHomingSmoothness(v / 100) end, 
+        Flag = "hm_smooth" 
+    })
 
     -- VISUALS TAB
     local EspMain = VisualsTab:AddSection({ Name = "ESP", Position = 'left' })
     local EspStyle = VisualsTab:AddSection({ Name = "STYLE", Position = 'right' })
     local Lighting = VisualsTab:AddSection({ Name = "LIGHTING", Position = 'left' })
 
-    local esp_on = EspMain:AddLabel("Enabled")
-    esp_on:AddToggle({ Default = false, Callback = setEspEnabled, Flag = "esp_enabled" })
-    pcall(function() esp_on:AddColorPicker({ Default = Color3.fromRGB(210, 50, 80), Callback = setEspPlayerColor, Flag = "esp_clr" }) end)
+    local esp_label = EspMain:AddLabel("Enabled")
+    local esp_on_tog = esp_label:AddToggle({ 
+        Default = false, 
+        Callback = setEspEnabled, 
+        Flag = "esp_enabled" 
+    })
+    pcall(function() esp_on_tog:AddColorPicker({ Default = Color3.fromRGB(210, 50, 80), Callback = setEspPlayerColor, Flag = "esp_clr" }) end)
 
-    EspMain:AddLabel("Team Check"):AddToggle({ Default = false, Callback = setEspTeamCheck, Flag = "esp_team" })
-    EspMain:AddLabel("Box Full"):AddToggle({ Default = false, Callback = setEspPlayers, Flag = "esp_boxf" })
-    EspMain:AddLabel("Box Corner"):AddToggle({ Default = false, Callback = setEspCorners, Flag = "esp_boxc" })
-    EspMain:AddLabel("Box Fill"):AddToggle({ Default = false, Callback = setEspFilled, Flag = "esp_fill" })
-    EspMain:AddLabel("Box Gradient"):AddToggle({ Default = true, Callback = setEspBoxGradient, Flag = "esp_grad" })
-    EspMain:AddLabel("Health Bar"):AddToggle({ Default = false, Callback = setEspHealthBar, Flag = "esp_hp" })
+    local esp_opt = esp_label:AddOption()
+    esp_opt:AddLabel("Team Check"):AddToggle({ Default = false, Callback = setEspTeamCheck, Flag = "esp_team" })
+    esp_opt:AddLabel("Box Full"):AddToggle({ Default = false, Callback = setEspPlayers, Flag = "esp_boxf" })
+    esp_opt:AddLabel("Box Corner"):AddToggle({ Default = false, Callback = setEspCorners, Flag = "esp_boxc" })
+    esp_opt:AddLabel("Box Fill"):AddToggle({ Default = false, Callback = setEspFilled, Flag = "esp_fill" })
+    esp_opt:AddLabel("Box Gradient"):AddToggle({ Default = true, Callback = setEspBoxGradient, Flag = "esp_grad" })
+    esp_opt:AddLabel("Health Bar"):AddToggle({ Default = false, Callback = setEspHealthBar, Flag = "esp_hp" })
     
     local esp_skel = EspMain:AddLabel("Skeleton")
-    esp_skel:AddToggle({ Default = false, Callback = setEspSkeleton, Flag = "esp_skel" })
-    pcall(function() esp_skel:AddColorPicker({ Default = Color3.fromRGB(210, 50, 80), Callback = setEspSkeletonColor, Flag = "esp_skel_clr" }) end)
+    local esp_skel_tog = esp_skel:AddToggle({ Default = false, Callback = setEspSkeleton, Flag = "esp_skel" })
+    pcall(function() esp_skel_tog:AddColorPicker({ Default = Color3.fromRGB(210, 50, 80), Callback = setEspSkeletonColor, Flag = "esp_skel_clr" }) end)
 
-    EspMain:AddLabel("Names"):AddToggle({ Default = false, Callback = setEspNames, Flag = "esp_names" })
-    EspMain:AddLabel("Distance"):AddToggle({ Default = false, Callback = setEspDistances, Flag = "esp_dist" })
-    EspMain:AddLabel("Weapon"):AddToggle({ Default = false, Callback = setEspWeapons, Flag = "esp_wep" })
+    local ext_opt = esp_skel:AddOption()
+    ext_opt:AddLabel("Names"):AddToggle({ Default = false, Callback = setEspNames, Flag = "esp_names" })
+    ext_opt:AddLabel("Distance"):AddToggle({ Default = false, Callback = setEspDistances, Flag = "esp_dist" })
+    ext_opt:AddLabel("Weapon"):AddToggle({ Default = false, Callback = setEspWeapons, Flag = "esp_wep" })
     
     local esp_chams = EspMain:AddLabel("Chams")
-    esp_chams:AddToggle({ Default = false, Callback = setEspChams, Flag = "esp_chams" })
-    pcall(function() esp_chams:AddColorPicker({ Default = Color3.fromRGB(243, 116, 166), Callback = setEspChamsFillColor, Flag = "esp_chams_clr" }) end)
+    local esp_chams_tog = esp_chams:AddToggle({ Default = false, Callback = setEspChams, Flag = "esp_chams" })
+    pcall(function() esp_chams_tog:AddColorPicker({ Default = Color3.fromRGB(243, 116, 166), Callback = setEspChamsFillColor, Flag = "esp_chams_clr" }) end)
 
-    EspMain:AddLabel("Tracers"):AddToggle({ Default = false, Callback = setEspTracers, Flag = "esp_tracers" })
-    EspMain:AddLabel("Offscreen Arrows"):AddToggle({ Default = false, Callback = setEspOffscreenArrows, Flag = "esp_off" })
+    local chm_opt = esp_chams:AddOption()
+    chm_opt:AddLabel("Tracers"):AddToggle({ Default = false, Callback = setEspTracers, Flag = "esp_tracers" })
+    chm_opt:AddLabel("Offscreen Arrows"):AddToggle({ Default = false, Callback = setEspOffscreenArrows, Flag = "esp_off" })
 
     EspStyle:AddLabel("Max Distance"):AddSlider({ Min = 100, Max = 3000, Default = 1000, Callback = setEspMaxDistance, Flag = "es_dist" })
     EspStyle:AddLabel("Font Size"):AddSlider({ Min = 8, Max = 24, Default = 11, Callback = setEspFontSize, Flag = "es_font" })
@@ -957,22 +1108,40 @@ local function buildNeverloseUi()
         l:AddToggle({ Default = false, Callback = g.fn, Flag = "g_" .. g.key })
     end
 
-    -- LOCAL TAB
+        -- LOCAL TAB
     local SkinS = LocalTab:AddSection({ Name = "SKIN CHANGER", Position = 'left' })
     SkinS:AddLabel("Weapon Skin"):AddDropdown({ Values = { "Default","TidalWaveAK","CherryBlossom","RoyalCAL12","RedLineAW50" }, Default = "Default", Callback = function(v) setAttachmentEditorOption("skin", v) end, Flag = "lc_skin" })
-    SkinS:AddButton({ Name = "Apply Skin", Callback = function()
-        local ok, err = pcall(applyAttachmentEditor)
-        if not ok then
-            Notification.new({ Title = "Skin Changer", Content = "Failed: " .. tostring(err), Duration = 4 })
-        else
-            Notification.new({ Title = "Skin Changer", Content = "Applied successfully!", Duration = 3 })
-        end
-    end })
+    
+    local applyLabel = SkinS:AddLabel("Apply Settings")
+    applyLabel:AddToggle({ 
+        Default = false, 
+        Callback = function(v) 
+            if v then 
+                pcall(applyAttachmentEditor) 
+                Notification.new({ Title = "Skin Changer", Content = "Applied successfully!", Duration = 3 })
+            end 
+        end, 
+        Flag = "lc_apply" 
+    })
 
     -- SETTINGS TAB
-    local Conf = SettingsTab:AddSection({ Name = "CONFIGURATION", Position = 'left' })
-    Conf:AddLabel("Menu Keybind"):AddKeybind({ Default = 'RightShift', Callback = function(v) window.Keybind = v end })
-    Conf:AddButton({ Name = "Unload", Callback = function() window:ToggleInterface() end })
+    window.UserSettings:AddLabel("Menu Keybind"):AddKeybind({ Default = 'RightShift', Callback = function(v) window.Keybind = v end })
+    
+    local unloadLabel = window.UserSettings:AddLabel("Exit Script")
+    unloadLabel:AddToggle({
+        Default = false,
+        Callback = function(v)
+            if v then
+                -- Manual cleanup logic since this lib might not have a direct Unload method
+                setSilentAim(false)
+                setAutoShoot(false)
+                setEspEnabled(false)
+                window:ToggleInterface()
+                Notification.new({ Title = "ASTRO.WTF", Content = "Unloaded", Duration = 3 })
+            end
+        end
+    })
+
 
     Notification.new({
         Title = "ASTRO.WTF",
