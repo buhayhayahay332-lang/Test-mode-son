@@ -818,9 +818,8 @@ local function buildNeverloseUi()
     local Notification = NeverLose:CreateNotification()
     local Logging = NeverLose:CreateLogger()
     local Indicator = NeverLose:CreateIndicator()
-    
     local window = NeverLose:CreateWindow({
-        Logo = 13129527031,
+        Logo = "rbxassetid://13129527031",
         Name = "ASTRO.WTF",
         Content = "Operation One",
         Size = NeverLose.Scales.Default,
@@ -829,8 +828,28 @@ local function buildNeverloseUi()
         Keybind = "RightShift"
     })
 
+    local Watermark = window:Watermark()
+    local astroBlock = Watermark:AddBlock("cube-vertexes", "ASTRO.WTF")
+    local userBlock = Watermark:AddBlock("person", game:GetService("Players").LocalPlayer and game:GetService("Players").LocalPlayer.Name or "User")
+    local discordBlock = Watermark:AddBlock("discord", "discord.gg/NtBMqWXySm")
+    local pingBlock = Watermark:AddBlock("chart-four-vertical-bars", "0MS")
+
+    discordBlock:Input(function()
+        if setclipboard then
+            setclipboard("https://discord.gg/NtBMqWXySm")
+            Notification.new({ Title = "ASTRO.WTF", Content = "Discord link copied to clipboard!", Duration = 3 })
+        end
+    end)
+
+    task.spawn(function()
+        while task.wait(1) do
+            local pingVal = math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue())
+            pingBlock:SetText(tostring(pingVal) .. "MS")
+        end
+    end)
+
     window:AddTabLabel('COMBAT')
-    local RageTab = window:AddTab({ Icon = 'crosshairs', Name = "Rage" })
+    local RageTab = window:AddTab({ Icon = 'crosshairs', Name = "Aim" })
     
     window:AddTabLabel('VISUALS')
     local VisualsTab = window:AddTab({ Icon = 'eye', Name = "Visuals" })
