@@ -866,6 +866,12 @@ local function buildNeverloseUi()
         Flag = "sa_vis" 
     })
     
+    sa_opt:AddLabel("Target Gadgets"):AddToggle({ 
+        Default = false, 
+        Callback = setSilentAimTargetGadgets, 
+        Flag = "sa_targ_gad" 
+    })
+    
     sa_opt:AddLabel("FOV Circle"):AddToggle({ 
         Default = true, 
         Callback = setSilentAimFovCircleVisual, 
@@ -1047,19 +1053,29 @@ local function buildNeverloseUi()
     local Lighting = VisualsTab:AddSection({ Name = "LIGHTING", Position = 'left' })
 
     local esp_label = EspMain:AddLabel("Enabled")
-    esp_label:AddToggle({ 
-        Default = false, 
-        Callback = setEspEnabled, 
-        Flag = "esp_enabled" 
-    })
+    esp_label:AddToggle({ Default = false, Callback = setEspEnabled, Flag = "esp_enabled" })
     pcall(function() esp_label:AddColorPicker({ Default = Color3.fromRGB(210, 50, 80), Callback = setEspPlayerColor, Flag = "esp_clr" }) end)
 
     local esp_opt = esp_label:AddOption()
     esp_opt:AddLabel("Team Check"):AddToggle({ Default = false, Callback = setEspTeamCheck, Flag = "esp_team" })
+    esp_opt:AddLabel("Fade Out"):AddToggle({ Default = false, Callback = setEspFadeOut, Flag = "esp_fade" })
     esp_opt:AddLabel("Box Full"):AddToggle({ Default = false, Callback = setEspPlayers, Flag = "esp_boxf" })
     esp_opt:AddLabel("Box Corner"):AddToggle({ Default = false, Callback = setEspCorners, Flag = "esp_boxc" })
-    esp_opt:AddLabel("Box Fill"):AddToggle({ Default = false, Callback = setEspFilled, Flag = "esp_fill" })
-    esp_opt:AddLabel("Box Gradient"):AddToggle({ Default = true, Callback = setEspBoxGradient, Flag = "esp_grad" })
+    
+    local esp_grad_lbl = esp_opt:AddLabel("Box Gradient")
+    esp_grad_lbl:AddToggle({ Default = true, Callback = setEspBoxGradient, Flag = "esp_grad" })
+    pcall(function() esp_grad_lbl:AddColorPicker({ Default = Color3.fromRGB(0, 0, 0), Callback = setEspGradientEndColor, Flag = "esp_grad_end" }) end)
+
+    esp_opt:AddLabel("Box Animate"):AddToggle({ Default = false, Callback = setEspBoxAnimate, Flag = "esp_boxa" })
+
+    local esp_fill_lbl = esp_opt:AddLabel("Box Fill")
+    esp_fill_lbl:AddToggle({ Default = false, Callback = setEspFilled, Flag = "esp_fill" })
+    pcall(function() esp_fill_lbl:AddColorPicker({ Default = Color3.fromRGB(255, 255, 255), Callback = setEspFillGradientStartColor, Flag = "esp_fill_start" }) end)
+
+    local esp_fill_grad_lbl = esp_opt:AddLabel("Box Fill Gradient")
+    esp_fill_grad_lbl:AddToggle({ Default = true, Callback = setEspBoxGradientFill, Flag = "esp_fill_g" })
+    pcall(function() esp_fill_grad_lbl:AddColorPicker({ Default = Color3.fromRGB(0, 0, 0), Callback = setEspFillGradientEndColor, Flag = "esp_fill_end" }) end)
+
     esp_opt:AddLabel("Health Bar"):AddToggle({ Default = false, Callback = setEspHealthBar, Flag = "esp_hp" })
     
     local esp_skel = EspMain:AddLabel("Skeleton")
@@ -1067,22 +1083,62 @@ local function buildNeverloseUi()
     pcall(function() esp_skel:AddColorPicker({ Default = Color3.fromRGB(210, 50, 80), Callback = setEspSkeletonColor, Flag = "esp_skel_clr" }) end)
 
     local ext_opt = esp_skel:AddOption()
-    ext_opt:AddLabel("Names"):AddToggle({ Default = false, Callback = setEspNames, Flag = "esp_names" })
-    ext_opt:AddLabel("Distance"):AddToggle({ Default = false, Callback = setEspDistances, Flag = "esp_dist" })
-    ext_opt:AddLabel("Weapon"):AddToggle({ Default = false, Callback = setEspWeapons, Flag = "esp_wep" })
+    
+    local name_lbl = ext_opt:AddLabel("Names")
+    name_lbl:AddToggle({ Default = false, Callback = setEspNames, Flag = "esp_names" })
+    pcall(function() name_lbl:AddColorPicker({ Default = Color3.fromRGB(255, 255, 255), Callback = setEspNameColor, Flag = "esp_nm_clr" }) end)
+    
+    local dist_lbl = ext_opt:AddLabel("Distance")
+    dist_lbl:AddToggle({ Default = false, Callback = setEspDistances, Flag = "esp_dist" })
+    pcall(function() dist_lbl:AddColorPicker({ Default = Color3.fromRGB(255, 255, 255), Callback = setEspDistanceColor, Flag = "esp_dist_clr" }) end)
+
+    local wep_lbl = ext_opt:AddLabel("Weapon")
+    wep_lbl:AddToggle({ Default = false, Callback = setEspWeapons, Flag = "esp_wep" })
+    pcall(function() wep_lbl:AddColorPicker({ Default = Color3.fromRGB(255, 255, 255), Callback = setEspWeaponColor, Flag = "esp_wep_clr" }) end)
+
+    ext_opt:AddLabel("Weapon Icons"):AddToggle({ Default = false, Callback = setEspWeaponIcons, Flag = "esp_wepi" })
     
     local esp_chams = EspMain:AddLabel("Chams")
     esp_chams:AddToggle({ Default = false, Callback = setEspChams, Flag = "esp_chams" })
     pcall(function() esp_chams:AddColorPicker({ Default = Color3.fromRGB(243, 116, 166), Callback = setEspChamsFillColor, Flag = "esp_chams_clr" }) end)
 
     local chm_opt = esp_chams:AddOption()
-    chm_opt:AddLabel("Tracers"):AddToggle({ Default = false, Callback = setEspTracers, Flag = "esp_tracers" })
-    chm_opt:AddLabel("Offscreen Arrows"):AddToggle({ Default = false, Callback = setEspOffscreenArrows, Flag = "esp_off" })
+    chm_opt:AddLabel("Chams Thermal"):AddToggle({ Default = false, Callback = setEspChamsThermal, Flag = "esp_chm_therm" })
+    chm_opt:AddLabel("Chams Vis Check"):AddToggle({ Default = false, Callback = setEspChamsVisibleCheck, Flag = "esp_chm_vis" })
+    
+    local chm_out_lbl = chm_opt:AddLabel("Chams Outline")
+    chm_out_lbl:AddColorPicker({ Default = Color3.fromRGB(255, 255, 255), Callback = setEspChamsOutlineColor, Flag = "esp_chm_out" })
+
+    local trc_lbl = EspMain:AddLabel("Tracers")
+    trc_lbl:AddToggle({ Default = false, Callback = setEspTracers, Flag = "esp_tracers" })
+    pcall(function() trc_lbl:AddColorPicker({ Default = Color3.fromRGB(255, 255, 255), Callback = setEspTracersColor, Flag = "esp_trc_clr" }) end)
+
+    local arr_lbl = EspMain:AddLabel("Offscreen Arrows")
+    arr_lbl:AddToggle({ Default = false, Callback = setEspOffscreenArrows, Flag = "esp_off" })
+    pcall(function() arr_lbl:AddColorPicker({ Default = Color3.fromRGB(255, 255, 255), Callback = setEspOffscreenArrowsColor, Flag = "esp_off_clr" }) end)
+
+    local arr_opt = arr_lbl:AddOption()
+    local arr_dist_lbl = arr_opt:AddLabel("Show Distance")
+    arr_dist_lbl:AddToggle({ Default = true, Callback = setEspOffscreenArrowsShowDistance, Flag = "esp_arr_dist" })
+    pcall(function() arr_dist_lbl:AddColorPicker({ Default = Color3.fromRGB(255, 255, 255), Callback = setEspOffscreenArrowsDistanceColor, Flag = "esp_arr_dclr" }) end)
 
     EspStyle:AddLabel("Max Distance"):AddSlider({ Min = 100, Max = 3000, Default = 1000, Callback = setEspMaxDistance, Flag = "es_dist" })
     EspStyle:AddLabel("Font Size"):AddSlider({ Min = 8, Max = 24, Default = 11, Callback = setEspFontSize, Flag = "es_font" })
     EspStyle:AddLabel("Corner Len"):AddSlider({ Min = 5, Max = 35, Default = 15, Callback = setEspCornerLength, Flag = "es_corn" })
+    EspStyle:AddLabel("Corner Thick"):AddSlider({ Min = 1, Max = 10, Default = 1, Callback = setEspCornerThickness, Flag = "es_cthk" })
     EspStyle:AddLabel("Fill Trans"):AddSlider({ Min = 0, Max = 100, Default = 75, Type = "%", Size = 95, Callback = function(v) setEspFilledTransparency(v / 100) end, Flag = "es_fill_trn" })
+    EspStyle:AddLabel("Box Rot Speed"):AddSlider({ Min = 0, Max = 1000, Default = 300, Callback = setEspBoxRotationSpeed, Flag = "es_rot" })
+    
+    EspStyle:AddLabel("Skel Thick"):AddSlider({ Min = 1, Max = 10, Default = 1, Callback = setEspSkeletonThickness, Flag = "es_sthk" })
+    EspStyle:AddLabel("Wep Icon Size"):AddSlider({ Min = 5, Max = 40, Default = 15, Callback = setEspWeaponIconSize, Flag = "es_wisz" })
+    
+    EspStyle:AddLabel("Chams Fill Trn"):AddSlider({ Min = 0, Max = 100, Default = 50, Type = "%", Size = 95, Callback = function(v) setEspChamsFillTransparency(v / 100) end, Flag = "es_cftrn" })
+    EspStyle:AddLabel("Chams Out Trn"):AddSlider({ Min = 0, Max = 100, Default = 50, Type = "%", Size = 95, Callback = function(v) setEspChamsOutlineTransparency(v / 100) end, Flag = "es_cotrn" })
+
+    EspStyle:AddLabel("Arrow Size"):AddSlider({ Min = 5, Max = 50, Default = 10, Callback = setEspOffscreenArrowsSize, Flag = "es_asz" })
+    EspStyle:AddLabel("Arrow Trans"):AddSlider({ Min = 0, Max = 100, Default = 100, Type = "%", Size = 95, Callback = function(v) setEspOffscreenArrowsTransparency(v / 100) end, Flag = "es_atrn" })
+    EspStyle:AddLabel("Arr Font Size"):AddSlider({ Min = 8, Max = 24, Default = 12, Callback = setEspOffscreenArrowsDistanceFontSize, Flag = "es_afsz" })
+
     EspStyle:AddLabel("Tracer Origin"):AddDropdown({ Values = { "Top", "Center", "Bottom" }, Default = "Bottom", Callback = setEspTracersOrigin, Flag = "es_tr_orig" })
 
     Lighting:AddLabel("Fullbright"):AddToggle({ Default = false, Callback = setFullbright, Flag = "fb_on" })
@@ -1095,59 +1151,122 @@ local function buildNeverloseUi()
     local RadStyle = RadarTab:AddSection({ Name = "STYLE", Position = 'right' })
 
     RadCore:AddLabel("Enabled"):AddToggle({ Default = false, Callback = function(v) setRadarFlag("Enabled", v) end, Flag = "r_en" })
+    RadCore:AddLabel("Lines"):AddToggle({ Default = true, Callback = function(v) setRadarFlag("Lines", v) end, Flag = "r_lin" })
     RadCore:AddLabel("Rotation"):AddToggle({ Default = false, Callback = function(v) setRadarFlag("Rotation", v) end, Flag = "r_rot" })
+    RadCore:AddLabel("Smooth Rot"):AddToggle({ Default = true, Callback = function(v) setRadarFlag("SmoothRot", v) end, Flag = "r_smrt" })
     RadCore:AddLabel("Cardinal"):AddToggle({ Default = true, Callback = function(v) setRadarFlag("CardinalDisplay", v) end, Flag = "r_card" })
-    
+    RadCore:AddLabel("Offscreen"):AddToggle({ Default = true, Callback = function(v) setRadarFlag("ShowOffscreen", v) end, Flag = "r_shof" })
+    RadCore:AddLabel("Teammates"):AddToggle({ Default = false, Callback = function(v) setRadarFlag("DisplayTeammates", v) end, Flag = "r_tmat" })
+    RadCore:AddLabel("Team Colors"):AddToggle({ Default = true, Callback = function(v) setRadarFlag("DisplayTeamColors", v) end, Flag = "r_tcol" })
+    RadCore:AddLabel("Friend Colors"):AddToggle({ Default = true, Callback = function(v) setRadarFlag("DisplayFriendColors", v) end, Flag = "r_fcol" })
+    RadCore:AddLabel("RGB Colors"):AddToggle({ Default = false, Callback = function(v) setRadarFlag("DisplayRGBColors", v) end, Flag = "r_rgb" })
+    RadCore:AddLabel("Marker Falloff"):AddToggle({ Default = true, Callback = function(v) setRadarFlag("MarkerFalloff", v) end, Flag = "r_mfall" })
+    RadCore:AddLabel("Use Quads"):AddToggle({ Default = true, Callback = function(v) setRadarFlag("UseQuads", v) end, Flag = "r_quad" })
+    RadCore:AddLabel("Vis Check"):AddToggle({ Default = false, Callback = function(v) setRadarFlag("VisibilityCheck", v) end, Flag = "r_vis" })
+    RadCore:AddLabel("Fallback"):AddToggle({ Default = false, Callback = function(v) setRadarFlag("UseFallback", v) end, Flag = "r_fallb" })
+    RadCore:AddLabel("Team Colors (2)"):AddToggle({ Default = false, Callback = function(v) setRadarFlag("UseTeamColors", v) end, Flag = "r_tc2" })
+
     RadStyle:AddLabel("Radius"):AddSlider({ Min = 50, Max = 400, Default = 120, Callback = function(v) setRadarNumber("Radius", v) end, Flag = "r_rad" })
     RadStyle:AddLabel("Range"):AddSlider({ Min = 50, Max = 1000, Default = 300, Callback = function(v) setRadarNumber("Range", v) end, Flag = "r_rng" })
+    RadStyle:AddLabel("Scale"):AddSlider({ Min = 1, Max = 30, Default = 10, Type = "x", Size = 95, Callback = function(v) setRadarNumber("Scale", v / 10) end, Flag = "r_scale" })
+    RadStyle:AddLabel("Marker Size"):AddSlider({ Min = 1, Max = 10, Default = 2, Callback = function(v) setRadarNumber("MarkerSize", v) end, Flag = "r_msz" })
+    RadStyle:AddLabel("Self Dot"):AddSlider({ Min = 1, Max = 10, Default = 2, Callback = function(v) setRadarNumber("SelfDotSize", v) end, Flag = "r_sdot" })
+    RadStyle:AddLabel("Line Dist"):AddSlider({ Min = 10, Max = 200, Default = 50, Callback = function(v) setRadarNumber("LineDistance", v) end, Flag = "r_ldist" })
+    RadStyle:AddLabel("Smooth Amt"):AddSlider({ Min = 1, Max = 100, Default = 30, Callback = function(v) setRadarNumber("SmoothRotAmnt", v) end, Flag = "r_smamt" })
+    RadStyle:AddLabel("Falloff Amt"):AddSlider({ Min = 10, Max = 300, Default = 125, Callback = function(v) setRadarNumber("MarkerFalloffAmnt", v) end, Flag = "r_fallamt" })
+    RadStyle:AddLabel("Offscr Trans"):AddSlider({ Min = 0, Max = 100, Default = 30, Type = "%", Size = 95, Callback = function(v) setRadarNumber("OffscreenTransparency", v / 100) end, Flag = "r_offtrn" })
+    RadStyle:AddLabel("Pos X"):AddSlider({ Min = 0, Max = 1000, Default = 170, Callback = setRadarPositionX, Flag = "r_px" })
+    RadStyle:AddLabel("Pos Y"):AddSlider({ Min = 0, Max = 1000, Default = 170, Callback = setRadarPositionY, Flag = "r_py" })
 
     -- GADGETS TAB
     local GadMain = GadgetsTab:AddSection({ Name = "OBJECT ESP", Position = 'left' })
+    
+    GadMain:AddLabel("Master Switch"):AddToggle({ Default = false, Callback = setEspGadgetsEnabled, Flag = "g_mstr" })
     GadMain:AddLabel("Names"):AddToggle({ Default = false, Callback = setEspObjectNamesEnabled, Flag = "g_names" })
     
-    local gadgetKeys = {
-        { key = "Drones", label = "Drones", fn = setEspDroneEnabled },
-        { key = "Claymores", label = "Claymores", fn = setEspClaymoreEnabled },
-    }
-    for _, g in ipairs(gadgetKeys) do
-        local l = GadMain:AddLabel(g.label)
-        l:AddToggle({ Default = false, Callback = g.fn, Flag = "g_" .. g.key })
-    end
+    local drone_lbl = GadMain:AddLabel("Drones")
+    drone_lbl:AddToggle({ Default = false, Callback = setEspDroneEnabled, Flag = "g_Drones" })
+    pcall(function() drone_lbl:AddColorPicker({ Default = Color3.fromRGB(0,255,255), Callback = setEspDroneColor, Flag = "g_d_clr" }) end)
+    local drone_opt = drone_lbl:AddOption()
+    drone_opt:AddLabel("Transparency"):AddSlider({ Min = 0, Max = 100, Default = 50, Type = "%", Size = 95, Callback = function(v) setEspDroneTransparency(v / 100) end, Flag = "g_d_trn" })
+    
+    local clay_lbl = GadMain:AddLabel("Claymores")
+    clay_lbl:AddToggle({ Default = false, Callback = setEspClaymoreEnabled, Flag = "g_Claymores" })
+    pcall(function() clay_lbl:AddColorPicker({ Default = Color3.fromRGB(255,0,0), Callback = setEspClaymoreColor, Flag = "g_c_clr" }) end)
+    local clay_opt = clay_lbl:AddOption()
+    clay_opt:AddLabel("Transparency"):AddSlider({ Min = 0, Max = 100, Default = 50, Type = "%", Size = 95, Callback = function(v) setEspClaymoreTransparency(v / 100) end, Flag = "g_c_trn" })
 
-        -- LOCAL TAB
+    -- LOCAL TAB
     local SkinS = LocalTab:AddSection({ Name = "SKIN CHANGER", Position = 'left' })
-    SkinS:AddLabel("Weapon Skin"):AddDropdown({ Values = { "Default","TidalWaveAK","CherryBlossom","RoyalCAL12","RedLineAW50" }, Default = "Default", Callback = function(v) setAttachmentEditorOption("skin", v) end, Flag = "lc_skin" })
-    
-    local applyLabel = SkinS:AddLabel("Apply Settings")
-    applyLabel:AddToggle({ 
-        Default = false, 
-        Callback = function(v) 
-            if v then 
-                pcall(applyAttachmentEditor) 
-                Notification.new({ Title = "Skin Changer", Content = "Applied successfully!", Duration = 3 })
-            end 
-        end, 
-        Flag = "lc_apply" 
-    })
+    local CharmS = LocalTab:AddSection({ Name = "CHARM", Position = 'right' })
+    local LocalMisc = LocalTab:AddSection({ Name = "MISC", Position = 'left' })
 
-    -- SETTINGS TAB
-    window.UserSettings:AddLabel("Menu Keybind"):AddKeybind({ Default = 'RightShift', Callback = function(v) window.Keybind = v end })
-    
-    local unloadLabel = window.UserSettings:AddLabel("Exit Script")
-    unloadLabel:AddToggle({
-        Default = false,
-        Callback = function(v)
-            if v then
-                -- Manual cleanup logic since this lib might not have a direct Unload method
-                setSilentAim(false)
-                setAutoShoot(false)
-                setEspEnabled(false)
-                window:ToggleInterface()
-                Notification.new({ Title = "ASTRO.WTF", Content = "Unloaded", Duration = 3 })
-            end
+    SkinS:AddLabel("Weapon Skin"):AddDropdown({ 
+        Values = { "Default","TidalWaveAK","CherryBlossom","RoyalCAL12","RedLineAW50" }, 
+        Default = "Default", 
+        Callback = function(v) setAttachmentEditorOption("skin", v) end, 
+        Flag = "lc_skin" 
+    })
+    SkinS:AddLabel("Apply Skin"):AddButton({
+        Icon = 'check',
+        Name = "Apply",
+        Callback = function()
+            pcall(applyAttachmentEditor)
+            Notification.new({ Title = "Skin Changer", Content = "Skin applied!", Duration = 3 })
         end
     })
 
+    CharmS:AddLabel("Charm"):AddDropdown({ 
+        Values = { "Default","Clover","Cherry","Star","Diamond" }, 
+        Default = "Default", 
+        Callback = function(v) setAttachmentEditorOption("charm", v) end, 
+        Flag = "lc_charm" 
+    })
+    CharmS:AddLabel("Apply Charm"):AddButton({
+        Icon = 'check',
+        Name = "Apply",
+        Callback = function()
+            pcall(applyAttachmentEditor)
+            Notification.new({ Title = "Charm", Content = "Charm applied!", Duration = 3 })
+        end
+    })
+
+    LocalMisc:AddLabel("Fix Skins"):AddToggle({ 
+        Default = false, 
+        Callback = function(v) setAttachmentEditorOption("fixSkins", v) end, 
+        Flag = "lc_fix" 
+    })
+
+    -- SETTINGS TAB
+    local SettingsCore = SettingsTab:AddSection({ Name = "GENERAL", Position = 'left' })
+    local SettingsRadar = SettingsTab:AddSection({ Name = "RADAR COLORS", Position = 'right' })
+    local SettingsLighting = SettingsTab:AddSection({ Name = "LIGHTING", Position = 'left' })
+
+    SettingsCore:AddLabel("Menu Keybind"):AddKeybind({ Default = 'RightShift', Callback = function(v) window.Keybind = v end })
+    SettingsCore:AddLabel("Exit Script"):AddButton({
+        Icon = 'x',
+        Name = "Unload",
+        Callback = function()
+            setSilentAim(false)
+            setAutoShoot(false)
+            setEspEnabled(false)
+            window:ToggleInterface()
+            Notification.new({ Title = "ASTRO.WTF", Content = "Unloaded", Duration = 3 })
+        end
+    })
+
+    SettingsRadar:AddLabel("Outline"):AddColorPicker({ Default = Color3.fromRGB(35,35,45), Callback = function(c) setRadarThemeColor("Outline", c) end, Flag = "rt_out" })
+    SettingsRadar:AddLabel("Background"):AddColorPicker({ Default = Color3.fromRGB(25,25,35), Callback = function(c) setRadarThemeColor("Background", c) end, Flag = "rt_bg" })
+    SettingsRadar:AddLabel("Drag Handle"):AddColorPicker({ Default = Color3.fromRGB(50,50,255), Callback = function(c) setRadarThemeColor("DragHandle", c) end, Flag = "rt_drag" })
+    SettingsRadar:AddLabel("Cardinal Lines"):AddColorPicker({ Default = Color3.fromRGB(110,110,120), Callback = function(c) setRadarThemeColor("Cardinal_Lines", c) end, Flag = "rt_card" })
+    SettingsRadar:AddLabel("Dist Lines"):AddColorPicker({ Default = Color3.fromRGB(65,65,75), Callback = function(c) setRadarThemeColor("Distance_Lines", c) end, Flag = "rt_dlin" })
+    SettingsRadar:AddLabel("Generic Marker"):AddColorPicker({ Default = Color3.fromRGB(255,25,115), Callback = function(c) setRadarThemeColor("Generic_Marker", c) end, Flag = "rt_gen" })
+    SettingsRadar:AddLabel("Local Marker"):AddColorPicker({ Default = Color3.fromRGB(115,25,255), Callback = function(c) setRadarThemeColor("Local_Marker", c) end, Flag = "rt_loc" })
+    SettingsRadar:AddLabel("Team Marker"):AddColorPicker({ Default = Color3.fromRGB(25,115,255), Callback = function(c) setRadarThemeColor("Team_Marker", c) end, Flag = "rt_team" })
+    SettingsRadar:AddLabel("Friend Marker"):AddColorPicker({ Default = Color3.fromRGB(25,255,115), Callback = function(c) setRadarThemeColor("Friend_Marker", c) end, Flag = "rt_fri" })
+
+    SettingsLighting:AddLabel("Fog End"):AddSlider({ Min = 1000, Max = 100000, Default = 786543, Callback = function(v) setFullbrightSetting("FogEnd", v) end, Flag = "fb_fog" })
+    SettingsLighting:AddLabel("Global Shadows"):AddToggle({ Default = false, Callback = function(v) setFullbrightSetting("GlobalShadows", v) end, Flag = "fb_shad" })
 
     Notification.new({
         Title = "ASTRO.WTF",
