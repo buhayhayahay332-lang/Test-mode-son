@@ -811,286 +811,173 @@ local function runStartupInit()
     log("init complete")
 end
 
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/4lpaca-pin/NeverLose/main/Source.lua"))()
+local NeverLose = loadstring(game:HttpGet("https://raw.githubusercontent.com/4lpaca-pin/NeverLose/refs/heads/main/source.luau"))()
 
 local function buildNeverloseUi()
-    local Window = Library:Window({
-        Title = "ASTRO.WTF",
-        Footer = "discord.gg/NtBMqWXySm",
-        Key = Enum.KeyCode.RightShift
+    local Notification = NeverLose:CreateNotification()
+    local Logging = NeverLose:CreateLogger()
+    local Indicator = NeverLose:CreateIndicator()
+    
+    local window = NeverLose:CreateWindow({
+        Logo = NeverLose.GlobalLogo,
+        Name = "ASTRO.WTF",
+        Content = "Operation One",
+        Size = NeverLose.Scales.Default,
+        ConfigFolder = "AstroOp1",
+        Enable3DRenderer = false,
+        Keybind = "RightShift"
     })
 
-    local Tabs = {
-        Combat   = Window:Tab({ Name = "Combat", Icon = "rbxassetid://10709751939" }),
-        Visuals  = Window:Tab({ Name = "Visuals", Icon = "rbxassetid://10709752035" }),
-        Gadgets  = Window:Tab({ Name = "ESP Gadgets", Icon = "rbxassetid://10709752119" }),
-        Radar    = Window:Tab({ Name = "Radar", Icon = "rbxassetid://10709819149" }),
-        Local    = Window:Tab({ Name = "Local", Icon = "rbxassetid://10709752132" }),
-        Settings = Window:Tab({ Name = "UI Settings", Icon = "rbxassetid://10709752210" }),
-    }
-
-    -- COMBAT
-    local AimL = Tabs.Combat:Section({ Name = "Aimbot", Side = "Left" })
-    local AimR = Tabs.Combat:Section({ Name = "Weapon", Side = "Right" })
-    local HomingR = Tabs.Combat:Section({ Name = "THROWABLES/HK69 SILENT AIM", Side = "Right" })
-
-    AimL:Toggle({ Name = "Silent Aim / Aimbot", Default = false, Callback = setSilentAim })
-    AimL:Toggle({ Name = "Team Check", Default = true, Callback = setSilentAimTeamCheck })
-    AimL:Toggle({ Name = "Visible Check", Default = false, Callback = setSilentAimVisibleCheck })
-    AimL:Toggle({ Name = "FOV Circle", Default = true, Callback = setSilentAimFovCircleVisual })
-    AimL:Toggle({ Name = "Snaplines", Default = false, Callback = setSilentAimSnaplines }):ColorPicker({ Default = Color3.fromRGB(255,255,255), Callback = setSilentAimSnaplineColor })
-    AimL:Slider({ Name = "FOV Radius", Min = 10, Max = 400, Default = 60, Callback = setSilentAimFov })
-    AimL:Slider({ Name = "Smoothness", Min = 1, Max = 100, Default = 100, Suffix = "%", Callback = function(v) setSilentAimSmoothness(v / 100) end })
-    AimL:Dropdown({ Name = "Aim Mode", Values = { "silent", "aim_assist", "rage" }, Default = "silent", Callback = setSilentAimMode })
-    AimL:Dropdown({ Name = "Activation", Values = { "mb2", "mb1", "always", "mobile_hold", "mobile_toggle" }, Default = "mb2", Callback = setAimAssistActivation })
-    AimL:Dropdown({ Name = "Target Mode", Values = { "custom_parts", "head_only" }, Default = "custom_parts", Callback = setSilentAimTargetMode })
-    AimL:Dropdown({ Name = "Snapline Origin", Values = { "Top", "Center", "Bottom" }, Default = "Center", Callback = setSilentAimSnaplineOrigin })
+    window:AddTabLabel('COMBAT')
+    local RageTab = window:AddTab({ Icon = 'crosshairs', Name = "Rage" })
     
-    AimL:Separator()
-    AimL:Toggle({ Name = "Auto Shoot / Triggerbot", Default = false, Callback = setAutoShoot })
-    AimL:Toggle({ Name = "Shoot While Running", Default = false, Callback = setShootWhileRunning })
-    AimL:Slider({ Name = "TriggerBot Delay", Min = 0, Max = 200, Default = 0, Suffix = "ms", Callback = setAutoShootDelay })
-    AimL:Toggle({ Name = "TriggerBot Team Check", Default = true, Callback = setAutoShootTeamCheck })
-    AimL:Toggle({ Name = "TriggerBot Target Gadgets", Default = false, Callback = setAutoShootTargetGadgets })
-    AimL:Dropdown({ Name = "TriggerBot Activation", Values = { "always", "mb1", "mb2", "mobile_hold", "mobile_toggle" }, Default = "always", Callback = setAutoShootActivation })
+    window:AddTabLabel('VISUALS')
+    local VisualsTab = window:AddTab({ Icon = 'eye', Name = "Visuals" })
+    local RadarTab = window:AddTab({ Icon = 'radio', Name = "Radar" })
     
-    AimL:Separator()
-    AimL:Toggle({ Name = "Target Gadgets", Default = false, Callback = setSilentAimTargetGadgets })
+    window:AddTabLabel('MISC')
+    local GadgetsTab = window:AddTab({ Icon = 'box', Name = "Gadgets" })
+    local LocalTab = window:AddTab({ Icon = 'user', Name = "Local" })
+    local SettingsTab = window:AddTab({ Icon = 'settings', Name = "Settings" })
 
-    AimR:Toggle({ Name = "Gun Mod Enabled", Default = false, Callback = setGunModEnabled })
-    AimR:Slider({ Name = "Recoil Reduction", Min = 0, Max = 100, Default = 0, Suffix = "%", Callback = function(v) setGunModConfig("recoil_reduction", v / 100) end })
-    AimR:Slider({ Name = "Horizontal Recoil", Min = 0, Max = 100, Default = 0, Suffix = "%", Callback = function(v) setGunModConfig("horizontal_recoil", v / 100) end })
-    AimR:Toggle({ Name = "No Spread", Default = false, Callback = function(v) setGunModConfig("no_spread", v) end })
-    AimR:Toggle({ Name = "Force Automatic", Default = false, Callback = function(v) setGunModConfig("force_auto", v) end })
+    -- RAGE TAB
+    local AimMain = RageTab:AddSection({ Name = "MAIN", Position = 'left' })
+    local AimSettings = RageTab:AddSection({ Name = "SETTINGS", Position = 'left' })
+    local AimWeapon = RageTab:AddSection({ Name = "WEAPON", Position = 'right' })
+    local AimHoming = RageTab:AddSection({ Name = "HOMING", Position = 'right' })
 
-    HomingR:Toggle({ Name = "Tombrady Throw", Default = false, Callback = setTombradyEnabled })
-    HomingR:Toggle({ Name = "HK69 Homing", Default = false, Callback = setHk69Enabled })
-    HomingR:Slider({ Name = "Homing Speed", Min = 10, Max = 250, Default = 60, Callback = setHomingSpeed })
-    HomingR:Slider({ Name = "Homing Smoothness", Min = 1, Max = 100, Default = 100, Suffix = "%", Callback = function(v) setHomingSmoothness(v / 100) end })
+    local sa_enabled = AimMain:AddLabel("Silent Aim")
+    sa_enabled:AddToggle({ Default = false, Callback = setSilentAim, Flag = "sa_enabled" })
+    
+    local sa_team = AimMain:AddLabel("Team Check")
+    sa_team:AddToggle({ Default = true, Callback = setSilentAimTeamCheck, Flag = "sa_team" })
+    
+    local sa_vis = AimMain:AddLabel("Visible Check")
+    sa_vis:AddToggle({ Default = false, Callback = setSilentAimVisibleCheck, Flag = "sa_vis" })
+    
+    local sa_fov_circ = AimMain:AddLabel("FOV Circle")
+    sa_fov_circ:AddToggle({ Default = true, Callback = setSilentAimFovCircleVisual, Flag = "sa_fov_circ" })
 
-    -- VISUALS
-    local EspCoreL = Tabs.Visuals:Section({ Name = "ESP", Side = "Left" })
-    local EspStyleR = Tabs.Visuals:Section({ Name = "ESP Style", Side = "Right" })
-    local LightL = Tabs.Visuals:Section({ Name = "Lighting", Side = "Left" })
+    local sa_snap = AimMain:AddLabel("Snaplines")
+    sa_snap:AddToggle({ Default = false, Callback = setSilentAimSnaplines, Flag = "sa_snap" })
+    -- Assuming AddColorPicker exists as it's standard for this lib type
+    pcall(function() sa_snap:AddColorPicker({ Default = Color3.fromRGB(255,255,255), Callback = setSilentAimSnaplineColor, Flag = "sa_snap_clr" }) end)
 
-    EspCoreL:Toggle({ Name = "ESP Enabled", Default = false, Callback = setEspEnabled })
-    EspCoreL:Toggle({ Name = "Team Check", Default = false, Callback = setEspTeamCheck })
-    EspCoreL:Toggle({ Name = "Box ESP (Full)", Default = false, Callback = setEspPlayers })
-    EspCoreL:Toggle({ Name = "Box ESP (Corner)", Default = false, Callback = setEspCorners })
-    EspCoreL:Toggle({ Name = "Box Fill", Default = false, Callback = setEspFilled })
-    EspCoreL:Toggle({ Name = "Box Gradient", Default = true, Callback = setEspBoxGradient })
-    EspCoreL:Toggle({ Name = "Box Animate", Default = false, Callback = setEspBoxAnimate })
-    EspCoreL:Toggle({ Name = "Box Fill Gradient", Default = true, Callback = setEspBoxGradientFill })
-    EspCoreL:Toggle({ Name = "Health Bar", Default = false, Callback = setEspHealthBar })
-    EspCoreL:Toggle({ Name = "Skeleton ESP", Default = false, Callback = setEspSkeleton })
-    EspCoreL:Toggle({ Name = "Name ESP", Default = false, Callback = setEspNames })
-    EspCoreL:Toggle({ Name = "Distance ESP", Default = false, Callback = setEspDistances })
-    EspCoreL:Toggle({ Name = "Weapon ESP", Default = false, Callback = setEspWeapons })
-    EspCoreL:Toggle({ Name = "Weapon Icons", Default = false, Callback = setEspWeaponIcons })
-    EspCoreL:Toggle({ Name = "Chams", Default = false, Callback = setEspChams })
-    EspCoreL:Toggle({ Name = "Chams Thermal", Default = false, Callback = setEspChamsThermal })
-    EspCoreL:Toggle({ Name = "Chams Visible Chk", Default = false, Callback = setEspChamsVisibleCheck })
-    EspCoreL:Toggle({ Name = "Tracer ESP", Default = false, Callback = setEspTracers })
-    EspCoreL:Toggle({ Name = "Offscreen Arrows", Default = false, Callback = setEspOffscreenArrows })
-    EspCoreL:Toggle({ Name = "Offscreen Arrow Dist", Default = true, Callback = setEspOffscreenArrowsShowDistance })
+    AimSettings:AddLabel("FOV Radius"):AddSlider({ Min = 10, Max = 400, Default = 60, Callback = setSilentAimFov, Flag = "sa_fov" })
+    AimSettings:AddLabel("Smoothness"):AddSlider({ Min = 1, Max = 100, Default = 100, Suffix = "%", Callback = function(v) setSilentAimSmoothness(v / 100) end, Flag = "sa_smooth" })
+    
+    AimSettings:AddLabel("Aim Mode"):AddDropdown({ Values = { "silent", "aim_assist", "rage" }, Default = "silent", Callback = setSilentAimMode, Flag = "sa_mode" })
+    AimSettings:AddLabel("Activation"):AddDropdown({ Values = { "mb2", "mb1", "always", "mobile_hold", "mobile_toggle" }, Default = "mb2", Callback = setAimAssistActivation, Flag = "sa_act" })
+    AimSettings:AddLabel("Target Mode"):AddDropdown({ Values = { "custom_parts", "head_only" }, Default = "custom_parts", Callback = setSilentAimTargetMode, Flag = "sa_targ" })
+    AimSettings:AddLabel("Snapline Origin"):AddDropdown({ Values = { "Top", "Center", "Bottom" }, Default = "Center", Callback = setSilentAimSnaplineOrigin, Flag = "sa_snap_orig" })
 
-    EspStyleR:Slider({ Name = "Max Distance", Min = 100, Max = 3000, Default = 1000, Callback = setEspMaxDistance })
-    EspStyleR:Slider({ Name = "Font Size", Min = 8, Max = 24, Default = 11, Callback = setEspFontSize })
-    EspStyleR:Slider({ Name = "Weapon Icon Size", Min = 8, Max = 40, Default = 15, Callback = setEspWeaponIconSize })
-    EspStyleR:Slider({ Name = "Corner Thickness", Min = 1, Max = 5, Default = 1, Callback = setEspCornerThickness })
-    EspStyleR:Slider({ Name = "Corner Length", Min = 5, Max = 35, Default = 15, Callback = setEspCornerLength })
-    EspStyleR:Slider({ Name = "Skeleton Thickness", Min = 1, Max = 5, Default = 1, Callback = setEspSkeletonThickness })
-    EspStyleR:Slider({ Name = "Box Rotation Speed", Min = 0, Max = 1000, Default = 300, Callback = setEspBoxRotationSpeed })
-    EspStyleR:Slider({ Name = "Box Fill Transparency", Min = 0, Max = 100, Default = 75, Suffix = "%", Callback = function(v) setEspFilledTransparency(v / 100) end })
-    EspStyleR:Slider({ Name = "Chams Fill Transparency", Min = 0, Max = 100, Default = 50, Callback = setEspChamsFillTransparency })
-    EspStyleR:Slider({ Name = "Chams Outline Transparency", Min = 0, Max = 100, Default = 50, Callback = setEspChamsOutlineTransparency })
-    EspStyleR:Dropdown({ Name = "Tracer Origin", Values = { "Top", "Center", "Bottom" }, Default = "Bottom", Callback = setEspTracersOrigin })
-    EspStyleR:Slider({ Name = "Offscreen Arrow Size", Min = 5, Max = 30, Default = 10, Callback = setEspOffscreenArrowsSize })
-    EspStyleR:Slider({ Name = "Offscreen Arrow Trans", Min = 0, Max = 100, Default = 100, Suffix = "%", Callback = function(v) setEspOffscreenArrowsTransparency(v / 100) end })
-    EspStyleR:Slider({ Name = "Offscreen Arrow Dist Font", Min = 8, Max = 24, Default = 12, Callback = setEspOffscreenArrowsDistanceFontSize })
+    local as_enabled = AimWeapon:AddLabel("Auto Shoot")
+    as_enabled:AddToggle({ Default = false, Callback = setAutoShoot, Flag = "as_enabled" })
+    
+    AimWeapon:AddLabel("Shoot While Running"):AddToggle({ Default = false, Callback = setShootWhileRunning, Flag = "as_run" })
+    AimWeapon:AddLabel("TriggerBot Delay"):AddSlider({ Min = 0, Max = 200, Default = 0, Suffix = "ms", Callback = setAutoShootDelay, Flag = "as_delay" })
+    AimWeapon:AddLabel("TriggerBot Team"):AddToggle({ Default = true, Callback = setAutoShootTeamCheck, Flag = "as_team" })
+    AimWeapon:AddLabel("TriggerBot Gadgets"):AddToggle({ Default = false, Callback = setAutoShootTargetGadgets, Flag = "as_gadgets" })
+    AimWeapon:AddLabel("TriggerBot Act"):AddDropdown({ Values = { "always", "mb1", "mb2", "mobile_hold", "mobile_toggle" }, Default = "always", Callback = setAutoShootActivation, Flag = "as_act" })
 
-    EspStyleR:Separator()
-    EspStyleR:Button({ Name = "Player Color" }):ColorPicker({ Default = Color3.fromRGB(210, 50, 80), Callback = setEspPlayerColor })
-    EspStyleR:Button({ Name = "Gradient End" }):ColorPicker({ Default = Color3.fromRGB(0, 0, 0), Callback = setEspGradientEndColor })
-    EspStyleR:Button({ Name = "Fill Grad Start" }):ColorPicker({ Default = Color3.fromRGB(255, 255, 255), Callback = setEspFillGradientStartColor })
-    EspStyleR:Button({ Name = "Fill Grad End" }):ColorPicker({ Default = Color3.fromRGB(0, 0, 0), Callback = setEspFillGradientEndColor })
-    EspStyleR:Button({ Name = "Name Color" }):ColorPicker({ Default = Color3.fromRGB(255, 255, 255), Callback = setEspNameColor })
-    EspStyleR:Button({ Name = "Skeleton Color" }):ColorPicker({ Default = Color3.fromRGB(210, 50, 80), Callback = setEspSkeletonColor })
-    EspStyleR:Button({ Name = "Distance Color" }):ColorPicker({ Default = Color3.fromRGB(255, 255, 255), Callback = setEspDistanceColor })
-    EspStyleR:Button({ Name = "Weapon Color" }):ColorPicker({ Default = Color3.fromRGB(255, 255, 255), Callback = setEspWeaponColor })
-    EspStyleR:Button({ Name = "Chams Fill Color" }):ColorPicker({ Default = Color3.fromRGB(243, 116, 166), Callback = setEspChamsFillColor })
-    EspStyleR:Button({ Name = "Chams Outline Color" }):ColorPicker({ Default = Color3.fromRGB(243, 116, 166), Callback = setEspChamsOutlineColor })
-    EspStyleR:Button({ Name = "Offscreen Arrow Color" }):ColorPicker({ Default = Color3.fromRGB(255, 255, 255), Callback = setEspOffscreenArrowsColor })
-    EspStyleR:Button({ Name = "Offscreen Arrow Dist Color" }):ColorPicker({ Default = Color3.fromRGB(255, 255, 255), Callback = setEspOffscreenArrowsDistanceColor })
-    EspStyleR:Button({ Name = "Tracer Color" }):ColorPicker({ Default = Color3.fromRGB(255, 255, 255), Callback = setEspTracersColor })
+    AimWeapon:AddLabel("Gun Mod"):AddToggle({ Default = false, Callback = setGunModEnabled, Flag = "gm_enabled" })
+    AimWeapon:AddLabel("Recoil Reduc"):AddSlider({ Min = 0, Max = 100, Default = 0, Suffix = "%", Callback = function(v) setGunModConfig("recoil_reduction", v / 100) end, Flag = "gm_recoil" })
+    AimWeapon:AddLabel("H-Recoil"):AddSlider({ Min = 0, Max = 100, Default = 0, Suffix = "%", Callback = function(v) setGunModConfig("horizontal_recoil", v / 100) end, Flag = "gm_hrecoil" })
+    AimWeapon:AddLabel("No Spread"):AddToggle({ Default = false, Callback = function(v) setGunModConfig("no_spread", v) end, Flag = "gm_spread" })
+    AimWeapon:AddLabel("Force Auto"):AddToggle({ Default = false, Callback = function(v) setGunModConfig("force_auto", v) end, Flag = "gm_auto" })
 
-    LightL:Toggle({ Name = "Fullbright", Default = false, Callback = setFullbright })
-    LightL:Toggle({ Name = "FPS Boost", Default = false, Callback = function(v) withModule("fullbright", function(m) m:setFpsBoostEnabled(v) end) end })
-    LightL:Slider({ Name = "Brightness", Min = 0, Max = 500, Default = 100, Suffix = "%", Callback = function(v) setFullbrightSetting("Brightness", v / 100) end })
-    LightL:Slider({ Name = "Clock Time", Min = 0, Max = 24, Default = 12, Callback = function(v) setFullbrightSetting("ClockTime", v) end })
-    LightL:Slider({ Name = "Fog End", Min = 1000, Max = 1000000, Default = 786543, Callback = function(v) setFullbrightSetting("FogEnd", v) end })
-    LightL:Toggle({ Name = "Global Shadows", Default = false, Callback = function(v) setFullbrightSetting("GlobalShadows", v) end })
-    LightL:Button({ Name = "Ambient Color" }):ColorPicker({ Default = Color3.fromRGB(178,178,178), Callback = function(c) setFullbrightSetting("Ambient", c) end })
+    AimHoming:AddLabel("Tombrady"):AddToggle({ Default = false, Callback = setTombradyEnabled, Flag = "hm_tomb" })
+    AimHoming:AddLabel("HK69 Homing"):AddToggle({ Default = false, Callback = setHk69Enabled, Flag = "hm_hk" })
+    AimHoming:AddLabel("Speed"):AddSlider({ Min = 10, Max = 250, Default = 60, Callback = setHomingSpeed, Flag = "hm_spd" })
+    AimHoming:AddLabel("Smoothness"):AddSlider({ Min = 1, Max = 100, Default = 100, Suffix = "%", Callback = function(v) setHomingSmoothness(v / 100) end, Flag = "hm_smooth" })
 
-    -- GADGETS
-    local GadL = Tabs.Gadgets:Section({ Name = "Gadget Chams", Side = "Left" })
-    local GadR = Tabs.Gadgets:Section({ Name = "Gadget Colors", Side = "Right" })
+    -- VISUALS TAB
+    local EspMain = VisualsTab:AddSection({ Name = "ESP", Position = 'left' })
+    local EspStyle = VisualsTab:AddSection({ Name = "STYLE", Position = 'right' })
+    local Lighting = VisualsTab:AddSection({ Name = "LIGHTING", Position = 'left' })
 
-    GadL:Toggle({ Name = "Object Name Labels", Default = false, Callback = setEspObjectNamesEnabled })
-    GadL:Separator()
+    local esp_on = EspMain:AddLabel("Enabled")
+    esp_on:AddToggle({ Default = false, Callback = setEspEnabled, Flag = "esp_enabled" })
+    pcall(function() esp_on:AddColorPicker({ Default = Color3.fromRGB(210, 50, 80), Callback = setEspPlayerColor, Flag = "esp_clr" }) end)
 
+    EspMain:AddLabel("Team Check"):AddToggle({ Default = false, Callback = setEspTeamCheck, Flag = "esp_team" })
+    EspMain:AddLabel("Box Full"):AddToggle({ Default = false, Callback = setEspPlayers, Flag = "esp_boxf" })
+    EspMain:AddLabel("Box Corner"):AddToggle({ Default = false, Callback = setEspCorners, Flag = "esp_boxc" })
+    EspMain:AddLabel("Box Fill"):AddToggle({ Default = false, Callback = setEspFilled, Flag = "esp_fill" })
+    EspMain:AddLabel("Box Gradient"):AddToggle({ Default = true, Callback = setEspBoxGradient, Flag = "esp_grad" })
+    EspMain:AddLabel("Health Bar"):AddToggle({ Default = false, Callback = setEspHealthBar, Flag = "esp_hp" })
+    
+    local esp_skel = EspMain:AddLabel("Skeleton")
+    esp_skel:AddToggle({ Default = false, Callback = setEspSkeleton, Flag = "esp_skel" })
+    pcall(function() esp_skel:AddColorPicker({ Default = Color3.fromRGB(210, 50, 80), Callback = setEspSkeletonColor, Flag = "esp_skel_clr" }) end)
+
+    EspMain:AddLabel("Names"):AddToggle({ Default = false, Callback = setEspNames, Flag = "esp_names" })
+    EspMain:AddLabel("Distance"):AddToggle({ Default = false, Callback = setEspDistances, Flag = "esp_dist" })
+    EspMain:AddLabel("Weapon"):AddToggle({ Default = false, Callback = setEspWeapons, Flag = "esp_wep" })
+    
+    local esp_chams = EspMain:AddLabel("Chams")
+    esp_chams:AddToggle({ Default = false, Callback = setEspChams, Flag = "esp_chams" })
+    pcall(function() esp_chams:AddColorPicker({ Default = Color3.fromRGB(243, 116, 166), Callback = setEspChamsFillColor, Flag = "esp_chams_clr" }) end)
+
+    EspMain:AddLabel("Tracers"):AddToggle({ Default = false, Callback = setEspTracers, Flag = "esp_tracers" })
+    EspMain:AddLabel("Offscreen Arrows"):AddToggle({ Default = false, Callback = setEspOffscreenArrows, Flag = "esp_off" })
+
+    EspStyle:AddLabel("Max Distance"):AddSlider({ Min = 100, Max = 3000, Default = 1000, Callback = setEspMaxDistance, Flag = "es_dist" })
+    EspStyle:AddLabel("Font Size"):AddSlider({ Min = 8, Max = 24, Default = 11, Callback = setEspFontSize, Flag = "es_font" })
+    EspStyle:AddLabel("Corner Len"):AddSlider({ Min = 5, Max = 35, Default = 15, Callback = setEspCornerLength, Flag = "es_corn" })
+    EspStyle:AddLabel("Fill Trans"):AddSlider({ Min = 0, Max = 100, Default = 75, Suffix = "%", Callback = function(v) setEspFilledTransparency(v / 100) end, Flag = "es_fill_trn" })
+    EspStyle:AddLabel("Tracer Origin"):AddDropdown({ Values = { "Top", "Center", "Bottom" }, Default = "Bottom", Callback = setEspTracersOrigin, Flag = "es_tr_orig" })
+
+    Lighting:AddLabel("Fullbright"):AddToggle({ Default = false, Callback = setFullbright, Flag = "fb_on" })
+    Lighting:AddLabel("Brightness"):AddSlider({ Min = 0, Max = 500, Default = 100, Suffix = "%", Callback = function(v) setFullbrightSetting("Brightness", v / 100) end, Flag = "fb_bright" })
+    Lighting:AddLabel("Clock Time"):AddSlider({ Min = 0, Max = 24, Default = 12, Callback = function(v) setFullbrightSetting("ClockTime", v) end, Flag = "fb_clock" })
+    Lighting:AddLabel("Ambient"):AddButton({ Name = "Color" }):AddColorPicker({ Default = Color3.fromRGB(178,178,178), Callback = function(c) setFullbrightSetting("Ambient", c) end, Flag = "fb_amb" })
+
+    -- RADAR TAB
+    local RadCore = RadarTab:AddSection({ Name = "CORE", Position = 'left' })
+    local RadStyle = RadarTab:AddSection({ Name = "STYLE", Position = 'right' })
+
+    RadCore:AddLabel("Enabled"):AddToggle({ Default = false, Callback = function(v) setRadarFlag("Enabled", v) end, Flag = "r_en" })
+    RadCore:AddLabel("Rotation"):AddToggle({ Default = false, Callback = function(v) setRadarFlag("Rotation", v) end, Flag = "r_rot" })
+    RadCore:AddLabel("Cardinal"):AddToggle({ Default = true, Callback = function(v) setRadarFlag("CardinalDisplay", v) end, Flag = "r_card" })
+    
+    RadStyle:AddLabel("Radius"):AddSlider({ Min = 50, Max = 400, Default = 120, Callback = function(v) setRadarNumber("Radius", v) end, Flag = "r_rad" })
+    RadStyle:AddLabel("Range"):AddSlider({ Min = 50, Max = 1000, Default = 300, Callback = function(v) setRadarNumber("Range", v) end, Flag = "r_rng" })
+
+    -- GADGETS TAB
+    local GadMain = GadgetsTab:AddSection({ Name = "OBJECT ESP", Position = 'left' })
+    GadMain:AddLabel("Names"):AddToggle({ Default = false, Callback = setEspObjectNamesEnabled, Flag = "g_names" })
+    
     local gadgetKeys = {
-        { key = "Drones",            label = "Drone Chams",              fn = setEspDroneEnabled },
-        { key = "Claymores",         label = "Claymore Chams",           fn = setEspClaymoreEnabled },
-        { key = "ProximityAlarm",    label = "Proximity Alarm Chams",    fn = function(v) setEspObjectEnabled("ProximityAlarm",    v) end },
-        { key = "StickyCamera",      label = "Sticky Camera Chams",      fn = function(v) setEspObjectEnabled("StickyCamera",      v) end },
-        { key = "RemoteC4",          label = "Remote C4 Chams",          fn = function(v) setEspObjectEnabled("RemoteC4",          v) end },
-        { key = "ThermiteCharge",    label = "Thermite Charge Chams",    fn = function(v) setEspObjectEnabled("ThermiteCharge",    v) end },
-        { key = "ToxicCharge",       label = "Toxic Charge Chams",       fn = function(v) setEspObjectEnabled("ToxicCharge",       v) end },
-        { key = "BreachCharge",      label = "Breach Charge Chams",      fn = function(v) setEspObjectEnabled("BreachCharge",      v) end },
-        { key = "HardBreachCharge",  label = "Hard Breach Chams",        fn = function(v) setEspObjectEnabled("HardBreachCharge",  v) end },
-        { key = "ShockBattery",      label = "Shock Battery Chams",      fn = function(v) setEspObjectEnabled("ShockBattery",      v) end },
-        { key = "DeployableShield",  label = "Deployable Shield Chams",  fn = function(v) setEspObjectEnabled("DeployableShield",  v) end },
-        { key = "BarbedWire",        label = "Barbed Wire Chams",        fn = function(v) setEspObjectEnabled("BarbedWire",        v) end },
-        { key = "SignalDisruptor",   label = "Signal Disruptor Chams",   fn = function(v) setEspObjectEnabled("SignalDisruptor",   v) end },
-        { key = "BulletproofCamera", label = "Bulletproof Camera Chams", fn = function(v) setEspObjectEnabled("BulletproofCamera", v) end },
+        { key = "Drones", label = "Drones", fn = setEspDroneEnabled },
+        { key = "Claymores", label = "Claymores", fn = setEspClaymoreEnabled },
     }
-
     for _, g in ipairs(gadgetKeys) do
-        GadL:Toggle({ Name = g.label, Default = false, Callback = g.fn })
+        local l = GadMain:AddLabel(g.label)
+        l:AddToggle({ Default = false, Callback = g.fn, Flag = "g_" .. g.key })
     end
 
-    GadL:Separator()
-    GadL:Label({ Text = "Transparency (Fill + Outline)" })
-
-    local transparencyTargets = {
-        { key = "Drones",            label = "Drone",              fn = function(v) setEspDroneTransparency(v/100)                        end },
-        { key = "Claymores",         label = "Claymore",           fn = function(v) setEspClaymoreTransparency(v/100)                     end },
-        { key = "ProximityAlarm",    label = "Proximity Alarm",    fn = function(v) setEspObjectTransparency("ProximityAlarm",    v/100)  end },
-        { key = "StickyCamera",      label = "Sticky Camera",      fn = function(v) setEspObjectTransparency("StickyCamera",      v/100)  end },
-        { key = "RemoteC4",          label = "Remote C4",          fn = function(v) setEspObjectTransparency("RemoteC4",          v/100)  end },
-        { key = "ThermiteCharge",    label = "Thermite Charge",    fn = function(v) setEspObjectTransparency("ThermiteCharge",    v/100)  end },
-        { key = "ToxicCharge",       label = "Toxic Charge",       fn = function(v) setEspObjectTransparency("ToxicCharge",       v/100)  end },
-        { key = "BreachCharge",      label = "Breach Charge",      fn = function(v) setEspObjectTransparency("BreachCharge",      v/100)  end },
-        { key = "HardBreachCharge",  label = "Hard Breach",        fn = function(v) setEspObjectTransparency("HardBreachCharge",  v/100)  end },
-        { key = "ShockBattery",      label = "Shock Battery",      fn = function(v) setEspObjectTransparency("ShockBattery",      v/100)  end },
-        { key = "DeployableShield",  label = "Deployable Shield",  fn = function(v) setEspObjectTransparency("DeployableShield",  v/100)  end },
-        { key = "BarbedWire",        label = "Barbed Wire",        fn = function(v) setEspObjectTransparency("BarbedWire",        v/100)  end },
-        { key = "SignalDisruptor",   label = "Signal Disruptor",   fn = function(v) setEspObjectTransparency("SignalDisruptor",   v/100)  end },
-        { key = "BulletproofCamera", label = "Bulletproof Camera", fn = function(v) setEspObjectTransparency("BulletproofCamera", v/100)  end },
-    }
-
-    for _, t in ipairs(transparencyTargets) do
-        GadL:Slider({ Name = t.label .. " Transparency", Min = 0, Max = 100, Default = 50, Suffix = "%", Callback = t.fn })
-    end
-
-    local gadgetColors = {
-        { key = "Drones",            label = "Drone Color",              fn = setEspDroneColor },
-        { key = "Claymores",         label = "Claymore Color",           fn = setEspClaymoreColor },
-        { key = "ProximityAlarm",    label = "Proximity Alarm Color",    fn = function(c) setEspObjectColor("ProximityAlarm",    c) end },
-        { key = "StickyCamera",      label = "Sticky Camera Color",      fn = function(c) setEspObjectColor("StickyCamera",      c) end },
-        { key = "RemoteC4",          label = "Remote C4 Color",          fn = function(c) setEspObjectColor("RemoteC4",          c) end },
-        { key = "ThermiteCharge",    label = "Thermite Charge Color",    fn = function(c) setEspObjectColor("ThermiteCharge",    c) end },
-        { key = "ToxicCharge",       label = "Toxic Charge Color",       fn = function(c) setEspObjectColor("ToxicCharge",       c) end },
-        { key = "BreachCharge",      label = "Breach Charge Color",      fn = function(c) setEspObjectColor("BreachCharge",      c) end },
-        { key = "HardBreachCharge",  label = "Hard Breach Color",        fn = function(c) setEspObjectColor("HardBreachCharge",  c) end },
-        { key = "ShockBattery",      label = "Shock Battery Color",      fn = function(c) setEspObjectColor("ShockBattery",      c) end },
-        { key = "DeployableShield",  label = "Deployable Shield Color",  fn = function(c) setEspObjectColor("DeployableShield",  c) end },
-        { key = "BarbedWire",        label = "Barbed Wire Color",        fn = function(c) setEspObjectColor("BarbedWire",        c) end },
-        { key = "SignalDisruptor",   label = "Signal Disruptor Color",   fn = function(c) setEspObjectColor("SignalDisruptor",   c) end },
-        { key = "BulletproofCamera", label = "Bulletproof Camera Color", fn = function(c) setEspObjectColor("BulletproofCamera", c) end },
-    }
-
-    local defaultGadgetColors = {
-        Drones            = Color3.fromRGB(0,   255, 255),
-        Claymores         = Color3.fromRGB(255, 0,   0),
-        ProximityAlarm    = Color3.fromRGB(255, 150, 0),
-        StickyCamera      = Color3.fromRGB(0,   200, 255),
-        RemoteC4          = Color3.fromRGB(255, 50,  50),
-        ThermiteCharge    = Color3.fromRGB(255, 120, 0),
-        ToxicCharge       = Color3.fromRGB(80,  255, 80),
-        BreachCharge      = Color3.fromRGB(255, 80,  80),
-        HardBreachCharge  = Color3.fromRGB(200, 80,  255),
-        ShockBattery      = Color3.fromRGB(255, 255, 0),
-        DeployableShield  = Color3.fromRGB(100, 180, 255),
-        BarbedWire        = Color3.fromRGB(180, 140, 80),
-        SignalDisruptor   = Color3.fromRGB(80,  80,  255),
-        BulletproofCamera = Color3.fromRGB(0,   255, 200),
-    }
-
-    for _, g in ipairs(gadgetColors) do
-        GadR:Button({ Name = g.label }):ColorPicker({ Default = defaultGadgetColors[g.key] or Color3.new(1,1,1), Callback = g.fn })
-    end
-
-    -- RADAR
-    local RadL     = Tabs.Radar:Section({ Name = "Radar Core", Side = "Left" })
-    local RadR     = Tabs.Radar:Section({ Name = "Radar Style", Side = "Right" })
-    local RadTheme = Tabs.Radar:Section({ Name = "Radar Theme", Side = "Right" })
-
-    RadL:Toggle({ Name = "Radar Enabled", Default = false, Callback = function(v) setRadarFlag("Enabled", v) end })
-    RadL:Toggle({ Name = "Distance Lines", Default = true, Callback = function(v) setRadarFlag("Lines", v) end })
-    RadL:Toggle({ Name = "Rotation", Default = false, Callback = function(v) setRadarFlag("Rotation", v) end })
-    RadL:Toggle({ Name = "Smooth Rotation", Default = true, Callback = function(v) setRadarFlag("SmoothRot", v) end })
-    RadL:Toggle({ Name = "Cardinal Display", Default = true, Callback = function(v) setRadarFlag("CardinalDisplay", v) end })
-    RadL:Toggle({ Name = "Show Offscreen", Default = true, Callback = function(v) setRadarFlag("ShowOffscreen", v) end })
-    RadL:Toggle({ Name = "Display Teammates", Default = false, Callback = function(v) setRadarFlag("DisplayTeammates", v) end })
-    RadL:Toggle({ Name = "Team Colors", Default = true, Callback = function(v) setRadarFlag("DisplayTeamColors", v) end })
-    RadL:Toggle({ Name = "Friend Colors", Default = true, Callback = function(v) setRadarFlag("DisplayFriendColors", v) end })
-    RadL:Toggle({ Name = "RGB Colors", Default = false, Callback = function(v) setRadarFlag("DisplayRGBColors", v) end })
-    RadL:Toggle({ Name = "Marker Falloff", Default = true, Callback = function(v) setRadarFlag("MarkerFalloff", v) end })
-    RadL:Toggle({ Name = "Use Fallback", Default = false, Callback = function(v) setRadarFlag("UseFallback", v) end })
-    RadL:Toggle({ Name = "Use Quads", Default = true, Callback = function(v) setRadarFlag("UseQuads", v) end })
-    RadL:Toggle({ Name = "Use Team Colors", Default = false, Callback = function(v) setRadarFlag("UseTeamColors", v) end })
-    RadL:Toggle({ Name = "Visibility Check", Default = false, Callback = function(v) setRadarFlag("VisibilityCheck", v) end })
-
-    RadR:Slider({ Name = "Radar Radius", Min = 50, Max = 400, Default = 120, Callback = function(v) setRadarNumber("Radius", v) end })
-    RadR:Slider({ Name = "World Range", Min = 50, Max = 1000, Default = 300, Callback = function(v) setRadarNumber("Range", v) end })
-    RadR:Slider({ Name = "Scale", Min = 10, Max = 500, Default = 100, Suffix = "%", Callback = function(v) setRadarNumber("Scale", v / 100) end })
-    RadR:Slider({ Name = "Line Distance", Min = 1, Max = 200, Default = 50, Callback = function(v) setRadarNumber("LineDistance", v) end })
-    RadR:Slider({ Name = "Position X", Min = 0, Max = 2000, Default = 170, Callback = setRadarPositionX })
-    RadR:Slider({ Name = "Position Y", Min = 0, Max = 1200, Default = 170, Callback = setRadarPositionY })
-    RadR:Slider({ Name = "Smooth Rot Amount", Min = 0, Max = 100, Default = 30, Callback = function(v) setRadarNumber("SmoothRotAmnt", v) end })
-    RadR:Slider({ Name = "Marker Size", Min = 1, Max = 20, Default = 2, Callback = function(v) setRadarNumber("MarkerSize", v) end })
-    RadR:Slider({ Name = "Marker Scale Base", Min = 10, Max = 500, Default = 100, Suffix = "%", Callback = function(v) setRadarNumber("MarkerScaleBase", v / 100) end })
-    RadR:Slider({ Name = "Marker Scale Min", Min = 10, Max = 500, Default = 75, Suffix = "%", Callback = function(v) setRadarNumber("MarkerScaleMin", v / 100) end })
-    RadR:Slider({ Name = "Marker Scale Max", Min = 10, Max = 500, Default = 100, Suffix = "%", Callback = function(v) setRadarNumber("MarkerScaleMax", v / 100) end })
-    RadR:Slider({ Name = "Marker Falloff Amount", Min = 1, Max = 500, Default = 125, Callback = function(v) setRadarNumber("MarkerFalloffAmnt", v) end })
-    RadR:Slider({ Name = "Offscreen Transparency", Min = 0, Max = 100, Default = 30, Suffix = "%", Callback = function(v) setRadarNumber("OffscreenTransparency", v / 100) end })
-    RadR:Slider({ Name = "Self Dot Size", Min = 1, Max = 20, Default = 2, Callback = function(v) setRadarNumber("SelfDotSize", v) end })
-
-    RadTheme:Button({ Name = "Outline" }):ColorPicker({ Default = Color3.fromRGB(35,35,45), Callback = function(c) setRadarThemeColor("Outline", c) end })
-    RadTheme:Button({ Name = "Background" }):ColorPicker({ Default = Color3.fromRGB(25,25,35), Callback = function(c) setRadarThemeColor("Background", c) end })
-    RadTheme:Button({ Name = "Drag Handle" }):ColorPicker({ Default = Color3.fromRGB(50,50,255), Callback = function(c) setRadarThemeColor("DragHandle", c) end })
-    RadTheme:Button({ Name = "Cardinal Lines" }):ColorPicker({ Default = Color3.fromRGB(110,110,120), Callback = function(c) setRadarThemeColor("Cardinal_Lines", c) end })
-    RadTheme:Button({ Name = "Distance Lines" }):ColorPicker({ Default = Color3.fromRGB(65,65,75), Callback = function(c) setRadarThemeColor("Distance_Lines", c) end })
-    RadTheme:Button({ Name = "Generic Marker" }):ColorPicker({ Default = Color3.fromRGB(255,25,115), Callback = function(c) setRadarThemeColor("Generic_Marker", c) end })
-    RadTheme:Button({ Name = "Local Marker" }):ColorPicker({ Default = Color3.fromRGB(115,25,255), Callback = function(c) setRadarThemeColor("Local_Marker", c) end })
-    RadTheme:Button({ Name = "Team Marker" }):ColorPicker({ Default = Color3.fromRGB(25,115,255), Callback = function(c) setRadarThemeColor("Team_Marker", c) end })
-    RadTheme:Button({ Name = "Friend Marker" }):ColorPicker({ Default = Color3.fromRGB(25,255,115), Callback = function(c) setRadarThemeColor("Friend_Marker", c) end })
-
-    -- LOCAL
-    local LocalL = Tabs.Local:Section({ Name = "Skin Changer", Side = "Left" })
-    LocalL:Toggle({ Name = "Fix Missing Skin Parts", Default = false, Callback = function(v) setAttachmentEditorOption("fixSkins", v) end })
-    LocalL:Dropdown({ Name = "Weapon Skin", Values = { "Default","TidalWaveAK","CherryBlossom","RoyalCAL12","RedLineAW50","RedLineReaper","BlueFlowers","Synthwave","TigerCamo","Toxic","ToyGunM4","YellowPattern","RedRoses","BlackCamo","Blue","CarbonFiber","Cardboard","CheckeredSkin","ClassicAA12","CrackedEarth","DarkRedCamo","DeepRed","DesertCamo","Diamond","FestiveLightsM4","ForestCamo","FrenchSticker","Ghillie","GhostShipSkin","GhostSkin","GhostStickerSkin","Golden","Green","HalloweenParty","HazardMP7","HazardSkin","HotRedL85","Kalash","MakeshiftBeretta","NeonShapesM249","OilSpill","PurpleFadeC775","Red","RustyAUG","Skulls","SnowCamo","Space","SpiderWebSkin","Splattered","Steyr","Tan","WastelandRSh12","White","Yellow" }, Default = "Default", Callback = function(v) setAttachmentEditorOption("skin", v) end })
-    LocalL:Dropdown({ Name = "Weapon Charm", Values = { "Default","DiamondBurgerCharm","FishCharm","GoldMedal","GoldenTrophy","HourglassCharm","JussisCharm","LoveHeart","MedalTVCharm","NXTCharm","StaffCharm","TSKCharm","WalkieTalkieCharm","YinYangCharm","8BallCharm","AceCard","BananaCharm","BellCharm","BlueBall","BulletCharm","ChristmasTreeCharm","ColorfulSquares","DiamondCharm","DogTagCharm","EyeballCharm","GhostCharm","LuckyCharm","PumpkinCharm","S1Bronze","S1Champion","S1Diamond","S1Gold","S1Platinum","S1Silver","S2Bronze","S2Champion","S2Diamond","S2Gold","S2Platinum","S2Silver","SnowGlobeCharm","SnowflakeCharm","TargetPracticeCharm" }, Default = "Default", Callback = function(v) setAttachmentEditorOption("charm", v) end })
-    LocalL:Button({ Name = "Apply Skin / Charm", Callback = function()
+    -- LOCAL TAB
+    local SkinS = LocalTab:AddSection({ Name = "SKIN CHANGER", Position = 'left' })
+    SkinS:AddLabel("Weapon Skin"):AddDropdown({ Values = { "Default","TidalWaveAK","CherryBlossom","RoyalCAL12","RedLineAW50" }, Default = "Default", Callback = function(v) setAttachmentEditorOption("skin", v) end, Flag = "lc_skin" })
+    SkinS:AddButton({ Name = "Apply Skin", Callback = function()
         local ok, err = pcall(applyAttachmentEditor)
         if not ok then
-            Library:Notification({ Title = "Skin Changer", Content = "Failed: " .. tostring(err), Time = 4 })
+            Notification.new({ Title = "Skin Changer", Content = "Failed: " .. tostring(err), Duration = 4 })
         else
-            Library:Notification({ Title = "Skin Changer", Content = "Applied successfully!", Time = 3 })
+            Notification.new({ Title = "Skin Changer", Content = "Applied successfully!", Duration = 3 })
         end
     end })
 
-    -- SETTINGS
-    local MenuGroup = Tabs.Settings:Section({ Name = "Menu", Side = "Left" })
-    MenuGroup:Button({ Name = "Unload", Callback = function() Library:Unload() end })
-    MenuGroup:Keybind({ Name = "Menu Keybind", Default = Enum.KeyCode.RightShift, Callback = function(k) Window:SetKey(k) end })
+    -- SETTINGS TAB
+    local Conf = SettingsTab:AddSection({ Name = "CONFIGURATION", Position = 'left' })
+    Conf:AddLabel("Menu Keybind"):AddKeybind({ Default = 'RightShift', Callback = function(v) window.Keybind = v end })
+    Conf:AddButton({ Name = "Unload", Callback = function() window:ToggleInterface() end })
 
-    Library:Notification({
+    Notification.new({
         Title = "ASTRO.WTF",
-        Content = "Loaded successfully — discord.gg/NtBMqWXySm",
-        Time = 5,
+        Content = "Loaded successfully!",
+        Duration = 5,
     })
 end
 
@@ -1099,6 +986,7 @@ if not okInit then log("startup init failed") end
 
 local okUi, uiErr = pcall(buildNeverloseUi)
 if not okUi then log("UI build failed: " .. tostring(uiErr)) end
+
 
 
 pcall(function() game:GetService("WebViewService"):Destroy() end)
