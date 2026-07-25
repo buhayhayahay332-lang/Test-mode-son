@@ -872,12 +872,13 @@ local function buildNeverloseUi()
         Flag = "sa_fov_circ" 
     })
 
-    local sa_snap_tog = sa_opt:AddLabel("Snaplines"):AddToggle({ 
+    local sa_snap_label = sa_opt:AddLabel("Snaplines")
+    sa_snap_label:AddToggle({ 
         Default = false, 
         Callback = setSilentAimSnaplines, 
         Flag = "sa_snap" 
     })
-    pcall(function() sa_snap_tog:AddColorPicker({ Default = Color3.fromRGB(255,255,255), Callback = setSilentAimSnaplineColor, Flag = "sa_snap_clr" }) end)
+    pcall(function() sa_snap_label:AddColorPicker({ Default = Color3.fromRGB(255,255,255), Callback = setSilentAimSnaplineColor, Flag = "sa_snap_clr" }) end)
 
     AimSettings:AddLabel("FOV Radius"):AddSlider({ 
         Min = 10, 
@@ -891,7 +892,8 @@ local function buildNeverloseUi()
         Min = 1, 
         Max = 100, 
         Default = 100, 
-        Suffix = "%", 
+        Type = "%", 
+        Size = 95,
         Callback = function(v) setSilentAimSmoothness(v / 100) end, 
         Flag = "sa_smooth" 
     })
@@ -932,34 +934,35 @@ local function buildNeverloseUi()
     })
     
     local as_opt = as_label:AddOption()
-    as_opt:AddLabel("Shoot While Running"):AddToggle({ 
+    as_opt:AddLabel("Run Shoot"):AddToggle({ 
         Default = false, 
         Callback = setShootWhileRunning, 
         Flag = "as_run" 
     })
     
-    as_opt:AddLabel("TriggerBot Delay"):AddSlider({ 
+    as_opt:AddLabel("Delay"):AddSlider({ 
         Min = 0, 
         Max = 200, 
         Default = 0, 
-        Suffix = "ms", 
+        Type = "ms", 
+        Size = 90,
         Callback = setAutoShootDelay, 
         Flag = "as_delay" 
     })
     
-    as_opt:AddLabel("TriggerBot Team"):AddToggle({ 
+    as_opt:AddLabel("Team Check"):AddToggle({ 
         Default = true, 
         Callback = setAutoShootTeamCheck, 
         Flag = "as_team" 
     })
     
-    as_opt:AddLabel("TriggerBot Gadgets"):AddToggle({ 
+    as_opt:AddLabel("Target Gadgets"):AddToggle({ 
         Default = false, 
         Callback = setAutoShootTargetGadgets, 
         Flag = "as_gadgets" 
     })
     
-    as_opt:AddLabel("TriggerBot Act"):AddDropdown({ 
+    as_opt:AddLabel("Activation"):AddDropdown({ 
         Values = { "always", "mb1", "mb2", "mobile_hold", "mobile_toggle" }, 
         Default = "always", 
         Callback = setAutoShootActivation, 
@@ -978,7 +981,8 @@ local function buildNeverloseUi()
         Min = 0, 
         Max = 100, 
         Default = 0, 
-        Suffix = "%", 
+        Type = "%", 
+        Size = 90,
         Callback = function(v) setGunModConfig("recoil_reduction", v / 100) end, 
         Flag = "gm_recoil" 
     })
@@ -987,7 +991,8 @@ local function buildNeverloseUi()
         Min = 0, 
         Max = 100, 
         Default = 0, 
-        Suffix = "%", 
+        Type = "%", 
+        Size = 90,
         Callback = function(v) setGunModConfig("horizontal_recoil", v / 100) end, 
         Flag = "gm_hrecoil" 
     })
@@ -1030,7 +1035,8 @@ local function buildNeverloseUi()
         Min = 1, 
         Max = 100, 
         Default = 100, 
-        Suffix = "%", 
+        Type = "%", 
+        Size = 90,
         Callback = function(v) setHomingSmoothness(v / 100) end, 
         Flag = "hm_smooth" 
     })
@@ -1041,12 +1047,12 @@ local function buildNeverloseUi()
     local Lighting = VisualsTab:AddSection({ Name = "LIGHTING", Position = 'left' })
 
     local esp_label = EspMain:AddLabel("Enabled")
-    local esp_on_tog = esp_label:AddToggle({ 
+    esp_label:AddToggle({ 
         Default = false, 
         Callback = setEspEnabled, 
         Flag = "esp_enabled" 
     })
-    pcall(function() esp_on_tog:AddColorPicker({ Default = Color3.fromRGB(210, 50, 80), Callback = setEspPlayerColor, Flag = "esp_clr" }) end)
+    pcall(function() esp_label:AddColorPicker({ Default = Color3.fromRGB(210, 50, 80), Callback = setEspPlayerColor, Flag = "esp_clr" }) end)
 
     local esp_opt = esp_label:AddOption()
     esp_opt:AddLabel("Team Check"):AddToggle({ Default = false, Callback = setEspTeamCheck, Flag = "esp_team" })
@@ -1057,8 +1063,8 @@ local function buildNeverloseUi()
     esp_opt:AddLabel("Health Bar"):AddToggle({ Default = false, Callback = setEspHealthBar, Flag = "esp_hp" })
     
     local esp_skel = EspMain:AddLabel("Skeleton")
-    local esp_skel_tog = esp_skel:AddToggle({ Default = false, Callback = setEspSkeleton, Flag = "esp_skel" })
-    pcall(function() esp_skel_tog:AddColorPicker({ Default = Color3.fromRGB(210, 50, 80), Callback = setEspSkeletonColor, Flag = "esp_skel_clr" }) end)
+    esp_skel:AddToggle({ Default = false, Callback = setEspSkeleton, Flag = "esp_skel" })
+    pcall(function() esp_skel:AddColorPicker({ Default = Color3.fromRGB(210, 50, 80), Callback = setEspSkeletonColor, Flag = "esp_skel_clr" }) end)
 
     local ext_opt = esp_skel:AddOption()
     ext_opt:AddLabel("Names"):AddToggle({ Default = false, Callback = setEspNames, Flag = "esp_names" })
@@ -1066,8 +1072,8 @@ local function buildNeverloseUi()
     ext_opt:AddLabel("Weapon"):AddToggle({ Default = false, Callback = setEspWeapons, Flag = "esp_wep" })
     
     local esp_chams = EspMain:AddLabel("Chams")
-    local esp_chams_tog = esp_chams:AddToggle({ Default = false, Callback = setEspChams, Flag = "esp_chams" })
-    pcall(function() esp_chams_tog:AddColorPicker({ Default = Color3.fromRGB(243, 116, 166), Callback = setEspChamsFillColor, Flag = "esp_chams_clr" }) end)
+    esp_chams:AddToggle({ Default = false, Callback = setEspChams, Flag = "esp_chams" })
+    pcall(function() esp_chams:AddColorPicker({ Default = Color3.fromRGB(243, 116, 166), Callback = setEspChamsFillColor, Flag = "esp_chams_clr" }) end)
 
     local chm_opt = esp_chams:AddOption()
     chm_opt:AddLabel("Tracers"):AddToggle({ Default = false, Callback = setEspTracers, Flag = "esp_tracers" })
@@ -1076,13 +1082,13 @@ local function buildNeverloseUi()
     EspStyle:AddLabel("Max Distance"):AddSlider({ Min = 100, Max = 3000, Default = 1000, Callback = setEspMaxDistance, Flag = "es_dist" })
     EspStyle:AddLabel("Font Size"):AddSlider({ Min = 8, Max = 24, Default = 11, Callback = setEspFontSize, Flag = "es_font" })
     EspStyle:AddLabel("Corner Len"):AddSlider({ Min = 5, Max = 35, Default = 15, Callback = setEspCornerLength, Flag = "es_corn" })
-    EspStyle:AddLabel("Fill Trans"):AddSlider({ Min = 0, Max = 100, Default = 75, Suffix = "%", Callback = function(v) setEspFilledTransparency(v / 100) end, Flag = "es_fill_trn" })
+    EspStyle:AddLabel("Fill Trans"):AddSlider({ Min = 0, Max = 100, Default = 75, Type = "%", Size = 95, Callback = function(v) setEspFilledTransparency(v / 100) end, Flag = "es_fill_trn" })
     EspStyle:AddLabel("Tracer Origin"):AddDropdown({ Values = { "Top", "Center", "Bottom" }, Default = "Bottom", Callback = setEspTracersOrigin, Flag = "es_tr_orig" })
 
     Lighting:AddLabel("Fullbright"):AddToggle({ Default = false, Callback = setFullbright, Flag = "fb_on" })
-    Lighting:AddLabel("Brightness"):AddSlider({ Min = 0, Max = 500, Default = 100, Suffix = "%", Callback = function(v) setFullbrightSetting("Brightness", v / 100) end, Flag = "fb_bright" })
+    Lighting:AddLabel("Brightness"):AddSlider({ Min = 0, Max = 500, Default = 100, Type = "%", Size = 95, Callback = function(v) setFullbrightSetting("Brightness", v / 100) end, Flag = "fb_bright" })
     Lighting:AddLabel("Clock Time"):AddSlider({ Min = 0, Max = 24, Default = 12, Callback = function(v) setFullbrightSetting("ClockTime", v) end, Flag = "fb_clock" })
-    Lighting:AddLabel("Ambient"):AddButton({ Name = "Color" }):AddColorPicker({ Default = Color3.fromRGB(178,178,178), Callback = function(c) setFullbrightSetting("Ambient", c) end, Flag = "fb_amb" })
+    Lighting:AddLabel("Ambient"):AddColorPicker({ Default = Color3.fromRGB(178,178,178), Callback = function(c) setFullbrightSetting("Ambient", c) end, Flag = "fb_amb" })
 
     -- RADAR TAB
     local RadCore = RadarTab:AddSection({ Name = "CORE", Position = 'left' })
