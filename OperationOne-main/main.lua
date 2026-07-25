@@ -811,9 +811,10 @@ local function runStartupInit()
     log("init complete")
 end
 
-local NeverLose = loadstring(game:HttpGet("https://raw.githubusercontent.com/4lpaca-pin/NeverLose/refs/heads/main/source.luau"))()
 
 local function buildNeverloseUi()
+    local NeverLose = loadstring(game:HttpGet("https://raw.githubusercontent.com/4lpaca-pin/NeverLose/refs/heads/main/source.luau"))()
+    
     local Notification = NeverLose:CreateNotification()
     local Logging = NeverLose:CreateLogger()
     local Indicator = NeverLose:CreateIndicator()
@@ -838,239 +839,80 @@ local function buildNeverloseUi()
     window:AddTabLabel('MISC')
     local GadgetsTab = window:AddTab({ Icon = 'box', Name = "Gadgets" })
     local LocalTab = window:AddTab({ Icon = 'user', Name = "Local" })
-    local SettingsTab = window:AddTab({ Icon = 'settings', Name = "Settings" })
 
-    -- RAGE TAB
+    -- COMBAT / RAGE TAB
     local AimMain = RageTab:AddSection({ Name = "MAIN" })
     local AimSettings = RageTab:AddSection({ Name = "SETTINGS", Position = 'left' })
     local AimWeapon = RageTab:AddSection({ Name = "WEAPON", Position = 'right' })
     local AimHoming = RageTab:AddSection({ Name = "HOMING", Position = 'right' })
 
     local sa_label = AimMain:AddLabel("Silent Aim")
-    sa_label:AddToggle({ 
-        Default = false, 
-        Callback = setSilentAim, 
-        Flag = "sa_enabled" 
-    })
+    sa_label:AddToggle({ Default = false, Callback = setSilentAim, Flag = "sa_enabled" })
     
     local sa_opt = sa_label:AddOption()
-    sa_opt:AddLabel("Team Check"):AddToggle({ 
-        Default = true, 
-        Callback = setSilentAimTeamCheck, 
-        Flag = "sa_team" 
-    })
-    
-    sa_opt:AddLabel("Visible Check"):AddToggle({ 
-        Default = false, 
-        Callback = setSilentAimVisibleCheck, 
-        Flag = "sa_vis" 
-    })
-    
-    sa_opt:AddLabel("Target Gadgets"):AddToggle({ 
-        Default = false, 
-        Callback = setSilentAimTargetGadgets, 
-        Flag = "sa_targ_gad" 
-    })
-    
-    sa_opt:AddLabel("FOV Circle"):AddToggle({ 
-        Default = true, 
-        Callback = setSilentAimFovCircleVisual, 
-        Flag = "sa_fov_circ" 
-    })
+    sa_opt:AddLabel("Team Check"):AddToggle({ Default = true, Callback = setSilentAimTeamCheck, Flag = "sa_team" })
+    sa_opt:AddLabel("Visible Check"):AddToggle({ Default = false, Callback = setSilentAimVisibleCheck, Flag = "sa_vis" })
+    sa_opt:AddLabel("Target Gadgets"):AddToggle({ Default = false, Callback = setSilentAimTargetGadgets, Flag = "sa_targ_gad" })
+    sa_opt:AddLabel("FOV Circle"):AddToggle({ Default = true, Callback = setSilentAimFovCircleVisual, Flag = "sa_fov_circ" })
 
-    local sa_snap_label = sa_opt:AddLabel("Snaplines")
-    sa_snap_label:AddToggle({ 
-        Default = false, 
-        Callback = setSilentAimSnaplines, 
-        Flag = "sa_snap" 
-    })
-    pcall(function() sa_snap_label:AddColorPicker({ Default = Color3.fromRGB(255,255,255), Callback = setSilentAimSnaplineColor, Flag = "sa_snap_clr" }) end)
+    local sa_snap = sa_opt:AddLabel("Snaplines")
+    sa_snap:AddToggle({ Default = false, Callback = setSilentAimSnaplines, Flag = "sa_snap" })
+    pcall(function() sa_snap:AddColorPicker({ Default = Color3.fromRGB(255,255,255), Callback = setSilentAimSnaplineColor, Flag = "sa_snap_clr" }) end)
 
-    AimSettings:AddLabel("FOV Radius"):AddSlider({ 
-        Min = 10, 
-        Max = 400, 
-        Default = 60, 
-        Callback = setSilentAimFov, 
-        Flag = "sa_fov" 
-    })
-
-    AimSettings:AddLabel("Smoothness"):AddSlider({ 
-        Min = 1, 
-        Max = 100, 
-        Default = 100, 
-        Type = "%", 
-        Size = 95,
-        Callback = function(v) setSilentAimSmoothness(v / 100) end, 
-        Flag = "sa_smooth" 
-    })
-    
-    AimSettings:AddLabel("Aim Mode"):AddDropdown({ 
-        Values = { "silent", "aim_assist", "rage" }, 
-        Default = "silent", 
-        Callback = setSilentAimMode, 
-        Flag = "sa_mode" 
-    })
-
-    AimSettings:AddLabel("Activation"):AddDropdown({ 
-        Values = { "mb2", "mb1", "always", "mobile_hold", "mobile_toggle" }, 
-        Default = "mb2", 
-        Callback = setAimAssistActivation, 
-        Flag = "sa_act" 
-    })
-
-    AimSettings:AddLabel("Target Mode"):AddDropdown({ 
-        Values = { "custom_parts", "head_only" }, 
-        Default = "custom_parts", 
-        Callback = setSilentAimTargetMode, 
-        Flag = "sa_targ" 
-    })
-
-    AimSettings:AddLabel("Snapline Origin"):AddDropdown({ 
-        Values = { "Top", "Center", "Bottom" }, 
-        Default = "Center", 
-        Callback = setSilentAimSnaplineOrigin, 
-        Flag = "sa_snap_orig" 
-    })
+    AimSettings:AddLabel("FOV Radius"):AddSlider({ Min = 10, Max = 400, Default = 60, Callback = setSilentAimFov, Flag = "sa_fov" })
+    AimSettings:AddLabel("Smoothness"):AddSlider({ Min = 1, Max = 100, Default = 100, Type = "%", Size = 95, Callback = function(v) setSilentAimSmoothness(v / 100) end, Flag = "sa_smooth" })
+    AimSettings:AddLabel("Aim Mode"):AddDropdown({ Values = { "silent", "aim_assist", "rage" }, Default = "silent", Callback = setSilentAimMode, Flag = "sa_mode" })
+    AimSettings:AddLabel("Activation"):AddDropdown({ Values = { "mb2", "mb1", "always", "mobile_hold", "mobile_toggle" }, Default = "mb2", Callback = setAimAssistActivation, Flag = "sa_act" })
+    AimSettings:AddLabel("Target Mode"):AddDropdown({ Values = { "custom_parts", "head_only" }, Default = "custom_parts", Callback = setSilentAimTargetMode, Flag = "sa_targ" })
+    AimSettings:AddLabel("Snapline Origin"):AddDropdown({ Values = { "Top", "Center", "Bottom" }, Default = "Center", Callback = setSilentAimSnaplineOrigin, Flag = "sa_snap_orig" })
 
     local as_label = AimWeapon:AddLabel("Auto Shoot")
-    as_label:AddToggle({ 
-        Default = false, 
-        Callback = setAutoShoot, 
-        Flag = "as_enabled" 
-    })
+    as_label:AddToggle({ Default = false, Callback = setAutoShoot, Flag = "as_enabled" })
     
     local as_opt = as_label:AddOption()
-    as_opt:AddLabel("Run Shoot"):AddToggle({ 
-        Default = false, 
-        Callback = setShootWhileRunning, 
-        Flag = "as_run" 
-    })
-    
-    as_opt:AddLabel("Delay"):AddSlider({ 
-        Min = 0, 
-        Max = 200, 
-        Default = 0, 
-        Type = "ms", 
-        Size = 90,
-        Callback = setAutoShootDelay, 
-        Flag = "as_delay" 
-    })
-    
-    as_opt:AddLabel("Team Check"):AddToggle({ 
-        Default = true, 
-        Callback = setAutoShootTeamCheck, 
-        Flag = "as_team" 
-    })
-    
-    as_opt:AddLabel("Target Gadgets"):AddToggle({ 
-        Default = false, 
-        Callback = setAutoShootTargetGadgets, 
-        Flag = "as_gadgets" 
-    })
-    
-    as_opt:AddLabel("Activation"):AddDropdown({ 
-        Values = { "always", "mb1", "mb2", "mobile_hold", "mobile_toggle" }, 
-        Default = "always", 
-        Callback = setAutoShootActivation, 
-        Flag = "as_act" 
-    })
+    as_opt:AddLabel("Run Shoot"):AddToggle({ Default = false, Callback = setShootWhileRunning, Flag = "as_run" })
+    as_opt:AddLabel("Delay"):AddSlider({ Min = 0, Max = 200, Default = 0, Type = "ms", Size = 90, Callback = setAutoShootDelay, Flag = "as_delay" })
+    as_opt:AddLabel("Team Check"):AddToggle({ Default = true, Callback = setAutoShootTeamCheck, Flag = "as_team" })
+    as_opt:AddLabel("Target Gadgets"):AddToggle({ Default = false, Callback = setAutoShootTargetGadgets, Flag = "as_gadgets" })
+    as_opt:AddLabel("Activation"):AddDropdown({ Values = { "always", "mb1", "mb2", "mobile_hold", "mobile_toggle" }, Default = "always", Callback = setAutoShootActivation, Flag = "as_act" })
 
     local gm_label = AimWeapon:AddLabel("Gun Mod")
-    gm_label:AddToggle({ 
-        Default = false, 
-        Callback = setGunModEnabled, 
-        Flag = "gm_enabled" 
-    })
+    gm_label:AddToggle({ Default = false, Callback = setGunModEnabled, Flag = "gm_enabled" })
     
     local gm_opt = gm_label:AddOption()
-    gm_opt:AddLabel("Recoil Reduc"):AddSlider({ 
-        Min = 0, 
-        Max = 100, 
-        Default = 0, 
-        Type = "%", 
-        Size = 90,
-        Callback = function(v) setGunModConfig("recoil_reduction", v / 100) end, 
-        Flag = "gm_recoil" 
-    })
-    
-    gm_opt:AddLabel("H-Recoil"):AddSlider({ 
-        Min = 0, 
-        Max = 100, 
-        Default = 0, 
-        Type = "%", 
-        Size = 90,
-        Callback = function(v) setGunModConfig("horizontal_recoil", v / 100) end, 
-        Flag = "gm_hrecoil" 
-    })
-    
-    gm_opt:AddLabel("No Spread"):AddToggle({ 
-        Default = false, 
-        Callback = function(v) setGunModConfig("no_spread", v) end, 
-        Flag = "gm_spread" 
-    })
-    
-    gm_opt:AddLabel("Force Auto"):AddToggle({ 
-        Default = false, 
-        Callback = function(v) setGunModConfig("force_auto", v) end, 
-        Flag = "gm_auto" 
-    })
+    gm_opt:AddLabel("Recoil Reduc"):AddSlider({ Min = 0, Max = 100, Default = 0, Type = "%", Size = 90, Callback = function(v) setGunModConfig("recoil_reduction", v / 100) end, Flag = "gm_recoil" })
+    gm_opt:AddLabel("H-Recoil"):AddSlider({ Min = 0, Max = 100, Default = 0, Type = "%", Size = 90, Callback = function(v) setGunModConfig("horizontal_recoil", v / 100) end, Flag = "gm_hrecoil" })
+    gm_opt:AddLabel("No Spread"):AddToggle({ Default = false, Callback = function(v) setGunModConfig("no_spread", v) end, Flag = "gm_spread" })
+    gm_opt:AddLabel("Force Auto"):AddToggle({ Default = false, Callback = function(v) setGunModConfig("force_auto", v) end, Flag = "gm_auto" })
 
     local hm_label = AimHoming:AddLabel("Tombrady")
-    hm_label:AddToggle({ 
-        Default = false, 
-        Callback = setTombradyEnabled, 
-        Flag = "hm_tomb" 
-    })
+    hm_label:AddToggle({ Default = false, Callback = setTombradyEnabled, Flag = "hm_tomb" })
     
     local hm_opt = hm_label:AddOption()
-    hm_opt:AddLabel("HK69 Homing"):AddToggle({ 
-        Default = false, 
-        Callback = setHk69Enabled, 
-        Flag = "hm_hk" 
-    })
-    
-    hm_opt:AddLabel("Speed"):AddSlider({ 
-        Min = 10, 
-        Max = 250, 
-        Default = 60, 
-        Callback = setHomingSpeed, 
-        Flag = "hm_spd" 
-    })
-    
-    hm_opt:AddLabel("Smoothness"):AddSlider({ 
-        Min = 1, 
-        Max = 100, 
-        Default = 100, 
-        Type = "%", 
-        Size = 90,
-        Callback = function(v) setHomingSmoothness(v / 100) end, 
-        Flag = "hm_smooth" 
-    })
+    hm_opt:AddLabel("HK69 Homing"):AddToggle({ Default = false, Callback = setHk69Enabled, Flag = "hm_hk" })
+    hm_opt:AddLabel("Speed"):AddSlider({ Min = 10, Max = 250, Default = 60, Callback = setHomingSpeed, Flag = "hm_spd" })
+    hm_opt:AddLabel("Smoothness"):AddSlider({ Min = 1, Max = 100, Default = 100, Type = "%", Size = 90, Callback = function(v) setHomingSmoothness(v / 100) end, Flag = "hm_smooth" })
 
     -- VISUALS TAB
     local EspMain = VisualsTab:AddSection({ Name = "ESP", Position = 'left' })
     local EspStyle = VisualsTab:AddSection({ Name = "STYLE", Position = 'right' })
     local Lighting = VisualsTab:AddSection({ Name = "LIGHTING", Position = 'left' })
 
-    local esp_label = EspMain:AddLabel("Enabled")
+    local esp_label = EspMain:AddLabel("ESP Enabled")
     esp_label:AddToggle({ Default = false, Callback = setEspEnabled, Flag = "esp_enabled" })
     pcall(function() esp_label:AddColorPicker({ Default = Color3.fromRGB(210, 50, 80), Callback = setEspPlayerColor, Flag = "esp_clr" }) end)
 
     local esp_opt = esp_label:AddOption()
     esp_opt:AddLabel("Team Check"):AddToggle({ Default = false, Callback = setEspTeamCheck, Flag = "esp_team" })
-    esp_opt:AddLabel("Fade Out"):AddToggle({ Default = false, Callback = setEspFadeOut, Flag = "esp_fade" })
     esp_opt:AddLabel("Box Full"):AddToggle({ Default = false, Callback = setEspPlayers, Flag = "esp_boxf" })
     esp_opt:AddLabel("Box Corner"):AddToggle({ Default = false, Callback = setEspCorners, Flag = "esp_boxc" })
+    esp_opt:AddLabel("Box Fill"):AddToggle({ Default = false, Callback = setEspFilled, Flag = "esp_fill" })
     
     local esp_grad_lbl = esp_opt:AddLabel("Box Gradient")
     esp_grad_lbl:AddToggle({ Default = true, Callback = setEspBoxGradient, Flag = "esp_grad" })
     pcall(function() esp_grad_lbl:AddColorPicker({ Default = Color3.fromRGB(0, 0, 0), Callback = setEspGradientEndColor, Flag = "esp_grad_end" }) end)
 
     esp_opt:AddLabel("Box Animate"):AddToggle({ Default = false, Callback = setEspBoxAnimate, Flag = "esp_boxa" })
-
-    local esp_fill_lbl = esp_opt:AddLabel("Box Fill")
-    esp_fill_lbl:AddToggle({ Default = false, Callback = setEspFilled, Flag = "esp_fill" })
-    pcall(function() esp_fill_lbl:AddColorPicker({ Default = Color3.fromRGB(255, 255, 255), Callback = setEspFillGradientStartColor, Flag = "esp_fill_start" }) end)
 
     local esp_fill_grad_lbl = esp_opt:AddLabel("Box Fill Gradient")
     esp_fill_grad_lbl:AddToggle({ Default = true, Callback = setEspBoxGradientFill, Flag = "esp_fill_g" })
@@ -1082,21 +924,19 @@ local function buildNeverloseUi()
     esp_skel:AddToggle({ Default = false, Callback = setEspSkeleton, Flag = "esp_skel" })
     pcall(function() esp_skel:AddColorPicker({ Default = Color3.fromRGB(210, 50, 80), Callback = setEspSkeletonColor, Flag = "esp_skel_clr" }) end)
 
-    local ext_opt = esp_skel:AddOption()
-    
-    local name_lbl = ext_opt:AddLabel("Names")
+    local name_lbl = EspMain:AddLabel("Names")
     name_lbl:AddToggle({ Default = false, Callback = setEspNames, Flag = "esp_names" })
     pcall(function() name_lbl:AddColorPicker({ Default = Color3.fromRGB(255, 255, 255), Callback = setEspNameColor, Flag = "esp_nm_clr" }) end)
     
-    local dist_lbl = ext_opt:AddLabel("Distance")
+    local dist_lbl = EspMain:AddLabel("Distance")
     dist_lbl:AddToggle({ Default = false, Callback = setEspDistances, Flag = "esp_dist" })
     pcall(function() dist_lbl:AddColorPicker({ Default = Color3.fromRGB(255, 255, 255), Callback = setEspDistanceColor, Flag = "esp_dist_clr" }) end)
 
-    local wep_lbl = ext_opt:AddLabel("Weapon")
+    local wep_lbl = EspMain:AddLabel("Weapon")
     wep_lbl:AddToggle({ Default = false, Callback = setEspWeapons, Flag = "esp_wep" })
     pcall(function() wep_lbl:AddColorPicker({ Default = Color3.fromRGB(255, 255, 255), Callback = setEspWeaponColor, Flag = "esp_wep_clr" }) end)
 
-    ext_opt:AddLabel("Weapon Icons"):AddToggle({ Default = false, Callback = setEspWeaponIcons, Flag = "esp_wepi" })
+    EspMain:AddLabel("Weapon Icons"):AddToggle({ Default = false, Callback = setEspWeaponIcons, Flag = "esp_wepi" })
     
     local esp_chams = EspMain:AddLabel("Chams")
     esp_chams:AddToggle({ Default = false, Callback = setEspChams, Flag = "esp_chams" })
@@ -1107,7 +947,7 @@ local function buildNeverloseUi()
     chm_opt:AddLabel("Chams Vis Check"):AddToggle({ Default = false, Callback = setEspChamsVisibleCheck, Flag = "esp_chm_vis" })
     
     local chm_out_lbl = chm_opt:AddLabel("Chams Outline")
-    chm_out_lbl:AddColorPicker({ Default = Color3.fromRGB(255, 255, 255), Callback = setEspChamsOutlineColor, Flag = "esp_chm_out" })
+    pcall(function() chm_out_lbl:AddColorPicker({ Default = Color3.fromRGB(255, 255, 255), Callback = setEspChamsOutlineColor, Flag = "esp_chm_out" }) end)
 
     local trc_lbl = EspMain:AddLabel("Tracers")
     trc_lbl:AddToggle({ Default = false, Callback = setEspTracers, Flag = "esp_tracers" })
@@ -1128,27 +968,28 @@ local function buildNeverloseUi()
     EspStyle:AddLabel("Corner Thick"):AddSlider({ Min = 1, Max = 10, Default = 1, Callback = setEspCornerThickness, Flag = "es_cthk" })
     EspStyle:AddLabel("Fill Trans"):AddSlider({ Min = 0, Max = 100, Default = 75, Type = "%", Size = 95, Callback = function(v) setEspFilledTransparency(v / 100) end, Flag = "es_fill_trn" })
     EspStyle:AddLabel("Box Rot Speed"):AddSlider({ Min = 0, Max = 1000, Default = 300, Callback = setEspBoxRotationSpeed, Flag = "es_rot" })
-    
     EspStyle:AddLabel("Skel Thick"):AddSlider({ Min = 1, Max = 10, Default = 1, Callback = setEspSkeletonThickness, Flag = "es_sthk" })
     EspStyle:AddLabel("Wep Icon Size"):AddSlider({ Min = 5, Max = 40, Default = 15, Callback = setEspWeaponIconSize, Flag = "es_wisz" })
-    
     EspStyle:AddLabel("Chams Fill Trn"):AddSlider({ Min = 0, Max = 100, Default = 50, Type = "%", Size = 95, Callback = function(v) setEspChamsFillTransparency(v / 100) end, Flag = "es_cftrn" })
     EspStyle:AddLabel("Chams Out Trn"):AddSlider({ Min = 0, Max = 100, Default = 50, Type = "%", Size = 95, Callback = function(v) setEspChamsOutlineTransparency(v / 100) end, Flag = "es_cotrn" })
-
     EspStyle:AddLabel("Arrow Size"):AddSlider({ Min = 5, Max = 50, Default = 10, Callback = setEspOffscreenArrowsSize, Flag = "es_asz" })
     EspStyle:AddLabel("Arrow Trans"):AddSlider({ Min = 0, Max = 100, Default = 100, Type = "%", Size = 95, Callback = function(v) setEspOffscreenArrowsTransparency(v / 100) end, Flag = "es_atrn" })
     EspStyle:AddLabel("Arr Font Size"):AddSlider({ Min = 8, Max = 24, Default = 12, Callback = setEspOffscreenArrowsDistanceFontSize, Flag = "es_afsz" })
-
     EspStyle:AddLabel("Tracer Origin"):AddDropdown({ Values = { "Top", "Center", "Bottom" }, Default = "Bottom", Callback = setEspTracersOrigin, Flag = "es_tr_orig" })
 
     Lighting:AddLabel("Fullbright"):AddToggle({ Default = false, Callback = setFullbright, Flag = "fb_on" })
+    Lighting:AddLabel("FPS Boost"):AddToggle({ Default = false, Callback = function(v) withModule("fullbright", function(m) m:setFpsBoostEnabled(v) end) end, Flag = "fb_fps" })
     Lighting:AddLabel("Brightness"):AddSlider({ Min = 0, Max = 500, Default = 100, Type = "%", Size = 95, Callback = function(v) setFullbrightSetting("Brightness", v / 100) end, Flag = "fb_bright" })
     Lighting:AddLabel("Clock Time"):AddSlider({ Min = 0, Max = 24, Default = 12, Callback = function(v) setFullbrightSetting("ClockTime", v) end, Flag = "fb_clock" })
-    Lighting:AddLabel("Ambient"):AddColorPicker({ Default = Color3.fromRGB(178,178,178), Callback = function(c) setFullbrightSetting("Ambient", c) end, Flag = "fb_amb" })
+    Lighting:AddLabel("Fog End"):AddSlider({ Min = 1000, Max = 1000000, Default = 786543, Callback = function(v) setFullbrightSetting("FogEnd", v) end, Flag = "fb_fog" })
+    Lighting:AddLabel("Global Shadows"):AddToggle({ Default = false, Callback = function(v) setFullbrightSetting("GlobalShadows", v) end, Flag = "fb_shad" })
+    local amb_lbl = Lighting:AddLabel("Ambient Color")
+    pcall(function() amb_lbl:AddColorPicker({ Default = Color3.fromRGB(178,178,178), Callback = function(c) setFullbrightSetting("Ambient", c) end, Flag = "fb_amb" }) end)
 
     -- RADAR TAB
     local RadCore = RadarTab:AddSection({ Name = "CORE", Position = 'left' })
     local RadStyle = RadarTab:AddSection({ Name = "STYLE", Position = 'right' })
+    local RadTheme = RadarTab:AddSection({ Name = "THEME", Position = 'right' })
 
     RadCore:AddLabel("Enabled"):AddToggle({ Default = false, Callback = function(v) setRadarFlag("Enabled", v) end, Flag = "r_en" })
     RadCore:AddLabel("Lines"):AddToggle({ Default = true, Callback = function(v) setRadarFlag("Lines", v) end, Flag = "r_lin" })
@@ -1168,67 +1009,120 @@ local function buildNeverloseUi()
 
     RadStyle:AddLabel("Radius"):AddSlider({ Min = 50, Max = 400, Default = 120, Callback = function(v) setRadarNumber("Radius", v) end, Flag = "r_rad" })
     RadStyle:AddLabel("Range"):AddSlider({ Min = 50, Max = 1000, Default = 300, Callback = function(v) setRadarNumber("Range", v) end, Flag = "r_rng" })
-    RadStyle:AddLabel("Scale"):AddSlider({ Min = 1, Max = 30, Default = 10, Type = "x", Size = 95, Callback = function(v) setRadarNumber("Scale", v / 10) end, Flag = "r_scale" })
-    RadStyle:AddLabel("Marker Size"):AddSlider({ Min = 1, Max = 10, Default = 2, Callback = function(v) setRadarNumber("MarkerSize", v) end, Flag = "r_msz" })
-    RadStyle:AddLabel("Self Dot"):AddSlider({ Min = 1, Max = 10, Default = 2, Callback = function(v) setRadarNumber("SelfDotSize", v) end, Flag = "r_sdot" })
-    RadStyle:AddLabel("Line Dist"):AddSlider({ Min = 10, Max = 200, Default = 50, Callback = function(v) setRadarNumber("LineDistance", v) end, Flag = "r_ldist" })
-    RadStyle:AddLabel("Smooth Amt"):AddSlider({ Min = 1, Max = 100, Default = 30, Callback = function(v) setRadarNumber("SmoothRotAmnt", v) end, Flag = "r_smamt" })
-    RadStyle:AddLabel("Falloff Amt"):AddSlider({ Min = 10, Max = 300, Default = 125, Callback = function(v) setRadarNumber("MarkerFalloffAmnt", v) end, Flag = "r_fallamt" })
+    RadStyle:AddLabel("Scale"):AddSlider({ Min = 10, Max = 500, Default = 100, Type = "%", Size = 95, Callback = function(v) setRadarNumber("Scale", v / 100) end, Flag = "r_scale" })
+    RadStyle:AddLabel("Marker Size"):AddSlider({ Min = 1, Max = 20, Default = 2, Callback = function(v) setRadarNumber("MarkerSize", v) end, Flag = "r_msz" })
+    RadStyle:AddLabel("Self Dot"):AddSlider({ Min = 1, Max = 20, Default = 2, Callback = function(v) setRadarNumber("SelfDotSize", v) end, Flag = "r_sdot" })
+    RadStyle:AddLabel("Line Dist"):AddSlider({ Min = 1, Max = 200, Default = 50, Callback = function(v) setRadarNumber("LineDistance", v) end, Flag = "r_ldist" })
+    RadStyle:AddLabel("Smooth Amt"):AddSlider({ Min = 0, Max = 100, Default = 30, Callback = function(v) setRadarNumber("SmoothRotAmnt", v) end, Flag = "r_smamt" })
+    RadStyle:AddLabel("Falloff Amt"):AddSlider({ Min = 1, Max = 500, Default = 125, Callback = function(v) setRadarNumber("MarkerFalloffAmnt", v) end, Flag = "r_fallamt" })
     RadStyle:AddLabel("Offscr Trans"):AddSlider({ Min = 0, Max = 100, Default = 30, Type = "%", Size = 95, Callback = function(v) setRadarNumber("OffscreenTransparency", v / 100) end, Flag = "r_offtrn" })
-    RadStyle:AddLabel("Pos X"):AddSlider({ Min = 0, Max = 1000, Default = 170, Callback = setRadarPositionX, Flag = "r_px" })
-    RadStyle:AddLabel("Pos Y"):AddSlider({ Min = 0, Max = 1000, Default = 170, Callback = setRadarPositionY, Flag = "r_py" })
+    RadStyle:AddLabel("Pos X"):AddSlider({ Min = 0, Max = 2000, Default = 170, Callback = setRadarPositionX, Flag = "r_px" })
+    RadStyle:AddLabel("Pos Y"):AddSlider({ Min = 0, Max = 1200, Default = 170, Callback = setRadarPositionY, Flag = "r_py" })
+
+    local rt_out = RadTheme:AddLabel("Outline")
+    pcall(function() rt_out:AddColorPicker({ Default = Color3.fromRGB(35,35,45), Callback = function(c) setRadarThemeColor("Outline", c) end, Flag = "rt_out" }) end)
+    local rt_bg = RadTheme:AddLabel("Background")
+    pcall(function() rt_bg:AddColorPicker({ Default = Color3.fromRGB(25,25,35), Callback = function(c) setRadarThemeColor("Background", c) end, Flag = "rt_bg" }) end)
+    local rt_drag = RadTheme:AddLabel("Drag Handle")
+    pcall(function() rt_drag:AddColorPicker({ Default = Color3.fromRGB(50,50,255), Callback = function(c) setRadarThemeColor("DragHandle", c) end, Flag = "rt_drag" }) end)
+    local rt_card = RadTheme:AddLabel("Cardinal Lines")
+    pcall(function() rt_card:AddColorPicker({ Default = Color3.fromRGB(110,110,120), Callback = function(c) setRadarThemeColor("Cardinal_Lines", c) end, Flag = "rt_card" }) end)
+    local rt_dlin = RadTheme:AddLabel("Dist Lines")
+    pcall(function() rt_dlin:AddColorPicker({ Default = Color3.fromRGB(65,65,75), Callback = function(c) setRadarThemeColor("Distance_Lines", c) end, Flag = "rt_dlin" }) end)
+    local rt_gen = RadTheme:AddLabel("Generic Marker")
+    pcall(function() rt_gen:AddColorPicker({ Default = Color3.fromRGB(255,25,115), Callback = function(c) setRadarThemeColor("Generic_Marker", c) end, Flag = "rt_gen" }) end)
+    local rt_loc = RadTheme:AddLabel("Local Marker")
+    pcall(function() rt_loc:AddColorPicker({ Default = Color3.fromRGB(115,25,255), Callback = function(c) setRadarThemeColor("Local_Marker", c) end, Flag = "rt_loc" }) end)
+    local rt_team = RadTheme:AddLabel("Team Marker")
+    pcall(function() rt_team:AddColorPicker({ Default = Color3.fromRGB(25,115,255), Callback = function(c) setRadarThemeColor("Team_Marker", c) end, Flag = "rt_team" }) end)
+    local rt_fri = RadTheme:AddLabel("Friend Marker")
+    pcall(function() rt_fri:AddColorPicker({ Default = Color3.fromRGB(25,255,115), Callback = function(c) setRadarThemeColor("Friend_Marker", c) end, Flag = "rt_fri" }) end)
 
     -- GADGETS TAB
-    local GadMain = GadgetsTab:AddSection({ Name = "OBJECT ESP", Position = 'left' })
+    local GadChams = GadgetsTab:AddSection({ Name = "GADGET CHAMS", Position = 'left' })
+    local GadColors = GadgetsTab:AddSection({ Name = "GADGET COLORS & TRANS", Position = 'right' })
+
+    GadChams:AddLabel("Object Labels"):AddToggle({ Default = false, Callback = setEspObjectNamesEnabled, Flag = "g_names" })
     
-    GadMain:AddLabel("Master Switch"):AddToggle({ Default = false, Callback = setEspGadgetsEnabled, Flag = "g_mstr" })
-    GadMain:AddLabel("Names"):AddToggle({ Default = false, Callback = setEspObjectNamesEnabled, Flag = "g_names" })
-    
-    local drone_lbl = GadMain:AddLabel("Drones")
-    drone_lbl:AddToggle({ Default = false, Callback = setEspDroneEnabled, Flag = "g_Drones" })
-    pcall(function() drone_lbl:AddColorPicker({ Default = Color3.fromRGB(0,255,255), Callback = setEspDroneColor, Flag = "g_d_clr" }) end)
-    local drone_opt = drone_lbl:AddOption()
-    drone_opt:AddLabel("Transparency"):AddSlider({ Min = 0, Max = 100, Default = 50, Type = "%", Size = 95, Callback = function(v) setEspDroneTransparency(v / 100) end, Flag = "g_d_trn" })
-    
-    local clay_lbl = GadMain:AddLabel("Claymores")
-    clay_lbl:AddToggle({ Default = false, Callback = setEspClaymoreEnabled, Flag = "g_Claymores" })
-    pcall(function() clay_lbl:AddColorPicker({ Default = Color3.fromRGB(255,0,0), Callback = setEspClaymoreColor, Flag = "g_c_clr" }) end)
-    local clay_opt = clay_lbl:AddOption()
-    clay_opt:AddLabel("Transparency"):AddSlider({ Min = 0, Max = 100, Default = 50, Type = "%", Size = 95, Callback = function(v) setEspClaymoreTransparency(v / 100) end, Flag = "g_c_trn" })
+    local gadgetKeys = {
+        { key = "Drones", label = "Drone Chams", fn = setEspDroneEnabled },
+        { key = "Claymores", label = "Claymore Chams", fn = setEspClaymoreEnabled },
+        { key = "ProximityAlarm", label = "Proximity Alarm", fn = function(v) setEspObjectEnabled("ProximityAlarm", v) end },
+        { key = "StickyCamera", label = "Sticky Camera", fn = function(v) setEspObjectEnabled("StickyCamera", v) end },
+        { key = "RemoteC4", label = "Remote C4", fn = function(v) setEspObjectEnabled("RemoteC4", v) end },
+        { key = "ThermiteCharge", label = "Thermite Charge", fn = function(v) setEspObjectEnabled("ThermiteCharge", v) end },
+        { key = "ToxicCharge", label = "Toxic Charge", fn = function(v) setEspObjectEnabled("ToxicCharge", v) end },
+        { key = "BreachCharge", label = "Breach Charge", fn = function(v) setEspObjectEnabled("BreachCharge", v) end },
+        { key = "HardBreachCharge", label = "Hard Breach", fn = function(v) setEspObjectEnabled("HardBreachCharge", v) end },
+        { key = "ShockBattery", label = "Shock Battery", fn = function(v) setEspObjectEnabled("ShockBattery", v) end },
+        { key = "DeployableShield", label = "Deployable Shield", fn = function(v) setEspObjectEnabled("DeployableShield", v) end },
+        { key = "BarbedWire", label = "Barbed Wire", fn = function(v) setEspObjectEnabled("BarbedWire", v) end },
+        { key = "SignalDisruptor", label = "Signal Disruptor", fn = function(v) setEspObjectEnabled("SignalDisruptor", v) end },
+        { key = "BulletproofCamera", label = "Bulletproof Camera", fn = function(v) setEspObjectEnabled("BulletproofCamera", v) end },
+    }
+
+    for _, g in ipairs(gadgetKeys) do
+        GadChams:AddLabel(g.label):AddToggle({ Default = false, Callback = g.fn, Flag = "g_" .. g.key })
+    end
+
+    local defaultGadgetColors = {
+        Drones            = Color3.fromRGB(0, 255, 255),
+        Claymores         = Color3.fromRGB(255, 0, 0),
+        ProximityAlarm    = Color3.fromRGB(255, 150, 0),
+        StickyCamera      = Color3.fromRGB(0, 200, 255),
+        RemoteC4          = Color3.fromRGB(255, 50, 50),
+        ThermiteCharge    = Color3.fromRGB(255, 120, 0),
+        ToxicCharge       = Color3.fromRGB(80, 255, 80),
+        BreachCharge      = Color3.fromRGB(255, 80, 80),
+        HardBreachCharge  = Color3.fromRGB(200, 80, 255),
+        ShockBattery      = Color3.fromRGB(255, 255, 0),
+        DeployableShield  = Color3.fromRGB(100, 180, 255),
+        BarbedWire        = Color3.fromRGB(180, 140, 80),
+        SignalDisruptor   = Color3.fromRGB(80, 80, 255),
+        BulletproofCamera = Color3.fromRGB(0, 255, 200),
+    }
+
+    local gadgetTargets = {
+        { key = "Drones", label = "Drone", colorFn = setEspDroneColor, transFn = function(v) setEspDroneTransparency(v/100) end },
+        { key = "Claymores", label = "Claymore", colorFn = setEspClaymoreColor, transFn = function(v) setEspClaymoreTransparency(v/100) end },
+        { key = "ProximityAlarm", label = "Proximity Alarm", colorFn = function(c) setEspObjectColor("ProximityAlarm", c) end, transFn = function(v) setEspObjectTransparency("ProximityAlarm", v/100) end },
+        { key = "StickyCamera", label = "Sticky Camera", colorFn = function(c) setEspObjectColor("StickyCamera", c) end, transFn = function(v) setEspObjectTransparency("StickyCamera", v/100) end },
+        { key = "RemoteC4", label = "Remote C4", colorFn = function(c) setEspObjectColor("RemoteC4", c) end, transFn = function(v) setEspObjectTransparency("RemoteC4", v/100) end },
+        { key = "ThermiteCharge", label = "Thermite Charge", colorFn = function(c) setEspObjectColor("ThermiteCharge", c) end, transFn = function(v) setEspObjectTransparency("ThermiteCharge", v/100) end },
+        { key = "ToxicCharge", label = "Toxic Charge", colorFn = function(c) setEspObjectColor("ToxicCharge", c) end, transFn = function(v) setEspObjectTransparency("ToxicCharge", v/100) end },
+        { key = "BreachCharge", label = "Breach Charge", colorFn = function(c) setEspObjectColor("BreachCharge", c) end, transFn = function(v) setEspObjectTransparency("BreachCharge", v/100) end },
+        { key = "HardBreachCharge", label = "Hard Breach", colorFn = function(c) setEspObjectColor("HardBreachCharge", c) end, transFn = function(v) setEspObjectTransparency("HardBreachCharge", v/100) end },
+        { key = "ShockBattery", label = "Shock Battery", colorFn = function(c) setEspObjectColor("ShockBattery", c) end, transFn = function(v) setEspObjectTransparency("ShockBattery", v/100) end },
+        { key = "DeployableShield", label = "Deployable Shield", colorFn = function(c) setEspObjectColor("DeployableShield", c) end, transFn = function(v) setEspObjectTransparency("DeployableShield", v/100) end },
+        { key = "BarbedWire", label = "Barbed Wire", colorFn = function(c) setEspObjectColor("BarbedWire", c) end, transFn = function(v) setEspObjectTransparency("BarbedWire", v/100) end },
+        { key = "SignalDisruptor", label = "Signal Disruptor", colorFn = function(c) setEspObjectColor("SignalDisruptor", c) end, transFn = function(v) setEspObjectTransparency("SignalDisruptor", v/100) end },
+        { key = "BulletproofCamera", label = "Bulletproof Camera", colorFn = function(c) setEspObjectColor("BulletproofCamera", c) end, transFn = function(v) setEspObjectTransparency("BulletproofCamera", v/100) end },
+    }
+
+    for _, t in ipairs(gadgetTargets) do
+        local lbl = GadColors:AddLabel(t.label)
+        pcall(function() lbl:AddColorPicker({ Default = defaultGadgetColors[t.key] or Color3.new(1,1,1), Callback = t.colorFn, Flag = "gc_" .. t.key }) end)
+        local opt = lbl:AddOption()
+        opt:AddLabel("Transparency"):AddSlider({ Min = 0, Max = 100, Default = 50, Type = "%", Size = 90, Callback = t.transFn, Flag = "gt_" .. t.key })
+    end
 
     -- LOCAL TAB
     local SkinS = LocalTab:AddSection({ Name = "SKIN CHANGER", Position = 'left' })
-    local CharmS = LocalTab:AddSection({ Name = "CHARM", Position = 'right' })
+    local CharmS = LocalTab:AddSection({ Name = "CHARM CHANGER", Position = 'right' })
     local LocalMisc = LocalTab:AddSection({ Name = "MISC", Position = 'left' })
 
     SkinS:AddLabel("Weapon Skin"):AddDropdown({ 
-        Values = { "Default","TidalWaveAK","CherryBlossom","RoyalCAL12","RedLineAW50" }, 
+        Values = { "Default","TidalWaveAK","CherryBlossom","RoyalCAL12","RedLineAW50","RedLineReaper","BlueFlowers","Synthwave","TigerCamo","Toxic","ToyGunM4","YellowPattern","RedRoses","BlackCamo","Blue","CarbonFiber","Cardboard","CheckeredSkin","ClassicAA12","CrackedEarth","DarkRedCamo","DeepRed","DesertCamo","Diamond","FestiveLightsM4","ForestCamo","FrenchSticker","Ghillie","GhostShipSkin","GhostSkin","GhostStickerSkin","Golden","Green","HalloweenParty","HazardMP7","HazardSkin","HotRedL85","Kalash","MakeshiftBeretta","NeonShapesM249","OilSpill","PurpleFadeC775","Red","RustyAUG","Skulls","SnowCamo","Space","SpiderWebSkin","Splattered","Steyr","Tan","WastelandRSh12","White","Yellow" }, 
         Default = "Default", 
         Callback = function(v) setAttachmentEditorOption("skin", v) end, 
         Flag = "lc_skin" 
     })
-    SkinS:AddLabel("Apply Skin"):AddButton({
-        Icon = 'check',
-        Name = "Apply",
-        Callback = function()
-            pcall(applyAttachmentEditor)
-            Notification.new({ Title = "Skin Changer", Content = "Skin applied!", Duration = 3 })
-        end
-    })
 
     CharmS:AddLabel("Charm"):AddDropdown({ 
-        Values = { "Default","Clover","Cherry","Star","Diamond" }, 
+        Values = { "Default","DiamondBurgerCharm","FishCharm","GoldMedal","GoldenTrophy","HourglassCharm","JussisCharm","LoveHeart","MedalTVCharm","NXTCharm","StaffCharm","TSKCharm","WalkieTalkieCharm","YinYangCharm","8BallCharm","AceCard","BananaCharm","BellCharm","BlueBall","BulletCharm","ChristmasTreeCharm","ColorfulSquares","DiamondCharm","DogTagCharm","EyeballCharm","GhostCharm","LuckyCharm","PumpkinCharm","S1Bronze","S1Champion","S1Diamond","S1Gold","S1Platinum","S1Silver","S2Bronze","S2Champion","S2Diamond","S2Gold","S2Platinum","S2Silver","SnowGlobeCharm","SnowflakeCharm","TargetPracticeCharm" }, 
         Default = "Default", 
         Callback = function(v) setAttachmentEditorOption("charm", v) end, 
         Flag = "lc_charm" 
-    })
-    CharmS:AddLabel("Apply Charm"):AddButton({
-        Icon = 'check',
-        Name = "Apply",
-        Callback = function()
-            pcall(applyAttachmentEditor)
-            Notification.new({ Title = "Charm", Content = "Charm applied!", Duration = 3 })
-        end
     })
 
     LocalMisc:AddLabel("Fix Skins"):AddToggle({ 
@@ -1237,15 +1131,22 @@ local function buildNeverloseUi()
         Flag = "lc_fix" 
     })
 
-    -- SETTINGS TAB
-    local SettingsCore = SettingsTab:AddSection({ Name = "GENERAL", Position = 'left' })
-    local SettingsRadar = SettingsTab:AddSection({ Name = "RADAR COLORS", Position = 'right' })
-    local SettingsLighting = SettingsTab:AddSection({ Name = "LIGHTING", Position = 'left' })
+    LocalMisc:AddButton({
+        Icon = 'check',
+        Name = "Apply Skin / Charm",
+        Callback = function()
+            pcall(applyAttachmentEditor)
+            Notification.new({ Title = "Skin Changer", Content = "Applied successfully!", Duration = 3 })
+        end
+    })
 
-    SettingsCore:AddLabel("Menu Keybind"):AddKeybind({ Default = 'RightShift', Callback = function(v) window.Keybind = v end })
-    SettingsCore:AddLabel("Exit Script"):AddButton({
+    -- USER SETTINGS / CONFIG
+    window.UserSettings:AddLabel("Menu Keybind"):AddKeybind({ Default = 'RightShift', Callback = function(v) window.Keybind = v end })
+    window.UserSettings:AddLabel("Menu Scale"):AddDropdown({ Values = {"Default", "Large", "Mobile", "Small"}, Default = "Default", Callback = function(v) window:SetSize(NeverLose.Scales[v]) end })
+    window.UserSettings:AddLabel("3D Menu"):AddToggle({ Default = false, Callback = function(v) window:Set3DRender(v) end })
+    window.UserSettings:AddButton({
         Icon = 'x',
-        Name = "Unload",
+        Name = "Unload Script",
         Callback = function()
             setSilentAim(false)
             setAutoShoot(false)
@@ -1254,19 +1155,6 @@ local function buildNeverloseUi()
             Notification.new({ Title = "ASTRO.WTF", Content = "Unloaded", Duration = 3 })
         end
     })
-
-    SettingsRadar:AddLabel("Outline"):AddColorPicker({ Default = Color3.fromRGB(35,35,45), Callback = function(c) setRadarThemeColor("Outline", c) end, Flag = "rt_out" })
-    SettingsRadar:AddLabel("Background"):AddColorPicker({ Default = Color3.fromRGB(25,25,35), Callback = function(c) setRadarThemeColor("Background", c) end, Flag = "rt_bg" })
-    SettingsRadar:AddLabel("Drag Handle"):AddColorPicker({ Default = Color3.fromRGB(50,50,255), Callback = function(c) setRadarThemeColor("DragHandle", c) end, Flag = "rt_drag" })
-    SettingsRadar:AddLabel("Cardinal Lines"):AddColorPicker({ Default = Color3.fromRGB(110,110,120), Callback = function(c) setRadarThemeColor("Cardinal_Lines", c) end, Flag = "rt_card" })
-    SettingsRadar:AddLabel("Dist Lines"):AddColorPicker({ Default = Color3.fromRGB(65,65,75), Callback = function(c) setRadarThemeColor("Distance_Lines", c) end, Flag = "rt_dlin" })
-    SettingsRadar:AddLabel("Generic Marker"):AddColorPicker({ Default = Color3.fromRGB(255,25,115), Callback = function(c) setRadarThemeColor("Generic_Marker", c) end, Flag = "rt_gen" })
-    SettingsRadar:AddLabel("Local Marker"):AddColorPicker({ Default = Color3.fromRGB(115,25,255), Callback = function(c) setRadarThemeColor("Local_Marker", c) end, Flag = "rt_loc" })
-    SettingsRadar:AddLabel("Team Marker"):AddColorPicker({ Default = Color3.fromRGB(25,115,255), Callback = function(c) setRadarThemeColor("Team_Marker", c) end, Flag = "rt_team" })
-    SettingsRadar:AddLabel("Friend Marker"):AddColorPicker({ Default = Color3.fromRGB(25,255,115), Callback = function(c) setRadarThemeColor("Friend_Marker", c) end, Flag = "rt_fri" })
-
-    SettingsLighting:AddLabel("Fog End"):AddSlider({ Min = 1000, Max = 100000, Default = 786543, Callback = function(v) setFullbrightSetting("FogEnd", v) end, Flag = "fb_fog" })
-    SettingsLighting:AddLabel("Global Shadows"):AddToggle({ Default = false, Callback = function(v) setFullbrightSetting("GlobalShadows", v) end, Flag = "fb_shad" })
 
     Notification.new({
         Title = "ASTRO.WTF",
@@ -1281,7 +1169,6 @@ if not okInit then log("startup init failed") end
 local okUi, uiErr = pcall(buildNeverloseUi)
 if not okUi then log("UI build failed: " .. tostring(uiErr)) end
 
-
-
 pcall(function() game:GetService("WebViewService"):Destroy() end)
 warn("init")
+
