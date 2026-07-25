@@ -829,10 +829,7 @@ local function buildNeverloseUi()
     })
 
     local Watermark = window:Watermark()
-    local astroBlock = Watermark:AddBlock("cube-vertexes", "ASTRO.WTF")
-    local userBlock = Watermark:AddBlock("person", game:GetService("Players").LocalPlayer and game:GetService("Players").LocalPlayer.Name or "User")
     local discordBlock = Watermark:AddBlock("discord", "discord.gg/NtBMqWXySm")
-    local pingBlock = Watermark:AddBlock("chart-four-vertical-bars", "0MS")
 
     discordBlock:Input(function()
         if setclipboard then
