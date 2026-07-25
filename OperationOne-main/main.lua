@@ -820,12 +820,12 @@ local function buildNeverloseUi()
     local Indicator = NeverLose:CreateIndicator()
     
     local window = NeverLose:CreateWindow({
-        Logo = NeverLose.GlobalLogo,
+        Logo = 13129527031,
         Name = "ASTRO.WTF",
         Content = "Operation One",
         Size = NeverLose.Scales.Default,
         ConfigFolder = "AstroOp1",
-        Enable3DRenderer = false,
+        Enable3DRenderer = true,
         Keybind = "RightShift"
     })
 
@@ -834,11 +834,11 @@ local function buildNeverloseUi()
     
     window:AddTabLabel('VISUALS')
     local VisualsTab = window:AddTab({ Icon = 'eye', Name = "Visuals" })
-    local RadarTab = window:AddTab({ Icon = 'radio', Name = "Radar" })
+    local RadarTab = window:AddTab({ Icon = 'location-pin-map', Name = "Radar" })
     
     window:AddTabLabel('MISC')
-    local GadgetsTab = window:AddTab({ Icon = 'box', Name = "Gadgets" })
-    local LocalTab = window:AddTab({ Icon = 'user', Name = "Local" })
+    local GadgetsTab = window:AddTab({ Icon = 'backpack', Name = "Gadgets" })
+    local LocalTab = window:AddTab({ Icon = 'person', Name = "Local" })
 
     -- COMBAT / RAGE TAB
     local AimMain = RageTab:AddSection({ Name = "MAIN" })
@@ -1143,7 +1143,7 @@ local function buildNeverloseUi()
     -- USER SETTINGS / CONFIG
     window.UserSettings:AddLabel("Menu Keybind"):AddKeybind({ Default = 'RightShift', Callback = function(v) window.Keybind = v end })
     window.UserSettings:AddLabel("Menu Scale"):AddDropdown({ Values = {"Default", "Large", "Mobile", "Small"}, Default = "Default", Callback = function(v) window:SetSize(NeverLose.Scales[v]) end })
-    window.UserSettings:AddLabel("3D Menu"):AddToggle({ Default = false, Callback = function(v) window:Set3DRender(v) end })
+    window.UserSettings:AddLabel("3D Menu"):AddToggle({ Default = false, Callback = function(v) pcall(function() window:Set3DRender(v) end) end })
     window.UserSettings:AddButton({
         Icon = 'x',
         Name = "Unload Script",
