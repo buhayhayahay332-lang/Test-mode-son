@@ -43,6 +43,7 @@ function Module:_installRunningFireHook()
     if self._originalInputShoot and self._originalInputRender then
         return true
     end
+    
     if type(hookfunction) ~= "function" then
         return false, "hookfunction unavailable"
     end
