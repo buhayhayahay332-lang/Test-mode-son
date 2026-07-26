@@ -2,3 +2,4 @@ game
 *.md
 src
 *.txt
+*.py

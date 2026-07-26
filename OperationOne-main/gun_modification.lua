@@ -211,12 +211,12 @@ function Module:_applyConfig()
         end
 
         if self.config.force_auto == true then
-            local inputShootFn = gunModule.input_shoot
+            local inputShootFn = gunModule.original_input_shoot or gunModule.input_shoot
             if type(inputShootFn) == "function" then
                 patchConstantByValue(self, inputShootFn, "auto", "automatic", "tag")
             end
 
-            local inputRenderFn = gunModule.input_render
+            local inputRenderFn = gunModule.original_input_render or gunModule.input_render
             if type(inputRenderFn) == "function" then
                 patchConstantByValue(self, inputRenderFn, "auto", "automatic", "tag")
             end
