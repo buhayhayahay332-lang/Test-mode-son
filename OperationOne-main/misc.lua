@@ -54,14 +54,6 @@ function Module:_installRunningFireHook()
     end
 
     self._gunModule = gunModule
-
-    if not gunModule.original_input_shoot then
-        gunModule.original_input_shoot = gunModule.input_shoot
-    end
-    if not gunModule.original_input_render then
-        gunModule.original_input_render = gunModule.input_render
-    end
-
     local originalInputShoot
     originalInputShoot = hookfunction(gunModule.input_shoot, function(gun, pressed, ...)
         if not self._enabled then
@@ -79,13 +71,13 @@ function Module:_installRunningFireHook()
             runningState:set(false)
         end
 
-        local results = { originalInputShoot(gun, pressed, ...) }
+        local results = table.pack(originalInputShoot(gun, pressed, ...))
 
         if wasRunning then
             runningState:set(true)
         end
 
-        return table.unpack(results)
+        return table.unpack(results, 1, results.n)
     end)
 
     self._originalInputShoot = originalInputShoot
@@ -107,13 +99,13 @@ function Module:_installRunningFireHook()
             runningState:set(false)
         end
 
-        local results = { originalInputRender(gun, ...) }
+        local results = table.pack(originalInputRender(gun, ...))
 
         if wasRunning then
             runningState:set(true)
         end
 
-        return table.unpack(results)
+        return table.unpack(results, 1, results.n)
     end)
 
     self._originalInputRender = originalInputRender
@@ -145,11 +137,9 @@ end
 function Module:unload()
     if self._gunModule and self._originalInputShoot then
         self._gunModule.input_shoot = self._originalInputShoot
-        self._gunModule.original_input_shoot = nil
     end
     if self._gunModule and self._originalInputRender then
         self._gunModule.input_render = self._originalInputRender
-        self._gunModule.original_input_render = nil
     end
     self._gunModule = nil
     self._originalInputShoot = nil

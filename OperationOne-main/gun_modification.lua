@@ -4,6 +4,8 @@ local Module = {
     _hooked = false,
     shared = nil,
     _gunModule = nil,
+    _rawInputShoot = nil,
+    _rawInputRender = nil,
     _savedConstants = {},
     config = {
         recoil_reduction = 0,
@@ -33,6 +35,14 @@ local function getGunModule()
     end
 
     Module._gunModule = gunModule
+
+    if type(gunModule.input_shoot) == "function" then
+        Module._rawInputShoot = gunModule.input_shoot
+    end
+    if type(gunModule.input_render) == "function" then
+        Module._rawInputRender = gunModule.input_render
+    end
+
     return gunModule
 end
 
@@ -211,12 +221,12 @@ function Module:_applyConfig()
         end
 
         if self.config.force_auto == true then
-            local inputShootFn = gunModule.original_input_shoot or gunModule.input_shoot
+            local inputShootFn = self._rawInputShoot or gunModule.input_shoot
             if type(inputShootFn) == "function" then
                 patchConstantByValue(self, inputShootFn, "auto", "automatic", "tag")
             end
 
-            local inputRenderFn = gunModule.original_input_render or gunModule.input_render
+            local inputRenderFn = self._rawInputRender or gunModule.input_render
             if type(inputRenderFn) == "function" then
                 patchConstantByValue(self, inputRenderFn, "auto", "automatic", "tag")
             end
