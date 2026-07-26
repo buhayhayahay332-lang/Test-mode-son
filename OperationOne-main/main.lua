@@ -1151,11 +1151,18 @@ local function buildNeverloseUi()
         Icon = 'x',
         Name = "Unload Script",
         Callback = function()
-            setSilentAim(false)
-            setAutoShoot(false)
-            setEspEnabled(false)
-            window:ToggleInterface()
-            Notification.new({ Title = "ASTRO.WTF", Content = "Unloaded", Duration = 3 })
+            pcall(setSilentAim, false)
+            pcall(setAutoShoot, false)
+            pcall(setEspEnabled, false)
+            pcall(setEspGadgetsEnabled, false)
+            pcall(setRadarFlag, "Enabled", false)
+            pcall(setFullbright, false)
+            pcall(setGunModEnabled, false)
+            pcall(setTombradyEnabled, false)
+            pcall(setHk69Enabled, false)
+            NeverLose.UnloadEnabled = true
+            task.wait(0.1)
+            pcall(function() NeverLose:Unload() end)
         end
     })
 
