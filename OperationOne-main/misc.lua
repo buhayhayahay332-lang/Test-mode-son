@@ -5,6 +5,7 @@ local Module = {
     _gunModule = nil,
     _originalInputShoot = nil,
     _originalInputRender = nil,
+    _originalRunning = nil, -- added
 }
 
 local function getGunModule()
@@ -109,6 +110,25 @@ function Module:_installRunningFireHook()
     end)
 
     self._originalInputRender = originalInputRender
+
+    if type(gunModule.running) == "function" then
+        local originalRunning
+        originalRunning = hookfunction(gunModule.running, function(gun, owner, isRunning, ...)
+            if not self._enabled then
+                return originalRunning(gun, owner, isRunning, ...)
+            end
+
+            if isRunning then
+                gun.states.sights:set(false)
+                gun:reload(owner, false)
+            else
+                gun:running_pivots(owner, false)
+                owner.values.cframes:get("arms"):remove_offset("run")
+            end
+        end)
+        self._originalRunning = originalRunning
+    end
+
     return true
 end
 
@@ -141,9 +161,13 @@ function Module:unload()
     if self._gunModule and self._originalInputRender then
         self._gunModule.input_render = self._originalInputRender
     end
+    if self._gunModule and self._originalRunning then -- added
+        self._gunModule.running = self._originalRunning
+    end
     self._gunModule = nil
     self._originalInputShoot = nil
     self._originalInputRender = nil
+    self._originalRunning = nil -- added
     self._initialized = false
 end
 
