@@ -6,7 +6,7 @@ local url = "https://raw.githubusercontent.com/buhayhayahay332-lang/Test-mode-so
 local PLACE_ID = 72920620366355
 local BLOCKLIST = { xeno = true, solara = true }
 
-local SETFFLAG_EXECUTORS = { delta = true, wave = true, real = true, }
+local SETFFLAG_EXECUTORS = { delta = true, wave = true }
 
 if game.PlaceId ~= PLACE_ID then
     warn("[Loader] Wrong game. Expected: " .. PLACE_ID .. " Got: " .. game.PlaceId)
