@@ -7,7 +7,6 @@ local MODULE_FILES = {
     EspLib             = "EspLib.lua",
     silent_aim         = "silent_aim.lua",
     attachment_editor  = "attachment_editor.lua",
-    homing_projectiles = "homing_projectiles.lua",
     auto_shoot         = "auto_shoot.lua",
     misc               = "misc.lua",
 }
@@ -191,27 +190,6 @@ end
 local function setAutoShootActivation(mode)
     withModule("auto_shoot", function(m)
         if type(m.setActivation) == "function" then m:setActivation(mode) end
-    end)
-end
-
-local function setTombradyEnabled(state)
-    withModule("homing_projectiles", function(m)
-        if type(m.setTombradyEnabled) == "function" then m:setTombradyEnabled(state) end
-    end)
-end
-local function setHk69Enabled(state)
-    withModule("homing_projectiles", function(m)
-        if type(m.setHk69Enabled) == "function" then m:setHk69Enabled(state) end
-    end)
-end
-local function setHomingSpeed(value)
-    withModule("homing_projectiles", function(m)
-        if type(m.setHomingSpeed) == "function" then m:setHomingSpeed(value) end
-    end)
-end
-local function setHomingSmoothness(value)
-    withModule("homing_projectiles", function(m)
-        if type(m.setHomingSmoothness) == "function" then m:setHomingSmoothness(value) end
     end)
 end
 
@@ -727,9 +705,7 @@ local function applyDefaults()
     setSilentAimFovCircleVisual(true)
     setSilentAimSnaplines(false); setSilentAimSnaplineOrigin("Center")
     setAutoShoot(false); setAutoShootDelay(0); setAutoShootTeamCheck(true); setAutoShootTargetGadgets(false); setAutoShootActivation("always")
-    setTombradyEnabled(false); setHk69Enabled(false)
-    setHomingSpeed(60); setHomingSmoothness(1)
-
+  
     setGunModEnabled(false); setGunModConfig("recoil_reduction", 0)
     setGunModConfig("horizontal_recoil", 0); setGunModConfig("no_spread", false)
     setGunModConfig("force_auto", false)
@@ -805,7 +781,7 @@ local function applyDefaults()
 end
 
 local function runStartupInit()
-    local initOrder = { "silent_aim", "auto_shoot", "homing_projectiles", "gun_modification", "misc", ESP_MODULE_NAME, "fullbright" }
+    local initOrder = { "silent_aim", "auto_shoot", "gun_modification", "misc", ESP_MODULE_NAME, "fullbright" }
     for _, name in ipairs(initOrder) do initModule(name, false) end
     applyDefaults()
     log("init complete")
@@ -860,7 +836,6 @@ local function buildNeverloseUi()
     local AimMain = RageTab:AddSection({ Name = "MAIN" })
     local AimSettings = RageTab:AddSection({ Name = "SETTINGS", Position = 'left' })
     local AimWeapon = RageTab:AddSection({ Name = "WEAPON", Position = 'right' })
-    local AimHoming = RageTab:AddSection({ Name = "HOMING", Position = 'right' })
 
     AimMain:AddLabel("Silent Aim"):AddToggle({ Default = false, Callback = setSilentAim, Flag = "sa_enabled" })
     AimMain:AddLabel("Team Check"):AddToggle({ Default = true, Callback = setSilentAimTeamCheck, Flag = "sa_team" })
@@ -890,11 +865,6 @@ local function buildNeverloseUi()
     AimWeapon:AddLabel("Horizontal Recoil"):AddSlider({ Min = 0, Max = 100, Default = 0, Type = "%", Size = 95, Callback = function(v) setGunModConfig("horizontal_recoil", v / 100) end, Flag = "gm_hrecoil" })
     AimWeapon:AddLabel("No Spread"):AddToggle({ Default = false, Callback = function(v) setGunModConfig("no_spread", v) end, Flag = "gm_spread" })
     AimWeapon:AddLabel("Force Automatic"):AddToggle({ Default = false, Callback = function(v) setGunModConfig("force_auto", v) end, Flag = "gm_auto" })
-
-    AimHoming:AddLabel("Tombrady Throw"):AddToggle({ Default = false, Callback = setTombradyEnabled, Flag = "hm_tomb" })
-    AimHoming:AddLabel("HK69 Homing"):AddToggle({ Default = false, Callback = setHk69Enabled, Flag = "hm_hk" })
-    AimHoming:AddLabel("Homing Speed"):AddSlider({ Min = 10, Max = 250, Default = 60, Callback = setHomingSpeed, Flag = "hm_spd" })
-    AimHoming:AddLabel("Homing Smoothness"):AddSlider({ Min = 1, Max = 100, Default = 100, Type = "%", Size = 95, Callback = function(v) setHomingSmoothness(v / 100) end, Flag = "hm_smooth" })
 
     -- VISUALS TAB
     local EspMain = VisualsTab:AddSection({ Name = "ESP", Position = 'left' })
@@ -1158,8 +1128,6 @@ local function buildNeverloseUi()
             pcall(setRadarFlag, "Enabled", false)
             pcall(setFullbright, false)
             pcall(setGunModEnabled, false)
-            pcall(setTombradyEnabled, false)
-            pcall(setHk69Enabled, false)
             NeverLose.UnloadEnabled = true
             task.wait(0.1)
             pcall(function() NeverLose:Unload() end)
