@@ -1,26 +1,34 @@
+local newcclosure = newcclosure or function(f) return f end
+
 local Module = {
-    _initialized = false,
-    _enabled = false,
-    _hooked = false,
-    shared = nil,
-    _gunModule = nil,
-    _savedConstants = {},
+    _initialized      = false,
+    _enabled          = false,
+    _hooked           = false,
+    shared            = nil,
+    _gunModule        = nil,
+    _rawInputShoot    = nil,
+    _rawInputRender   = nil,
+    _savedConstants   = {},
     config = {
         recoil_reduction = 0,
         horizontal_recoil = 0,
-        no_spread = false,
-        force_auto = false,
+        no_spread        = false,
+        force_auto       = false,
     },
 }
 
+local _forceAutoShootOrig  = nil
+local _forceAutoRenderOrig = nil
+
 local GUN_PATH = { "Modules", "Items", "Item", "Gun" }
+
 
 local function getGunModule()
     if Module._gunModule then
         return Module._gunModule
     end
 
-    local RS = game:GetService("ReplicatedStorage")
+    local RS   = game:GetService("ReplicatedStorage")
     local node = RS
 
     for _, childName in ipairs(GUN_PATH) do
@@ -33,14 +41,22 @@ local function getGunModule()
     end
 
     Module._gunModule = gunModule
+
+    if type(gunModule.input_shoot) == "function" then
+        Module._rawInputShoot = gunModule.input_shoot
+    end
+    if type(gunModule.input_render) == "function" then
+        Module._rawInputRender = gunModule.input_render
+    end
+
     return gunModule
 end
+
 
 local function getConstantsApi()
     if type(getconstants) ~= "function" or type(setconstant) ~= "function" then
         return nil
     end
-
     return getconstants, setconstant
 end
 
@@ -50,7 +66,6 @@ local function savePatch(self, fn, key, index, oldValue)
         fnState = {}
         self._savedConstants[fn] = fnState
     end
-
     if not fnState[key] then
         fnState[key] = { index = index, old = oldValue }
     end
@@ -58,9 +73,7 @@ end
 
 local function restoreSavedPatches(self)
     local _, setconstantFn = getConstantsApi()
-    if not setconstantFn then
-        return
-    end
+    if not setconstantFn then return end
 
     for fn, fnState in pairs(self._savedConstants) do
         if type(fn) == "function" and type(fnState) == "table" then
@@ -154,34 +167,45 @@ local function patchRecoilFunction(self, fn, vertical, horizontal)
     return patched > 0
 end
 
-function Module:setShared(shared)
-    if type(shared) ~= "table" then
-        return false, "shared must be table"
+
+local function applyForceAutoHook(self, gunModule)
+    if _forceAutoShootOrig then return end 
+
+    local shootFn  = self._rawInputShoot  or gunModule.input_shoot
+    local renderFn = self._rawInputRender or gunModule.input_render
+
+    if type(hookfunction) ~= "function" then return end
+
+    if type(shootFn) == "function" then
+        _forceAutoShootOrig = hookfunction(shootFn, newcclosure(function(gun, pressed, fromRender, ...)
+            if Module._enabled and Module.config.force_auto and gun then
+                local old  = gun.automatic
+                gun.automatic = true
+                local r = table.pack(_forceAutoShootOrig(gun, pressed, fromRender, ...))
+                gun.automatic = old
+                return table.unpack(r, 1, r.n)
+            end
+            return _forceAutoShootOrig(gun, pressed, fromRender, ...)
+        end))
     end
 
-    self.shared = shared
-
-    if type(shared.applyToEnv) == "function" then
-        pcall(function()
-            shared:applyToEnv()
-        end)
+    if type(renderFn) == "function" then
+        _forceAutoRenderOrig = hookfunction(renderFn, newcclosure(function(gun, ...)
+            if Module._enabled and Module.config.force_auto and gun then
+                local old  = gun.automatic
+                gun.automatic = true
+                local r = table.pack(_forceAutoRenderOrig(gun, ...))
+                gun.automatic = old
+                return table.unpack(r, 1, r.n)
+            end
+            return _forceAutoRenderOrig(gun, ...)
+        end))
     end
-
-    return true
 end
 
-function Module:_installHook()
-    if self._hooked then
-        return true
-    end
-
-    local gunModule, gunErr = getGunModule()
-    if not gunModule then
-        return false, tostring(gunErr or "gun module unavailable")
-    end
-
-    self._hooked = true
-    return true
+local function removeForceAutoHook()
+    _forceAutoShootOrig  = nil
+    _forceAutoRenderOrig = nil
 end
 
 function Module:_applyConfig()
@@ -195,7 +219,7 @@ function Module:_applyConfig()
     local enabled = self._enabled == true
 
     if enabled then
-        local recoilValue = tonumber(self.config.recoil_reduction) or 0
+        local recoilValue    = tonumber(self.config.recoil_reduction) or 0
         local horizontalValue = tonumber(self.config.horizontal_recoil) or 0
 
         local recoilFn = gunModule.recoil_function
@@ -211,18 +235,39 @@ function Module:_applyConfig()
         end
 
         if self.config.force_auto == true then
-            local inputShootFn = gunModule.input_shoot
-            if type(inputShootFn) == "function" then
-                patchConstantByValue(self, inputShootFn, "auto", "automatic", "tag")
-            end
-
-            local inputRenderFn = gunModule.input_render
-            if type(inputRenderFn) == "function" then
-                patchConstantByValue(self, inputRenderFn, "auto", "automatic", "tag")
-            end
+            applyForceAutoHook(self, gunModule)
+        else
+            removeForceAutoHook()
         end
+    else
+        removeForceAutoHook()
     end
 
+    return true
+end
+
+
+function Module:_installHook()
+    if self._hooked then return true end
+
+    local gunModule, gunErr = getGunModule()
+    if not gunModule then
+        return false, tostring(gunErr or "gun module unavailable")
+    end
+
+    self._hooked = true
+    return true
+end
+
+
+function Module:setShared(shared)
+    if type(shared) ~= "table" then
+        return false, "shared must be table"
+    end
+    self.shared = shared
+    if type(shared.applyToEnv) == "function" then
+        pcall(function() shared:applyToEnv() end)
+    end
     return true
 end
 
@@ -230,7 +275,6 @@ function Module:init(force)
     if self._initialized and not force then
         return true
     end
-
     if self._initialized and force then
         self:unload()
     end
@@ -266,7 +310,6 @@ function Module:setEnabled(state)
     if not okInit then
         return false, initErr
     end
-
     self._enabled = state == true
     self:_applyConfig()
     return true
@@ -276,13 +319,11 @@ function Module:updateConfig(newConfig)
     if type(newConfig) ~= "table" then
         return false, "config must be table"
     end
-
     for key, value in pairs(newConfig) do
         if self.config[key] ~= nil then
             self.config[key] = value
         end
     end
-
     self:_applyConfig()
     return true
 end
@@ -293,11 +334,10 @@ end
 
 function Module:unload()
     self._enabled = false
-
     restoreSavedPatches(self)
     self._savedConstants = {}
-    self._hooked = false
-
+    removeForceAutoHook()
+    self._hooked      = false
     self._initialized = false
     return true
 end
