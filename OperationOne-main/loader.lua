@@ -56,7 +56,7 @@ end)();
 local SCRUB_PATTERNS: {string} = {
     "https?://[%w%-%._~:/%?#%[%]@!%$&'%(%)%*%+,;%%=]+";
     "github%.com";
-    "buhayhayahay332-lang;
+    "buhayhayahay332-lang";
     "Test-mode-son";
     "OperationOne-main";
     "main%.lua";
