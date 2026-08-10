@@ -137,56 +137,8 @@ function Module:setShared(shared)
     return true
 end
 
-function Module:_wrapGunShootLook(gun)
-    if type(gun) ~= "table" then
-        return false
-    end
 
-    self._hookedGuns = self._hookedGuns or setmetatable({}, { __mode = "k" })
-    if self._hookedGuns[gun] then
-        return true
-    end
 
-    local originalLook = rawget(gun, "get_shoot_look")
-    if type(originalLook) ~= "function" then
-        return false
-    end
-
-    self._hookedGuns[gun] = originalLook
-    gun._op1_original_get_shoot_look = originalLook
-
-    gun.get_shoot_look = function(s, ...)
-        if self._enabled and self._mode ~= "aim_assist" then
-            local target = self:_getClosestTargetToCursor()
-            if target and s and s.shot and s.shot.CFrame then
-                return CFrame.lookAt(s.shot.CFrame.Position, target.Position)
-            end
-        end
-
-        return originalLook(s, ...)
-    end
-
-    gun._op1_silentAimLookHooked = true
-    return true
-end
-
-function Module:_restoreGunShootLookHooks()
-    if not self._hookedGuns then
-        return
-    end
-
-    for gun, originalLook in pairs(self._hookedGuns) do
-        if type(gun) == "table" then
-            pcall(function()
-                gun.get_shoot_look = originalLook
-                gun._op1_silentAimLookHooked = nil
-                gun._op1_original_get_shoot_look = nil
-            end)
-        end
-    end
-
-    self._hookedGuns = nil
-end
 
 function Module:_getMousePosition()
     local camera = Workspace.CurrentCamera
@@ -914,7 +866,6 @@ function Module:unload()
         self._snapline = nil
     end
 
-    self:_restoreGunShootLookHooks()
 
     if self._hookStrategy == "delta" and self._gunModule and self._originalSendShootUtil then
         pcall(function()
