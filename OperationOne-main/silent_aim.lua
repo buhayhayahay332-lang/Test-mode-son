@@ -35,6 +35,7 @@ local Module = {
     _hookStrategy = nil,
     _gunModule = nil,
     _originalSendShoot = nil,
+    _originalSendShootUtil = nil,
     _originalCFrameNew = nil,
     _hookedGuns = nil,
 }
@@ -86,9 +87,6 @@ local function isColorMatch(color, expected)
 end
 
 local function getDebugApi()
-    if type(dbg) == "table" then
-        return dbg
-    end
     if type(debug) == "table" then
         return debug
     end
@@ -560,74 +558,66 @@ function Module:_installHook()
     local isDelta = execName:find("delta",    1, true) ~= nil
                  or execName:find("madium",   1, true) ~= nil
                  or execName:find("velocity", 1, true) ~= nil
-                --or execName:find("potassium",1, true) ~= nil
+                or execName:find("potassium",1, true) ~= nil
                 
     if isDelta then
         print("HES A FURRY DELTA")
         local ok, err = pcall(function()
-            local ReplicatedStorage = game:GetService("ReplicatedStorage")
+            local ReplicatedStorage = cloneref(game:GetService("ReplicatedStorage"))
             local GunModule = require(ReplicatedStorage.Modules.Items.Item.Gun)
             selfRef._gunModule = GunModule
 
-            local inputShoot = rawget(GunModule, "input_shoot")
-            if type(inputShoot) ~= "function" then
-                error("input_shoot unavailable")
+            local dbgApi = getDebugApi()
+            if not dbgApi or type(dbgApi.getupvalue) ~= "function" or type(dbgApi.setupvalue) ~= "function" then
+                error("dbg upval unavailable")
             end
 
-            local envGetter = getfenv
-            if type(envGetter) ~= "function" then
-                error("getfenv unavailable")
+            if type(GunModule.send_shoot) ~= "function" then
+                error("send_shoot unavailable")
             end
 
-            local env = envGetter(inputShoot)
-            if type(env) ~= "table" then
-                error("input_shoot env unavailable")
+            local RealUtil = dbgApi.getupvalue(GunModule.send_shoot, 1)
+            if type(RealUtil) ~= "table" or type(RealUtil.validate_position) ~= "function" then
+                error("send_shoot util upvalue unavailable")
+            end
+
+            local getStackFn = dbgApi.getstack
+            local setStackFn = dbgApi.setstack
+            if type(getStackFn) ~= "function" or type(setStackFn) ~= "function" then
+                error("dbg getstack/setstack unavailable")
             end
 
             selfRef._hookStrategy = "delta"
-            selfRef._gunModuleEnv = env
+            selfRef._originalSendShootUtil = RealUtil
 
-            env.os = table.clone(os)
-            setreadonly(env.os, false)
-
-            local oldClock = env.os.clock
-            selfRef._originalOsClock = oldClock
-
-            local closure = getRuntimeHelper("newcclosure", newcclosure or function(fn) return fn end)
-            env.os.clock = closure(function(...)
-                local dbgApi = getDebugApi()
-                local getStackFn = dbgApi and dbgApi.getstack or getstack
-                if type(getStackFn) == "function" then
-                    local gun = getStackFn(3, 1)
-                    if gun and type(gun) == "table" then
-                        if gun.get_shoot_look and not gun._op1_silentAimLookHooked then
-                            local originalLook = gun.get_shoot_look
-                            gun._op1_original_get_shoot_look = originalLook
-                            gun.get_shoot_look = function(s, ...)
-                                if selfRef._enabled and selfRef._mode ~= "aim_assist" then
-                                    local target = selfRef:_getClosestTargetToCursor()
-                                    if target and s and s.shot and s.shot.CFrame then
-                                        return CFrame.lookAt(s.shot.CFrame.Position, target.Position)
-                                    end
-                                end
-                                return originalLook(s, ...)
-                            end
-                            gun._op1_silentAimLookHooked = true
+local hooked_validate_position = function(origin, target, rayParams)
+                if selfRef._enabled and selfRef._mode ~= "aim_assist" then
+                    local best = selfRef:_getClosestTargetToCursor()
+                    if best then
+                        local shotCF = getStackFn(2, 3)
+                        if typeof(shotCF) == "CFrame" then
+                            setStackFn(2, 5, CFrame.lookAt(shotCF.Position, best.Position))
                         end
                     end
                 end
+                return RealUtil.validate_position(origin, target, rayParams)
+            end
 
-                return oldClock(...)
-            end)
+            local fakeUtil = setmetatable({}, {
+                __index = function(t, k)
+                    if k == "validate_position" then
+                        return hooked_validate_position
+                    end
+                    return RealUtil[k]
+                end,
+            })
 
-            setreadonly(env.os, true)
+            dbgApi.setupvalue(GunModule.send_shoot, 1, fakeUtil)
         end)
 
         if not ok then
-            selfRef:_restoreGunShootLookHooks()
             selfRef._gunModule = nil
-            selfRef._gunModuleEnv = nil
-            selfRef._originalOsClock = nil
+            selfRef._originalSendShootUtil = nil
             selfRef._hookStrategy = nil
             return false, tostring(err)
         end
@@ -926,12 +916,12 @@ function Module:unload()
 
     self:_restoreGunShootLookHooks()
 
-    -- CHANGED: restore os.clock in the env and lock it back
-    if self._hookStrategy == "delta" and self._gunModuleEnv and self._originalOsClock then
+    if self._hookStrategy == "delta" and self._gunModule and self._originalSendShootUtil then
         pcall(function()
-            setreadonly(self._gunModuleEnv.os, false)
-            self._gunModuleEnv.os.clock = self._originalOsClock
-            setreadonly(self._gunModuleEnv.os, true)
+            local dbgApi = getDebugApi()
+            if dbgApi and type(dbgApi.setupvalue) == "function" then
+                dbgApi.setupvalue(self._gunModule.send_shoot, 1, self._originalSendShootUtil)
+            end
         end)
     elseif self._hookStrategy == "stack" and self._originalCFrameNew then
         pcall(function()
@@ -950,8 +940,9 @@ function Module:unload()
 
     self._gunModule = nil
     self._gunModuleEnv = nil
-    self._originalOsClock = nil   
+    self._originalOsClock = nil
     self._originalSendShoot = nil
+    self._originalSendShootUtil = nil
     self._originalCFrameNew = nil
     self._hookStrategy = nil
     self._hookInstalled = false
