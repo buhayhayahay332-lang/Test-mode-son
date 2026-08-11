@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-local Players = game:GetService("Players")
-local lp = Players.LocalPlayer
-local m = "REJOIN THE GAME FUCK FURRY"
-local url = "https://raw.githubusercontent.com/buhayhayahay332-lang/Test-mode-son/refs/heads/main/OperationOne-main/main.lua"
-=======
-local CloneFunction = clonefunction or function(Func) return Func end;
->>>>>>> e334be3f7efd38cc8c11738d076ebb81c8799d46
-
 local PCall: (any, ...any) -> (boolean, ...any)        = CloneFunction(pcall);
 local ToString: (any) -> string                        = CloneFunction(tostring);
 local IPairs                                           = CloneFunction(ipairs);
@@ -26,14 +17,11 @@ local TableConcat: ({any}, string?) -> string          = CloneFunction(table.con
 local MathFmod: (number, number) -> number             = CloneFunction(math.fmod);
 local Bit32Bxor: (number, number) -> number            = CloneFunction(bit32.bxor);
 
-<<<<<<< HEAD
-local SETFFLAG_EXECUTORS = { delta = true, wave = true,}
-=======
 local _, S = PCall(function(...) string.byte("a", function(...) return; end, 9999, 38); end);
 if S and (StringFind(S, "httplog", 1, true) or StringFind(S, "sandbox", 1, true)) then
     while true do end;
 end;
->>>>>>> e334be3f7efd38cc8c11738d076ebb81c8799d46
+
 
 local Players = cloneref(game:GetService("Players"));
 
