@@ -1,89 +1,8 @@
-<<<<<<< HEAD
 local Players     = cloneref(game:GetService("Players"))
 local LocalPlayer = Players.LocalPlayer
 
 local PLACE_ID = 72920620366355
 local URL      = "https://gitlab.com/potanginamo373-lang/op1/-/raw/main/main.lua"
-=======
-local PCall: (any, ...any) -> (boolean, ...any)        = CloneFunction(pcall);
-local ToString: (any) -> string                        = CloneFunction(tostring);
-local IPairs                                           = CloneFunction(ipairs);
-local Pairs                                            = CloneFunction(pairs);
-local Type: (any) -> string                            = CloneFunction(type);
-local Warn: (...any) -> ()                             = CloneFunction(warn);
-local TaskWait: (number?) -> number                    = CloneFunction(task.wait);
-local TaskSpawn: (((...any) -> any), ...any) -> thread = CloneFunction(task.spawn);
-local TaskCancel: (thread) -> ()                       = CloneFunction(task.cancel);
-local StringFormat: (string, ...any) -> string         = CloneFunction(string.format);
-local StringLower: (string) -> string                  = CloneFunction(string.lower);
-local StringGsub: (string, string, string) -> (string, number) = CloneFunction(string.gsub);
-local StringFind: (string, string, number?, boolean?) -> (number?, number?) = CloneFunction(string.find);
-local StringByte: (string, number?) -> number          = CloneFunction(string.byte);
-local StringChar: (...number) -> string                = CloneFunction(string.char);
-local TableConcat: ({any}, string?) -> string          = CloneFunction(table.concat);
-local MathFmod: (number, number) -> number             = CloneFunction(math.fmod);
-local Bit32Bxor: (number, number) -> number            = CloneFunction(bit32.bxor);
-
-local _, S = PCall(function(...) string.byte("a", function(...) return; end, 9999, 38); end);
-if S and (StringFind(S, "httplog", 1, true) or StringFind(S, "sandbox", 1, true)) then
-    while true do end;
-end;
-
-
-local Players = cloneref(game:GetService("Players"));
-
-local XorDecode do
-    local KEY    = "astro";
-    local KeyLen = #KEY;
-
-    XorDecode = function(Encoded: {number}): string
-        local Chars: {string} = {};
-        for Index, Byte in IPairs(Encoded) do
-            local KeyByte = StringByte(KEY, MathFmod(Index - 1, KeyLen) + 1);
-            Chars[Index]  = StringChar(Bit32Bxor(Byte, KeyByte));
-        end;
-        return TableConcat(Chars);
-    end;
-end;
-
-local ENCODED_URL: {number} = (function(): {number}
-    local Key    = "astro";
-    local Url    = "https://raw.githubusercontent.com/buhayhayahay332-lang/Test-mode-son/refs/heads/main/OperationOne-main/main.lua";
-    local KeyLen = #Key;
-    local Out: {number} = {};
-    for Index = 1, #Url do
-        local UrlByte = StringByte(Url, Index);
-        local KeyByte = StringByte(Key, MathFmod(Index - 1, KeyLen) + 1);
-        Out[Index]    = Bit32Bxor(UrlByte, KeyByte);
-    end;
-    return Out;
-end)();
-
-local SCRUB_PATTERNS: {string} = {
-    "https?://[%w%-%._~:/%?#%[%]@!%$&'%(%)%*%+,;%%=]+";
-    "github%.com";
-    "buhayhayahay332-lang";
-    "Test-mode-son";
-    "OperationOne-main";
-    "main%.lua";
-};
-
-local PLACE_IDS = {
-    Expected = 72920620366355;
-};
-
-local MESSAGES = {
-    Rejoin     = "REJOIN THE GAM FUCK FURRY";
-    WrongGame  = "Wrong game FN";
-    LoadFailed = "[Loader] Failed to load script";
-    RunFailed  = "[Loader] Failed to run script";
-};
-
-local BLOCKLIST = {
-    ["xeno"]   = true;
-    ["solara"] = true;
-};
->>>>>>> d6de9331bd9f82b254c2d0a024c035cfb3e4df5c
 
 local SETFFLAG_EXECUTORS = {
     wave     = true,
