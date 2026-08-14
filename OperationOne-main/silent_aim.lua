@@ -508,9 +508,6 @@ function Module:_installHook()
     end
     
     local isDelta = execName:find("delta",    1, true) ~= nil
-                 or execName:find("madium",   1, true) ~= nil
-                 or execName:find("velocity", 1, true) ~= nil
-                or execName:find("potassium",1, true) ~= nil
                 
     if isDelta then
         print("HES A FURRY DELTA")
@@ -602,12 +599,16 @@ local hooked_validate_position = function(origin, target, rayParams)
                 end
 
                 local stackLevel = nil
-                for _, lvl in ipairs({2, 3}) do
-                    local name = dbgApi and dbgApi.info and dbgApi.info(lvl, "n")
-                    local source = dbgApi and dbgApi.info and dbgApi.info(lvl, "s")
-                    if name == "send_shoot" and source and source:find("ReplicatedStorage.Modules.Items.Item.Gun", 1, true) then
-                        stackLevel = lvl
-                        break
+                if isDelta then
+                    stackLevel = 2
+                else
+                    for _, lvl in ipairs({2, 3}) do
+                        local name = dbgApi and dbgApi.info and dbgApi.info(lvl, "n")
+                        local source = dbgApi and dbgApi.info and dbgApi.info(lvl, "s")
+                        if name == "send_shoot" and source and source:find("ReplicatedStorage.Modules.Items.Item.Gun", 1, true) then
+                            stackLevel = lvl
+                            break
+                        end
                     end
                 end
 

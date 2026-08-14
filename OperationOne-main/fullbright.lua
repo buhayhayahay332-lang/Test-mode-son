@@ -147,8 +147,15 @@ end
 
 function Module:_applyFpsBoost(enable)
     if enable then
+        local function isLocalViewmodelPart(part)
+            local viewmodels = Workspace:FindFirstChild("Viewmodels")
+            local localViewmodel = viewmodels and viewmodels:FindFirstChild("LocalViewmodel")
+            return localViewmodel
+                and (part == localViewmodel or part:IsDescendantOf(localViewmodel))
+        end
+
         local function applyToPart(part)
-            if part:IsA("BasePart") then
+            if part:IsA("BasePart") and not isLocalViewmodelPart(part) then
                 if not self._originalMaterials[part] then
                     self._originalMaterials[part] = part.Material
                 end

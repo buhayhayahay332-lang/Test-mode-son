@@ -1,267 +1,136 @@
-<<<<<<< HEAD
-local Players = game:GetService("Players")
-local lp = Players.LocalPlayer
-local m = "REJOIN THE GAME FUCK FURRY"
-local url = "https://raw.githubusercontent.com/buhayhayahay332-lang/Test-mode-son/refs/heads/main/OperationOne-main/main.lua"
-=======
-local CloneFunction = clonefunction or function(Func) return Func end;
->>>>>>> e334be3f7efd38cc8c11738d076ebb81c8799d46
+local Players     = cloneref(game:GetService("Players"))
+local LocalPlayer = Players.LocalPlayer
 
-local PCall: (any, ...any) -> (boolean, ...any)        = CloneFunction(pcall);
-local ToString: (any) -> string                        = CloneFunction(tostring);
-local IPairs                                           = CloneFunction(ipairs);
-local Pairs                                            = CloneFunction(pairs);
-local Type: (any) -> string                            = CloneFunction(type);
-local Warn: (...any) -> ()                             = CloneFunction(warn);
-local TaskWait: (number?) -> number                    = CloneFunction(task.wait);
-local TaskSpawn: (((...any) -> any), ...any) -> thread = CloneFunction(task.spawn);
-local TaskCancel: (thread) -> ()                       = CloneFunction(task.cancel);
-local StringFormat: (string, ...any) -> string         = CloneFunction(string.format);
-local StringLower: (string) -> string                  = CloneFunction(string.lower);
-local StringGsub: (string, string, string) -> (string, number) = CloneFunction(string.gsub);
-local StringFind: (string, string, number?, boolean?) -> (number?, number?) = CloneFunction(string.find);
-local StringByte: (string, number?) -> number          = CloneFunction(string.byte);
-local StringChar: (...number) -> string                = CloneFunction(string.char);
-local TableConcat: ({any}, string?) -> string          = CloneFunction(table.concat);
-local MathFmod: (number, number) -> number             = CloneFunction(math.fmod);
-local Bit32Bxor: (number, number) -> number            = CloneFunction(bit32.bxor);
-
-<<<<<<< HEAD
-local SETFFLAG_EXECUTORS = { delta = true, wave = true,}
-=======
-local _, S = PCall(function(...) string.byte("a", function(...) return; end, 9999, 38); end);
-if S and (StringFind(S, "httplog", 1, true) or StringFind(S, "sandbox", 1, true)) then
-    while true do end;
-end;
->>>>>>> e334be3f7efd38cc8c11738d076ebb81c8799d46
-
-local Players = cloneref(game:GetService("Players"));
-
-local XorDecode do
-    local KEY    = "astro";
-    local KeyLen = #KEY;
-
-    XorDecode = function(Encoded: {number}): string
-        local Chars: {string} = {};
-        for Index, Byte in IPairs(Encoded) do
-            local KeyByte = StringByte(KEY, MathFmod(Index - 1, KeyLen) + 1);
-            Chars[Index]  = StringChar(Bit32Bxor(Byte, KeyByte));
-        end;
-        return TableConcat(Chars);
-    end;
-end;
-
-local ENCODED_URL: {number} = (function(): {number}
-    local Key    = "astro";
-    local Url    = "https://raw.githubusercontent.com/buhayhayahay332-lang/Test-mode-son/refs/heads/main/OperationOne-main/main.lua";
-    local KeyLen = #Key;
-    local Out: {number} = {};
-    for Index = 1, #Url do
-        local UrlByte = StringByte(Url, Index);
-        local KeyByte = StringByte(Key, MathFmod(Index - 1, KeyLen) + 1);
-        Out[Index]    = Bit32Bxor(UrlByte, KeyByte);
-    end;
-    return Out;
-end)();
-
-local SCRUB_PATTERNS: {string} = {
-    "https?://[%w%-%._~:/%?#%[%]@!%$&'%(%)%*%+,;%%=]+";
-    "github%.com";
-    "buhayhayahay332-lang";
-    "Test-mode-son";
-    "OperationOne-main";
-    "main%.lua";
-};
-
-local PLACE_IDS = {
-    Expected = 72920620366355;
-};
-
-local MESSAGES = {
-    Rejoin     = "REJOIN THE GAM FUCK FURRY";
-    WrongGame  = "Wrong game FN";
-    LoadFailed = "[Loader] Failed to load script";
-    RunFailed  = "[Loader] Failed to run script";
-};
-
-local BLOCKLIST = {
-    ["xeno"]   = true;
-    ["solara"] = true;
-};
+local PLACE_ID = 72920620366355
+local URL      = "https://gitlab.com/potanginamo373-lang/op1/-/raw/main/main.lua"
 
 local SETFFLAG_EXECUTORS = {
-    ["wave"]     = true;
-    ["velocity"] = true;
-};
+    wave     = true,
+    velocity = true,
+}
 
-local LocalPlayer = Players.LocalPlayer;
+local FurryScript = [[
+    local Extras = getrenv().shared.extras
+    if not Extras then return end
 
-local SafeWarn do
-    SafeWarn = function(Message: string): ()
-        local Scrubbed = Message;
-        for _, Pattern in IPairs(SCRUB_PATTERNS) do
-            local Result, _ = StringGsub(Scrubbed, Pattern, "[redacted]");
-            Scrubbed = Result;
-        end;
-        Warn(Scrubbed);
-    end;
-end;
+    local Expected = {
+        ["1"]="thread",["3"]="thread",["4"]="thread",["5"]="thread",
+        ["6"]="thread",["7"]="thread",["8"]="thread",["9"]="thread",
+        ["10"]="thread",["ResetEnv"]="function"
+    }
 
-local SafePCall do
-    SafePCall = function(Fn: (any) -> any, ...: any): (boolean, any)
-        local Success, Result = PCall(Fn, ...);
-        if not Success then
-            local Scrubbed = ToString(Result);
-            for _, Pattern in IPairs(SCRUB_PATTERNS) do
-                local Out, _ = StringGsub(Scrubbed, Pattern, "[redacted]");
-                Scrubbed = Out;
-            end;
-            return false, Scrubbed;
-        end;
-        return true, Result;
-    end;
-end;
+    for k, v in pairs(Expected) do
+        if type(Extras[k]) ~= v then return warn("new furry added") end
+    end
 
-local ValidateGame do
-    ValidateGame = function(): boolean
-        if game.PlaceId ~= PLACE_IDS.Expected then
-            Warn("[Loader] Wrong game");
-            LocalPlayer:Kick(MESSAGES.WrongGame);
-            return false;
-        end;
-        return true;
-    end;
-end;
+    for k, v in pairs(Extras) do
+        if Expected[tostring(k)] == nil then return warn("new furry kinginamo") end
+    end
 
-local GetExecutorName do
-    GetExecutorName = function(): string
-        local Fn: (() -> string)? = identifyexecutor or getexecutorname or nil;
-        if Fn then
-            return Fn();
-        end;
-        return "unknown";
-    end;
-end;
+    for i, v in pairs(Extras) do
+        if type(v) ~= "thread" then continue end
+        Extras[i] = task.spawn(function() while task.wait(9e9) do end end)
+        task.cancel(v)
+    end
 
-local ValidateExecutor do
-    ValidateExecutor = function(ExecName: string): boolean
-        local ExecLower = StringLower(ExecName);
-        if BLOCKLIST[ExecLower] then
-            Warn("[Loader] Executor not supported");
-            LocalPlayer:Kick("Your executor is not supported.");
-            return false;
-        end;
-        return true;
-    end;
-end;
+    Extras.ResetEnv = function() end
+    task.wait(1)
+    warn("passed")
+]]
 
-local LoadMain do
-    local FurryScript = [[
-        local Extras = getrenv().shared.extras;
-        if not Extras then return end;
+local function getExecName()
+    local fn = identifyexecutor or getexecutorname
+    return fn and fn():lower() or "unknown"
+end
 
-        local EXPECTED = {
-            ["1"]="thread",["3"]="thread",["4"]="thread",["5"]="thread",
-            ["6"]="thread",["7"]="thread",["8"]="thread",["9"]="thread",
-            ["10"]="thread",["ResetEnv"]="function"
-        };
+local function isAllowed(name)
+    if name:find("delta")  then return true end
+    if name:find("codex")  then return true end
+    if name:find("arceus") then return true end
+    return false
+end
 
-        for k, v in pairs(EXPECTED) do
-            if type(Extras[k]) ~= v then return warn("new furry added") end;
-        end;
+local function runFurry()
+    local Extras = getrenv().shared.extras
+    if not Extras then return false end
 
-        for k, v in pairs(Extras) do
-            if EXPECTED[tostring(k)] == nil then return warn("new furry kinginamo")end;
-        end;
+    local Expected = {
+        ["1"]="thread",["3"]="thread",["4"]="thread",["5"]="thread",
+        ["6"]="thread",["7"]="thread",["8"]="thread",["9"]="thread",
+        ["10"]="thread",["ResetEnv"]="function"
+    }
 
-        for i, v in pairs(Extras) do
-            if type(v) ~= "thread" then continue end;
-            Extras[i] = task.spawn(function() while task.wait(9e9) do end end);
-            task.cancel(v);
-        end;
-		task.wait(1)
-        warn("passed")
-    ]];
+    for k, v in pairs(Expected) do
+        if type(Extras[k]) ~= v then warn("new furry added") return false end
+    end
 
-    local RunFurry: () -> boolean = function(): boolean
-        local Extras = getrenv().shared.extras;
-        if not Extras then return false; end;
+    for k, v in pairs(Extras) do
+        if Expected[tostring(k)] == nil then warn("new furry kinginamo") return false end
+    end
 
-        local Expected = {
-            ["1"]="thread",["3"]="thread",["4"]="thread",["5"]="thread",
-            ["6"]="thread",["7"]="thread",["8"]="thread",["9"]="thread",
-            ["10"]="thread",["ResetEnv"]="function"
-        };
+    for i, v in pairs(Extras) do
+        if type(v) ~= "thread" then continue end
+        Extras[i] = task.spawn(function() while task.wait(9e9) do end end)
+        task.cancel(v)
+    end
 
-        for k, v in Pairs(Expected) do
-            if Type(Extras[k]) ~= v then return warn("new furry added"); end;
-        end;
+    Extras.ResetEnv = function() end
+    task.wait(1)
+    warn("PASSED")
+    return true
+end
 
-        for k, v in Pairs(Extras) do
-            if Expected[ToString(k)] == nil then return warn("new furry kinginamo"); end;
-        end;
-
-        for i, v in Pairs(Extras) do
-            if Type(v) ~= "thread" then continue; end;
-            Extras[i] = TaskSpawn(function() while TaskWait(9e9) do end end);
-            TaskCancel(v);
-        end;
-	    TaskWait(1)
-	    Warn("PASSED")
-        return true;
-    end;
-
-    LoadMain = function(ExecLower: string): ()
-        local DecodedUrl    = XorDecode(ENCODED_URL);
-        local Actors        = getactors();
-        local Flag          = getfflag("DebugRunParallelLuaOnMainThread");
-        local ForceSetfflag = SETFFLAG_EXECUTORS[ExecLower];
-
-        if not ForceSetfflag and Actors and #Actors > 0 then
-            local ActorScript = StringFormat([[
-                %s
-                loadstring(game:HttpGet(%q))()
-            ]], FurryScript, DecodedUrl);
-            run_on_actor(Actors[1], ActorScript);
-        else
-            if not Flag or Flag == "false" then
-                setfflag("DebugRunParallelLuaOnMainThread", "true");
-                LocalPlayer:Kick(MESSAGES.Rejoin);
-            else
-                TaskSpawn(function()
-                    if not RunFurry() then
-                        Warn("[Loader] Furry failed");
-                        return;
-                    end;
-
-                    local Success, Result = SafePCall(function()
-                        return loadstring(game:HttpGet(DecodedUrl));
-                    end);
-                    if not Success then
-                        SafeWarn(MESSAGES.LoadFailed);
-                        return;
-                    end;
-
-                    local RunSuccess, RunResult = SafePCall(Result);
-                    if not RunSuccess then
-                        SafeWarn(MESSAGES.RunFailed);
-                    end;
-                end);
-            end;
-        end;
-
-        DecodedUrl = "";
-    end;
-end;
-
-if not ValidateGame() then return; end;
+-- validate game
+if game.PlaceId ~= PLACE_ID then
+    warn("[Loader] Wrong game")
+    LocalPlayer:Kick("Wrong game FN")
+    return
+end
 
 if not game:IsLoaded() then
-    game.Loaded:Wait();
-end;
+    game.Loaded:Wait()
+end
 
-local ExecName = GetExecutorName();
+-- validate executor
+local execName = getExecName()
 
-if not ValidateExecutor(ExecName) then return; end;
+if not isAllowed(execName) then
+    warn("[Loader] Executor not supported: " .. execName)
+    GUF_CRASH()
+    return
+end
 
-LoadMain(StringLower(ExecName));
+-- load
+local actors        = getactors()
+local flag          = getfflag("DebugRunParallelLuaOnMainThread")
+local forceSetfflag = SETFFLAG_EXECUTORS[execName]
+
+if not forceSetfflag and actors and #actors > 0 then
+    run_on_actor(actors[1], string.format([[
+        %s
+        loadstring(game:HttpGet(%q))()
+    ]], FurryScript, URL))
+else
+    if not flag or flag == "false" then
+        setfflag("DebugRunParallelLuaOnMainThread", "true")
+        LocalPlayer:Kick("REJOIN THE GAM FUCK FURRY")
+    else
+        task.spawn(function()
+            if not runFurry() then
+                warn("[Loader] Furry failed")
+                return
+            end
+
+            local fn, err = loadstring(game:HttpGet(URL))
+            if not fn then
+                warn("[Loader] Failed to load script")
+                return
+            end
+
+            local ok, runErr = pcall(fn)
+            if not ok then
+                warn("[Loader] Failed to run script")
+            end
+        end)
+    end
+end
