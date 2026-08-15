@@ -1,4 +1,4 @@
-local moduleRepo = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/"
+﻿local moduleRepo = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/"
 
 local MODULE_FILES = {
     shared_runtime     = "shared_runtime.lua",
@@ -735,7 +735,7 @@ local function applyDefaults()
     setSilentAimTargetGadgets(false); setSilentAimVisibleCheck(false)
     setSilentAimFovCircleVisual(true)
     setSilentAimSnaplines(false); setSilentAimSnaplineOrigin("Center")
-    setAntiAimEnabled(false); setAntiAimSpinSpeed(1440); setAntiAimPitchDown(89)
+    setAntiAimEnabled(false); setAntiAimSpinSpeed(0); setAntiAimPitchDown(0)
     setAntiAimSpoofLook(true); setAntiAimFixCamera(true); setAntiAimToggleKey("RightAlt")
     setAutoShoot(false); setAutoShootDelay(0); setAutoShootTeamCheck(true); setAutoShootTargetGadgets(false); setAutoShootActivation("always")
   
