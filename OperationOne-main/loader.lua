@@ -2,7 +2,7 @@ local Players     = cloneref(game:GetService("Players"))
 local LocalPlayer = Players.LocalPlayer
 
 local PLACE_ID = 72920620366355
-local URL      = "https://gitlab.com/potanginamo373-lang/op1/-/raw/main/main.lua"
+local URL      = "https://raw.githubusercontent.com/buhayhayahay332-lang/Test-mode-son/refs/heads/main/OperationOne-main/main.lua"
 
 local SETFFLAG_EXECUTORS = {
     wave     = true,

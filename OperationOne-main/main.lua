@@ -1,4 +1,4 @@
-﻿local moduleRepo = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/"
+local moduleRepo = "https://github.com/buhayhayahay332-lang/Test-mode-son/raw/refs/heads/main/OperationOne-main/"
 
 local MODULE_FILES = {
     shared_runtime     = "shared_runtime.lua",

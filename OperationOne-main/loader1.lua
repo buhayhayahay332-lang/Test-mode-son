@@ -42,7 +42,7 @@ end;
 
 local ENCODED_URL: {number} = (function(): {number}
     local Key    = "astro";
-    local Url    = "https://gitlab.com/potanginamo373-lang/op1/-/raw/main/test.luau";
+    local Url    = "https://raw.githubusercontent.com/buhayhayahay332-lang/Test-mode-son/refs/heads/main/OperationOne-main/main.lua";
     local KeyLen = #Key;
     local Out: {number} = {};
     for Index = 1, #Url do
