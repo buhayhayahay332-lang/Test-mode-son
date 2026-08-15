@@ -25,9 +25,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RENDER_TAG = "OP1_AntiAim"
 
 local function numberBetween(value, minimum, maximum, fallback)
-    value = tonumber(value)
-    if not value then return fallback end
-    return math.clamp(value, minimum, maximum)
+    if type(value) ~= "number" then return fallback end
+    if value < minimum then return minimum end
+    if value > maximum then return maximum end
+    return value
 end
 
 function Module:setShared(shared)
