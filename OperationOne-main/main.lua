@@ -6,6 +6,7 @@ local MODULE_FILES = {
     gun_modification   = "gun_modification.lua",
     EspLib             = "EspLib.lua",
     silent_aim         = "silent_aim.lua",
+    anti_aim           = "anti_aim.lua",
     attachment_editor  = "attachment_editor.lua",
     auto_shoot         = "auto_shoot.lua",
     misc               = "misc.lua",
@@ -167,6 +168,36 @@ local function setSilentAimSnaplineColor(color)
     end)
 end
 
+local function setAntiAimEnabled(state)
+    withModule("anti_aim", function(m)
+        if type(m.setEnabled) == "function" then m:setEnabled(state) end
+    end)
+end
+local function setAntiAimSpinSpeed(value)
+    withModule("anti_aim", function(m)
+        if type(m.setSpinSpeed) == "function" then m:setSpinSpeed(value) end
+    end)
+end
+local function setAntiAimPitchDown(value)
+    withModule("anti_aim", function(m)
+        if type(m.setPitchDown) == "function" then m:setPitchDown(value) end
+    end)
+end
+local function setAntiAimSpoofLook(state)
+    withModule("anti_aim", function(m)
+        if type(m.setSpoofLook) == "function" then m:setSpoofLook(state) end
+    end)
+end
+local function setAntiAimFixCamera(state)
+    withModule("anti_aim", function(m)
+        if type(m.setFixCamera) == "function" then m:setFixCamera(state) end
+    end)
+end
+local function setAntiAimToggleKey(key)
+    withModule("anti_aim", function(m)
+        if type(m.setToggleKey) == "function" then m:setToggleKey(key) end
+    end)
+end
 local function setAutoShoot(state)
     withModule("auto_shoot", function(m)
         if type(m.setEnabled) == "function" then m:setEnabled(state) end
@@ -704,6 +735,8 @@ local function applyDefaults()
     setSilentAimTargetGadgets(false); setSilentAimVisibleCheck(false)
     setSilentAimFovCircleVisual(true)
     setSilentAimSnaplines(false); setSilentAimSnaplineOrigin("Center")
+    setAntiAimEnabled(false); setAntiAimSpinSpeed(1440); setAntiAimPitchDown(89)
+    setAntiAimSpoofLook(true); setAntiAimFixCamera(true); setAntiAimToggleKey("RightAlt")
     setAutoShoot(false); setAutoShootDelay(0); setAutoShootTeamCheck(true); setAutoShootTargetGadgets(false); setAutoShootActivation("always")
   
     setGunModEnabled(false); setGunModConfig("recoil_reduction", 0)
@@ -781,7 +814,7 @@ local function applyDefaults()
 end
 
 local function runStartupInit()
-    local initOrder = { "silent_aim", "auto_shoot", "gun_modification", "misc", ESP_MODULE_NAME, "fullbright" }
+    local initOrder = { "silent_aim", "anti_aim", "auto_shoot", "gun_modification", "misc", ESP_MODULE_NAME, "fullbright" }
     for _, name in ipairs(initOrder) do initModule(name, false) end
     applyDefaults()
     log("init complete")
@@ -852,6 +885,14 @@ local function buildNeverloseUi()
     AimSettings:AddLabel("Activation"):AddDropdown({ Values = { "mb2", "mb1", "always", "mobile_hold", "mobile_toggle" }, Default = "mb2", Callback = setAimAssistActivation, Flag = "sa_act" })
     AimSettings:AddLabel("Target Mode"):AddDropdown({ Values = { "custom_parts", "head_only" }, Default = "custom_parts", Callback = setSilentAimTargetMode, Flag = "sa_targ" })
     AimSettings:AddLabel("Snapline Origin"):AddDropdown({ Values = { "Top", "Center", "Bottom" }, Default = "Center", Callback = setSilentAimSnaplineOrigin, Flag = "sa_snap_orig" })
+
+    local AntiAim = RageTab:AddSection({ Name = "ANTI-AIM", Position = 'left' })
+    AntiAim:AddLabel("Enabled"):AddToggle({ Default = false, Callback = setAntiAimEnabled, Flag = "aa_enabled" })
+    AntiAim:AddLabel("Spin Speed"):AddSlider({ Min = 0, Max = 3600, Default = 1440, Callback = setAntiAimSpinSpeed, Flag = "aa_speed" })
+    AntiAim:AddLabel("Pitch Down"):AddSlider({ Min = 0, Max = 89, Default = 89, Callback = setAntiAimPitchDown, Flag = "aa_pitch" })
+    AntiAim:AddLabel("Spoof Look"):AddToggle({ Default = true, Callback = setAntiAimSpoofLook, Flag = "aa_spoof" })
+    AntiAim:AddLabel("Fix Camera"):AddToggle({ Default = true, Callback = setAntiAimFixCamera, Flag = "aa_camera" })
+    AntiAim:AddLabel("Toggle Key"):AddKeybind({ Default = "RightAlt", Callback = setAntiAimToggleKey, Flag = "aa_key" })
 
     AimWeapon:AddLabel("Auto Shoot"):AddToggle({ Default = false, Callback = setAutoShoot, Flag = "as_enabled" })
     AimWeapon:AddLabel("Shoot While Running"):AddToggle({ Default = false, Callback = setShootWhileRunning, Flag = "as_run" })
@@ -1122,6 +1163,7 @@ local function buildNeverloseUi()
         Name = "Unload Script",
         Callback = function()
             pcall(setSilentAim, false)
+            pcall(setAntiAimEnabled, false)
             pcall(setAutoShoot, false)
             pcall(setEspEnabled, false)
             pcall(setEspGadgetsEnabled, false)
@@ -1149,4 +1191,5 @@ if not okUi then log("UI build failed: " .. tostring(uiErr)) end
 
 pcall(function() game:GetService("WebViewService"):Destroy() end)
 warn("init1")
+
 
