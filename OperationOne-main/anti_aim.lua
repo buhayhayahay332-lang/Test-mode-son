@@ -1,34 +1,42 @@
 local Module = {
     shared = nil,
-    _enabled = false,
     _initialized = false,
     _util = nil,
     _character = nil,
     _stateObject = nil,
     _replicatedStorage = nil,
     _originalClampLook = nil,
-    _originalFrameLerp = nil,
     _keybindConn = nil,
-    _activeRoot = nil,
     _spinAngle = 0,
-    _spinSpeed = 1440,
-    _pitchDown = 89,
-    _spoofLook = true,
-    _fixCamera = true,
-    _toggleKey = Enum.KeyCode.RightAlt,
+    _config = {
+        Enabled = false,
+        SpinRevs = 10,
+        PitchDown = 80,
+        SpoofLook = true,
+        FixCamera = true,
+        CycleKey = Enum.KeyCode.LeftAlt,
+    },
 }
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RENDER_TAG = "OP1_AntiAim"
 
-local function numberBetween(value, minimum, maximum, fallback)
-    if type(value) ~= "number" then return fallback end
-    if value < minimum then return minimum end
-    if value > maximum then return maximum end
-    return value
+local RENDER_TAG = "OP1_AntiAim"
+local LEGACY_RENDER_TAG = "AntiAim"
+
+local function numberValue(value, fallback)
+    if type(value) == "number" then return value end
+    return fallback
+end
+
+local function resolveKey(key)
+    if typeof(key) == "EnumItem" then return key end
+    if type(key) == "string" then
+        return Enum.KeyCode[key] or Enum.KeyCode.LeftAlt
+    end
+    return Enum.KeyCode.LeftAlt
 end
 
 function Module:setShared(shared)
@@ -55,15 +63,6 @@ function Module:_cloneFunction(fn)
     local clone = self.shared and (self.shared.clonefunction or self.shared.cfn)
     if type(clone) == "function" then
         local ok, result = pcall(clone, fn)
-        if ok and type(result) == "function" then return result end
-    end
-    return fn
-end
-
-function Module:_newClosure(fn)
-    local closure = self.shared and (self.shared.newcclosure or self.shared.closure)
-    if type(closure) == "function" then
-        local ok, result = pcall(closure, fn)
         if ok and type(result) == "function" then return result end
     end
     return fn
@@ -113,30 +112,19 @@ function Module:_getRoot(characterObject)
     return root
 end
 
-function Module:_installUtilHooks()
-    if not self._util then return true end
+function Module:_installCameraFix()
+    if not self._util or self._originalClampLook then return end
+    if type(self._util.clamp_look_vector) ~= "function" then return end
 
-    if type(self._util.clamp_look_vector) == "function" and not self._originalClampLook then
-        local original = self:_cloneFunction(self._util.clamp_look_vector)
-        self._originalClampLook = original
-        self._util.clamp_look_vector = self:_newClosure(function(fromLook, toLook, fov)
-            if self._enabled and self._fixCamera then return toLook end
-            return original(fromLook, toLook, fov)
-        end)
+    local original = self:_cloneFunction(self._util.clamp_look_vector)
+    self._originalClampLook = original
+    self._util.clamp_look_vector = function(fromLook, toLook, fov)
+        local config = self._config
+        if config.Enabled ~= false and config.FixCamera ~= false then
+            return toLook
+        end
+        return original(fromLook, toLook, fov)
     end
-
-    if type(self._util.frame_lerp) == "function" and not self._originalFrameLerp then
-        local original = self:_cloneFunction(self._util.frame_lerp)
-        self._originalFrameLerp = original
-        self._util.frame_lerp = self:_newClosure(function(from, to, speed, dt, ...)
-            local root = self._activeRoot
-            if self._enabled and root and root.Parent and typeof(from) == "CFrame" then
-                if (from.Position - root.Position).Magnitude < 0.01 then return from end
-            end
-            return original(from, to, speed, dt, ...)
-        end)
-    end
-    return true
 end
 
 function Module:_installKeybind()
@@ -145,36 +133,21 @@ function Module:_installKeybind()
         self._keybindConn = nil
     end
 
-    local key = self._toggleKey
     self._keybindConn = UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed or UserInputService:GetFocusedTextBox() then return end
-        if input.KeyCode == key then self:setEnabled(not self._enabled) end
+
+        if input.KeyCode == resolveKey(self._config.CycleKey) then
+            self:setEnabled(self._config.Enabled == false)
+        end
     end)
 end
 
 function Module:_onRenderStep(dt)
-    if not self._enabled then self._activeRoot = nil return end
+    local config = self._config
+    if config.Enabled == false then return end
 
     local characterObject = self:_getCharacterObject()
-    local root = self:_getRoot(characterObject)
-    if not characterObject or not root or not root.Parent then
-        self._activeRoot = nil
-        return
-    end
-
-    self._activeRoot = root
-    self._spinAngle = (self._spinAngle + math.rad(self._spinSpeed) * dt) % (math.pi * 2)
-
-    local gyro = root:FindFirstChildWhichIsA("BodyGyro")
-    if gyro then gyro.CFrame = CFrame.Angles(0, self._spinAngle, 0) end
-    root.CFrame = CFrame.new(root.Position) * CFrame.Angles(0, self._spinAngle, 0)
-
-    local collision = root.Parent:FindFirstChild("collision")
-    if collision then
-        local motor = collision:FindFirstChildWhichIsA("Motor6D")
-            or collision:FindFirstChild("JointMotor")
-        if motor then motor.Transform = CFrame.new() end
-    end
+    if not characterObject then return end
 
     local values = characterObject.values
     local cameraState = values and values.camera
@@ -184,15 +157,28 @@ function Module:_onRenderStep(dt)
         local ok, currentCamera = pcall(cameraState.get, cameraState)
         ownCamera = ok and currentCamera == camera
     end
+    local customCamera = ownCamera and camera.CameraType == Enum.CameraType.Custom
 
+    local root = self:_getRoot(characterObject)
     local lookState = characterObject.states and characterObject.states.look
-    if self._spoofLook and lookState and ownCamera
-        and camera.CameraType == Enum.CameraType.Custom then
-        local pitch = math.rad(numberBetween(self._pitchDown, 0, 89, 89))
-        local lookVector = (CFrame.Angles(0, self._spinAngle, 0)
-            * CFrame.Angles(-pitch, 0, 0)) * Vector3.new(0, 0, -1)
-        if type(lookState.set) == "function" then lookState:set(lookVector) end
+    if not root or not lookState then return end
+
+    local speed = math.rad(numberValue(config.SpinRevs, 10) * 360)
+    local pitchDown = math.rad(numberValue(config.PitchDown, 80))
+    self._spinAngle = (self._spinAngle + speed * dt) % (math.pi * 2)
+
+    if root.Parent then
+        root.CFrame = CFrame.new(root.Position) * CFrame.Angles(0, self._spinAngle, 0)
     end
+
+    if config.SpoofLook ~= false and customCamera then
+        local lookVector = (CFrame.Angles(0, self._spinAngle, 0)
+            * CFrame.Angles(-pitchDown, 0, 0)) * Vector3.new(0, 0, -1)
+        if type(lookState.set) == "function" then
+            lookState:set(lookVector)
+        end
+    end
+
 end
 
 function Module:init(force)
@@ -202,71 +188,88 @@ function Module:init(force)
     local ok, err = self:_resolveInternals()
     if not ok then return false, err end
 
-    self:_installUtilHooks()
+    self:_installCameraFix()
+
     pcall(function() RunService:UnbindFromRenderStep(RENDER_TAG) end)
+    pcall(function() RunService:UnbindFromRenderStep(LEGACY_RENDER_TAG) end)
     RunService:BindToRenderStep(RENDER_TAG, Enum.RenderPriority.Last.Value + 3, function(dt)
         pcall(function() self:_onRenderStep(dt) end)
     end)
+
     self:_installKeybind()
     self._initialized = true
     return true
 end
 
-function Module:load(force) return self:init(force) end
-function Module:isLoaded() return self._initialized end
+function Module:load(force)
+    return self:init(force)
+end
 
+function Module:isLoaded()
+    return self._initialized
+end
+
+function Module:setStateChanged(callback)
+    self._stateChanged = type(callback) == "function" and callback or nil
+    return true
+end
+
+function Module:_notifyStateChanged()
+    if self._stateChanged then
+        pcall(self._stateChanged, self._config.Enabled == true)
+    end
+end
 function Module:setEnabled(state)
     local ok, err = self:init(false)
     if not ok then return false, err end
-    self._enabled = state == true
-    if not self._enabled then self._activeRoot = nil end
+    self._config.Enabled = state == true
+    self:_notifyStateChanged()
     return true
 end
 
-function Module:setSpinSpeed(value)
-    self._spinSpeed = numberBetween(value, 0, 3600, 1440)
+function Module:setSpinRevs(value)
+    self._config.SpinRevs = numberValue(value, self._config.SpinRevs or 10)
     return true
 end
+
 
 function Module:setPitchDown(value)
-    self._pitchDown = numberBetween(value, 0, 89, 89)
+    self._config.PitchDown = numberValue(value, self._config.PitchDown or 80)
     return true
 end
 
-function Module:setSpoofLook(state) self._spoofLook = state == true return true end
-function Module:setFixCamera(state) self._fixCamera = state == true return true end
+function Module:setSpoofLook(state)
+    self._config.SpoofLook = state == true
+    return true
+end
+
+function Module:setFixCamera(state)
+    self._config.FixCamera = state == true
+    return true
+end
 
 function Module:setToggleKey(key)
-    if typeof(key) == "string" then
-        key = Enum.KeyCode[key] or Enum.KeyCode.RightAlt
-    end
-    if typeof(key) ~= "EnumItem" then return false end
-    self._toggleKey = key
+    self._config.CycleKey = resolveKey(key)
     if self._initialized then self:_installKeybind() end
     return true
 end
 
 function Module:unload()
-    self._enabled = false
-    self._activeRoot = nil
+    self._config.Enabled = false
+    self:_notifyStateChanged()
     pcall(function() RunService:UnbindFromRenderStep(RENDER_TAG) end)
+    pcall(function() RunService:UnbindFromRenderStep(LEGACY_RENDER_TAG) end)
 
     if self._keybindConn then
         pcall(function() self._keybindConn:Disconnect() end)
         self._keybindConn = nil
     end
 
-    if self._util then
-        if self._originalClampLook then
-            self._util.clamp_look_vector = self._originalClampLook
-        end
-        if self._originalFrameLerp then
-            self._util.frame_lerp = self._originalFrameLerp
-        end
+    if self._util and self._originalClampLook then
+        self._util.clamp_look_vector = self._originalClampLook
     end
 
     self._originalClampLook = nil
-    self._originalFrameLerp = nil
     self._util = nil
     self._character = nil
     self._stateObject = nil
