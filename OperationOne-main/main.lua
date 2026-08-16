@@ -168,14 +168,28 @@ local function setSilentAimSnaplineColor(color)
     end)
 end
 
+local antiAimToggleControl = nil
+local antiAimToggleSyncing = false
+
+local function syncAntiAimToggle(state)
+    if antiAimToggleSyncing or not antiAimToggleControl then return end
+    antiAimToggleSyncing = true
+    pcall(function()
+        antiAimToggleControl:SetValue(state == true)
+    end)
+    antiAimToggleSyncing = false
+end
 local function setAntiAimEnabled(state)
     withModule("anti_aim", function(m)
         if type(m.setEnabled) == "function" then m:setEnabled(state) end
+        if type(m.setStateChanged) == "function" then
+            m:setStateChanged(syncAntiAimToggle)
+        end
     end)
 end
-local function setAntiAimSpinSpeed(value)
+local function setAntiAimSpinRevs(value)
     withModule("anti_aim", function(m)
-        if type(m.setSpinSpeed) == "function" then m:setSpinSpeed(value) end
+        if type(m.setSpinRevs) == "function" then m:setSpinRevs(value) end
     end)
 end
 local function setAntiAimPitchDown(value)
@@ -735,8 +749,8 @@ local function applyDefaults()
     setSilentAimTargetGadgets(false); setSilentAimVisibleCheck(false)
     setSilentAimFovCircleVisual(true)
     setSilentAimSnaplines(false); setSilentAimSnaplineOrigin("Center")
-    setAntiAimEnabled(false); setAntiAimSpinSpeed(0); setAntiAimPitchDown(0)
-    setAntiAimSpoofLook(true); setAntiAimFixCamera(true); setAntiAimToggleKey("RightAlt")
+    setAntiAimEnabled(false); setAntiAimSpinRevs(10); setAntiAimPitchDown(80)
+    setAntiAimSpoofLook(true); setAntiAimFixCamera(true); setAntiAimToggleKey("LeftAlt")
     setAutoShoot(false); setAutoShootDelay(0); setAutoShootTeamCheck(true); setAutoShootTargetGadgets(false); setAutoShootActivation("always")
   
     setGunModEnabled(false); setGunModConfig("recoil_reduction", 0)
@@ -887,12 +901,12 @@ local function buildNeverloseUi()
     AimSettings:AddLabel("Snapline Origin"):AddDropdown({ Values = { "Top", "Center", "Bottom" }, Default = "Center", Callback = setSilentAimSnaplineOrigin, Flag = "sa_snap_orig" })
 
     local AntiAim = RageTab:AddSection({ Name = "ANTI-AIM", Position = 'left' })
-    AntiAim:AddLabel("Enabled"):AddToggle({ Default = false, Callback = setAntiAimEnabled, Flag = "aa_enabled" })
-    AntiAim:AddLabel("Spin Speed"):AddSlider({ Min = 0, Max = 3600, Default = 1440, Callback = setAntiAimSpinSpeed, Flag = "aa_speed" })
-    AntiAim:AddLabel("Pitch Down"):AddSlider({ Min = 0, Max = 89, Default = 89, Callback = setAntiAimPitchDown, Flag = "aa_pitch" })
+    antiAimToggleControl = AntiAim:AddLabel("Enabled"):AddToggle({ Default = false, Callback = setAntiAimEnabled, Flag = "aa_enabled" })
+    AntiAim:AddLabel("Spin Revs"):AddSlider({ Min = 0, Max = 20, Default = 10, Callback = setAntiAimSpinRevs, Flag = "aa_revs" })
+    AntiAim:AddLabel("Pitch Down"):AddSlider({ Min = 0, Max = 89, Default = 80, Callback = setAntiAimPitchDown, Flag = "aa_pitch" })
     AntiAim:AddLabel("Spoof Look"):AddToggle({ Default = true, Callback = setAntiAimSpoofLook, Flag = "aa_spoof" })
     AntiAim:AddLabel("Fix Camera"):AddToggle({ Default = true, Callback = setAntiAimFixCamera, Flag = "aa_camera" })
-    AntiAim:AddLabel("Toggle Key"):AddKeybind({ Default = "RightAlt", Callback = setAntiAimToggleKey, Flag = "aa_key" })
+    AntiAim:AddLabel("Toggle Key"):AddKeybind({ Default = "LeftAlt", Callback = setAntiAimToggleKey, Flag = "aa_key" })
 
     AimWeapon:AddLabel("Auto Shoot"):AddToggle({ Default = false, Callback = setAutoShoot, Flag = "as_enabled" })
     AimWeapon:AddLabel("Shoot While Running"):AddToggle({ Default = false, Callback = setShootWhileRunning, Flag = "as_run" })
