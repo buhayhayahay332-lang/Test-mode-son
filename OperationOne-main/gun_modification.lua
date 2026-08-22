@@ -7,9 +7,6 @@ local Module = {
     _rawInputShoot    = nil,
     _rawInputRender   = nil,
     _savedConstants   = {},
-    _savedStateOverrides = setmetatable({}, { __mode = "k" }),
-    _stateLoopRunning = false,
-    _applyingStateOverrides = false,
     config = {
         recoil_reduction = 0,
         horizontal_recoil = 0,
@@ -25,214 +22,9 @@ local Module = {
 
 local _forceAutoShootOrig  = nil
 local _forceAutoRenderOrig = nil
+local _stateFunctionOriginals = {}
 
 local GUN_PATH = { "Modules", "Items", "Item", "Gun" }
-local stateObjectModule = nil
-
-local function isStateObject(state)
-    return state ~= nil
-        and type(state.get) == "function"
-        and type(state.set) == "function"
-end
-
-local function readState(state)
-    if not isStateObject(state) then
-        return nil
-    end
-
-    local ok, value = pcall(function()
-        return state:get()
-    end)
-
-    return ok and value or nil
-end
-
-local function writeState(state, value)
-    if not isStateObject(state) then
-        return false
-    end
-
-    return pcall(function()
-        state:set(value)
-    end)
-end
-
-local function getCharacterObject()
-    local ok, character = pcall(function()
-        local replicatedStorage = game:GetService("ReplicatedStorage")
-        local players = game:GetService("Players")
-        local localPlayer = players.LocalPlayer
-        local characterModel = localPlayer and localPlayer.Character
-
-        if not characterModel then
-            return nil
-        end
-
-        if not stateObjectModule then
-            stateObjectModule = require(replicatedStorage.Modules.StateObject)
-        end
-
-        return stateObjectModule.get("Character", characterModel)
-    end)
-
-    return ok and character or nil
-end
-
-local function restoreGunState(self, gun)
-    local saved = gun and self._savedStateOverrides[gun]
-    if not saved or not gun.states then
-        return
-    end
-
-    local states = gun.states
-
-    if saved.hooks then
-        for _, connection in pairs(saved.hooks) do
-            pcall(function()
-                if connection and type(connection.unhook) == "function" then
-                    connection:unhook()
-                end
-            end)
-        end
-    end
-
-    writeState(states.reload_speed, saved.reloadSpeed)
-    writeState(states.zoom, saved.zoom)
-    writeState(states.ads, saved.ads)
-    self._savedStateOverrides[gun] = nil
-end
-
-local function restoreAllGunStates(self)
-    for gun in pairs(self._savedStateOverrides) do
-        restoreGunState(self, gun)
-    end
-end
-
-local function applyGunStateOverrides(self, gun)
-    if not gun or not gun.states then
-        return
-    end
-
-    local states = gun.states
-    local saved = self._savedStateOverrides[gun]
-
-    if not saved then
-        saved = {
-            reloadSpeed = readState(states.reload_speed),
-            zoom = readState(states.zoom),
-            ads = readState(states.ads),
-            hooks = {},
-        }
-        self._savedStateOverrides[gun] = saved
-
-        for _, state in ipairs({ states.reload_speed, states.zoom, states.ads }) do
-            if isStateObject(state) and type(state.hook) == "function" then
-                local ok, connection = pcall(function()
-                    return state:hook(function()
-                        if self._enabled and not self._applyingStateOverrides then
-                            self:_updateGunStateOverrides()
-                        end
-                    end, true)
-                end)
-                if ok and connection then
-                    table.insert(saved.hooks, connection)
-                end
-            end
-        end
-    end
-
-    local reloadValue = tonumber(self.config.reload_speed_value) or 1
-    local zoomOverrideEnabled = self.config.zoom_override_enabled == true
-    local zoomOverride = tonumber(self.config.zoom_override) or 1
-    local adsTimeMs = tonumber(self.config.ads_time_ms) or 0
-
-    self._applyingStateOverrides = true
-
-    if saved.reloadSpeed ~= nil then
-        if reloadValue < 1 then
-            writeState(states.reload_speed, math.max(0, math.min(1, reloadValue)))
-        else
-            writeState(states.reload_speed, saved.reloadSpeed)
-        end
-    end
-
-    if saved.zoom ~= nil then
-        if zoomOverrideEnabled and zoomOverride >= 1 then
-            writeState(states.zoom, math.max(1, zoomOverride))
-        else
-            writeState(states.zoom, saved.zoom)
-        end
-    end
-
-    if saved.ads ~= nil then
-        if adsTimeMs > 0 then
-            writeState(states.ads, adsTimeMs / 1000)
-        else
-            writeState(states.ads, saved.ads)
-        end
-    end
-
-    self._applyingStateOverrides = false
-
-    if reloadValue >= 1 and not zoomOverrideEnabled and adsTimeMs <= 0 then
-        restoreGunState(self, gun)
-    end
-end
-
-function Module:_updateGunStateOverrides()
-    if not self._enabled then
-        restoreAllGunStates(self)
-        return
-    end
-
-    local character = getCharacterObject()
-    local values = character and character.values
-    local items = values and values.items
-    local liveGuns = {}
-
-    if type(items) == "table" then
-        for _, item in pairs(items) do
-            if item and item.states and (
-                isStateObject(item.states.reload_speed)
-                or isStateObject(item.states.zoom)
-                or isStateObject(item.states.ads)
-            ) then
-                liveGuns[item] = true
-                applyGunStateOverrides(self, item)
-            end
-        end
-    end
-
-    local equipped = values and values.equipped
-    if equipped and not liveGuns[equipped] and equipped.states then
-        liveGuns[equipped] = true
-        applyGunStateOverrides(self, equipped)
-    end
-
-    for gun in pairs(self._savedStateOverrides) do
-        if not liveGuns[gun] then
-            restoreGunState(self, gun)
-        end
-    end
-end
-
-function Module:_startGunStateLoop()
-    if self._stateLoopRunning then
-        return
-    end
-
-    self._stateLoopRunning = true
-    task.spawn(function()
-        while self._stateLoopRunning do
-            self:_updateGunStateOverrides()
-            task.wait(0.15)
-        end
-
-        restoreAllGunStates(self)
-    end)
-end
-
-
 local function getGunModule()
     if Module._gunModule then
         return Module._gunModule
@@ -433,6 +225,89 @@ local function callInputWithMods(self, original, gun, ...)
     return table.unpack(results, 2, results.n)
 end
 
+local function callWithStateMod(self, original, gun, mode, ...)
+    if self._enabled ~= true or not gun or not gun.states then
+        return original(gun, ...)
+    end
+
+    local state
+    local override
+
+    if mode == "reload" then
+        state = gun.states.reload_speed
+        local value = tonumber(self.config.reload_speed_value) or 1
+        if value < 1 then
+            override = math.max(0, math.min(1, value))
+        end
+    elseif mode == "zoom" then
+        state = gun.states.zoom
+        local value = tonumber(self.config.zoom_override) or 1
+        if self.config.zoom_override_enabled == true then
+            override = math.max(1, value)
+        end
+    elseif mode == "ads" then
+        state = gun.states.ads
+        local value = tonumber(self.config.ads_time_ms) or 0
+        if value > 0 then
+            override = value / 1000
+        end
+    end
+
+    local canSet = state
+        and type(state.get) == "function"
+        and type(state.set) == "function"
+    local oldValue
+    local changed = false
+
+    if canSet and override ~= nil then
+        oldValue = state:get()
+        if oldValue ~= override then
+            state:set(override)
+            changed = true
+        end
+    end
+
+    local results = table.pack(pcall(original, gun, ...))
+
+    if changed then
+        state:set(oldValue)
+    end
+
+    if not results[1] then
+        error(results[2], 0)
+    end
+
+    return table.unpack(results, 2, results.n)
+end
+
+local function applyStateFunctionHooks(self, gunModule)
+    local makeClosure, hook, hideStack = getRuntimeHelpers(self)
+    if not makeClosure then
+        return
+    end
+
+    local specs = {
+        { name = "reload_begin", mode = "reload" },
+        { name = "cock_begin", mode = "reload" },
+        { name = "sights", mode = "ads" },
+        { name = "update_sight_lens", mode = "zoom" },
+    }
+
+    for _, spec in ipairs(specs) do
+        if not _stateFunctionOriginals[spec.name] then
+            local target = gunModule[spec.name]
+            if type(target) == "function" then
+                local original
+                local wrapper = makeClosure(function(gun, ...)
+                    return callWithStateMod(self, original, gun, spec.mode, ...)
+                end)
+                hideStack(wrapper)
+                original = hook(target, wrapper)
+                _stateFunctionOriginals[spec.name] = original
+            end
+        end
+    end
+end
 local function applyForceAutoHook(self, gunModule)
     if _forceAutoShootOrig or _forceAutoRenderOrig then return end
 
@@ -474,8 +349,6 @@ function Module:_applyConfig()
     local enabled = self._enabled == true
 
     if enabled then
-        self:_updateGunStateOverrides()
-
         local recoilValue    = tonumber(self.config.recoil_reduction) or 0
         local horizontalValue = tonumber(self.config.horizontal_recoil) or 0
         local fireRateMultiplier = tonumber(self.config.fire_rate_multiplier) or 1
@@ -493,6 +366,8 @@ function Module:_applyConfig()
             end
         end
 
+        applyStateFunctionHooks(self, gunModule)
+
         if self.config.force_auto == true or fireRateMultiplier > 1 then
             applyForceAutoHook(self, gunModule)
         else
@@ -500,7 +375,6 @@ function Module:_applyConfig()
         end
     else
         removeForceAutoHook()
-        restoreAllGunStates(self)
     end
 
     return true
@@ -554,7 +428,6 @@ function Module:init(force)
     end
 
     self._initialized = true
-    self:_startGunStateLoop()
     return true
 end
 
@@ -595,8 +468,6 @@ end
 
 function Module:unload()
     self._enabled = false
-    self._stateLoopRunning = false
-    restoreAllGunStates(self)
     restoreSavedPatches(self)
     self._savedConstants = {}
     removeForceAutoHook()
