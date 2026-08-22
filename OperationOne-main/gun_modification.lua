@@ -12,6 +12,7 @@ local Module = {
         horizontal_recoil = 0,
         no_spread        = false,
         force_auto       = false,
+        fire_rate_multiplier = 1,
     },
 }
 
@@ -244,6 +245,13 @@ function Module:_applyConfig()
     if enabled then
         local recoilValue    = tonumber(self.config.recoil_reduction) or 0
         local horizontalValue = tonumber(self.config.horizontal_recoil) or 0
+        local fireRateMultiplier = tonumber(self.config.fire_rate_multiplier) or 1
+
+        if fireRateMultiplier > 1 then
+            local fireRateConstant = 60 / fireRateMultiplier
+            patchConstantByValue(self, gunModule.input_shoot, "fire_rate", 60, fireRateConstant)
+            patchConstantByValue(self, gunModule.input_render, "fire_rate", 60, fireRateConstant)
+        end
 
         local recoilFn = gunModule.recoil_function
         if type(recoilFn) == "function" then

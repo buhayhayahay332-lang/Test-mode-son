@@ -755,7 +755,7 @@ local function applyDefaults()
   
     setGunModEnabled(false); setGunModConfig("recoil_reduction", 0)
     setGunModConfig("horizontal_recoil", 0); setGunModConfig("no_spread", false)
-    setGunModConfig("force_auto", false)
+    setGunModConfig("force_auto", false); setGunModConfig("fire_rate_multiplier", 1)
 
     setEspEnabled(false); setEspTeamCheck(false); setEspPlayers(false)
     setEspCorners(false); setEspFilled(false); setEspBoxGradient(true)
@@ -915,11 +915,13 @@ local function buildNeverloseUi()
     AimWeapon:AddLabel("TriggerBot Gadgets"):AddToggle({ Default = false, Callback = setAutoShootTargetGadgets, Flag = "as_gadgets" })
     AimWeapon:AddLabel("TriggerBot Activation"):AddDropdown({ Values = { "always", "mb1", "mb2", "mobile_hold", "mobile_toggle" }, Default = "always", Callback = setAutoShootActivation, Flag = "as_act" })
 
+    AimWeapon:AddSeparator()
     AimWeapon:AddLabel("Gun Mod"):AddToggle({ Default = false, Callback = setGunModEnabled, Flag = "gm_enabled" })
     AimWeapon:AddLabel("Recoil Reduction"):AddSlider({ Min = 0, Max = 100, Default = 0, Type = "%", Size = 95, Callback = function(v) setGunModConfig("recoil_reduction", v / 100) end, Flag = "gm_recoil" })
     AimWeapon:AddLabel("Horizontal Recoil"):AddSlider({ Min = 0, Max = 100, Default = 0, Type = "%", Size = 95, Callback = function(v) setGunModConfig("horizontal_recoil", v / 100) end, Flag = "gm_hrecoil" })
     AimWeapon:AddLabel("No Spread"):AddToggle({ Default = false, Callback = function(v) setGunModConfig("no_spread", v) end, Flag = "gm_spread" })
     AimWeapon:AddLabel("Force Automatic"):AddToggle({ Default = false, Callback = function(v) setGunModConfig("force_auto", v) end, Flag = "gm_auto" })
+    AimWeapon:AddLabel("Fire Rate"):AddSlider({ Min = 1, Max = 10, Default = 1, Type = "x", Size = 95, Callback = function(v) setGunModConfig("fire_rate_multiplier", v) end, Flag = "gm_firerate" })
 
     -- VISUALS TAB
     local EspMain = VisualsTab:AddSection({ Name = "ESP", Position = 'left' })
