@@ -249,8 +249,8 @@ function Module:_applyConfig()
 
         if fireRateMultiplier > 1 then
             local fireRateConstant = 60 / fireRateMultiplier
-            patchConstantByValue(self, gunModule.input_shoot, "fire_rate", 60, fireRateConstant)
-            patchConstantByValue(self, gunModule.input_render, "fire_rate", 60, fireRateConstant)
+            patchConstantByValue(self, gunModule.input_shoot, "firerate", 60, fireRateConstant)
+            patchConstantByValue(self, gunModule.input_render, "firerate", 60, fireRateConstant)
         end
 
         local recoilFn = gunModule.recoil_function
