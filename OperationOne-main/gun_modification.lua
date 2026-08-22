@@ -10,14 +10,16 @@ local Module = {
     _savedStateOverrides = setmetatable({}, { __mode = "k" }),
     _activeStateGun = nil,
     _stateLoopRunning = false,
+    _applyingStateOverrides = false,
     config = {
         recoil_reduction = 0,
         horizontal_recoil = 0,
         no_spread        = false,
         force_auto       = false,
         fire_rate_multiplier = 1,
-        reload_speed_multiplier = 1,
-        zoom_override = 0,
+        reload_speed_value = 1,
+        zoom_override_enabled = false,
+        zoom_override = 1,
         ads_time_ms = 0,
     },
 }
@@ -85,6 +87,17 @@ local function restoreGunState(self, gun)
     end
 
     local states = gun.states
+
+    if saved.hooks then
+        for _, connection in pairs(saved.hooks) do
+            pcall(function()
+                if connection and type(connection.unhook) == "function" then
+                    connection:unhook()
+                end
+            end)
+        end
+    end
+
     writeState(states.reload_speed, saved.reloadSpeed)
     writeState(states.zoom, saved.zoom)
     writeState(states.ads, saved.ads)
@@ -111,25 +124,44 @@ local function applyGunStateOverrides(self, gun)
             reloadSpeed = readState(states.reload_speed),
             zoom = readState(states.zoom),
             ads = readState(states.ads),
+            hooks = {},
         }
         self._savedStateOverrides[gun] = saved
+
+        for _, state in ipairs({ states.reload_speed, states.zoom, states.ads }) do
+            if isStateObject(state) and type(state.hook) == "function" then
+                local ok, connection = pcall(function()
+                    return state:hook(function()
+                        if self._enabled and not self._applyingStateOverrides then
+                            self:_updateGunStateOverrides()
+                        end
+                    end, true)
+                end)
+                if ok and connection then
+                    table.insert(saved.hooks, connection)
+                end
+            end
+        end
     end
 
-    local reloadMultiplier = tonumber(self.config.reload_speed_multiplier) or 1
-    local zoomOverride = tonumber(self.config.zoom_override) or 0
+    local reloadValue = tonumber(self.config.reload_speed_value) or 1
+    local zoomOverrideEnabled = self.config.zoom_override_enabled == true
+    local zoomOverride = tonumber(self.config.zoom_override) or 1
     local adsTimeMs = tonumber(self.config.ads_time_ms) or 0
 
+    self._applyingStateOverrides = true
+
     if saved.reloadSpeed ~= nil then
-        if reloadMultiplier > 1 then
-            writeState(states.reload_speed, saved.reloadSpeed * reloadMultiplier)
+        if reloadValue < 1 then
+            writeState(states.reload_speed, math.max(0, math.min(1, reloadValue)))
         else
             writeState(states.reload_speed, saved.reloadSpeed)
         end
     end
 
     if saved.zoom ~= nil then
-        if zoomOverride > 0 then
-            writeState(states.zoom, zoomOverride)
+        if zoomOverrideEnabled and zoomOverride >= 1 then
+            writeState(states.zoom, math.max(1, zoomOverride))
         else
             writeState(states.zoom, saved.zoom)
         end
@@ -143,8 +175,10 @@ local function applyGunStateOverrides(self, gun)
         end
     end
 
-    if reloadMultiplier <= 1 and zoomOverride <= 0 and adsTimeMs <= 0 then
-        self._savedStateOverrides[gun] = nil
+    self._applyingStateOverrides = false
+
+    if reloadValue >= 1 and not zoomOverrideEnabled and adsTimeMs <= 0 then
+        restoreGunState(self, gun)
     end
 end
 
