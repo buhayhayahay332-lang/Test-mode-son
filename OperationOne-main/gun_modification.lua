@@ -187,8 +187,43 @@ local function getRuntimeHelpers(self)
     return makeClosure, hook, type(hideStack) == "function" and hideStack or function() end
 end
 
+local function callInputWithMods(self, original, gun, ...)
+    local useMods = self._enabled == true and gun ~= nil
+    local rateState = useMods and gun.states and gun.states.firerate
+    local rateMultiplier = tonumber(self.config.fire_rate_multiplier) or 1
+    local rateOld
+    local automaticOld
+
+    if useMods and self.config.force_auto == true then
+        automaticOld = gun.automatic
+        gun.automatic = true
+    end
+
+    if useMods and rateMultiplier > 1 and type(rateState) == "table"
+        and type(rateState.get) == "function" and type(rateState.set) == "function" then
+        rateOld = rateState:get()
+        rateState:set(rateOld * rateMultiplier)
+    end
+
+    local results = table.pack(pcall(original, gun, ...))
+
+    if automaticOld ~= nil then
+        gun.automatic = automaticOld
+    end
+
+    if rateOld ~= nil then
+        rateState:set(rateOld)
+    end
+
+    if not results[1] then
+        error(results[2], 0)
+    end
+
+    return table.unpack(results, 2, results.n)
+end
+
 local function applyForceAutoHook(self, gunModule)
-    if _forceAutoShootOrig then return end 
+    if _forceAutoShootOrig or _forceAutoRenderOrig then return end
 
     local shootFn  = self._rawInputShoot  or gunModule.input_shoot
     local renderFn = self._rawInputRender or gunModule.input_render
@@ -198,14 +233,7 @@ local function applyForceAutoHook(self, gunModule)
 
     if type(shootFn) == "function" then
         local shootHook = makeClosure(function(gun, pressed, fromRender, ...)
-            if Module._enabled and Module.config.force_auto and gun then
-                local old  = gun.automatic
-                gun.automatic = true
-                local r = table.pack(_forceAutoShootOrig(gun, pressed, fromRender, ...))
-                gun.automatic = old
-                return table.unpack(r, 1, r.n)
-            end
-            return _forceAutoShootOrig(gun, pressed, fromRender, ...)
+            return callInputWithMods(self, _forceAutoShootOrig, gun, pressed, fromRender, ...)
         end)
         hideStack(shootHook)
         _forceAutoShootOrig = hook(shootFn, shootHook)
@@ -213,14 +241,7 @@ local function applyForceAutoHook(self, gunModule)
 
     if type(renderFn) == "function" then
         local renderHook = makeClosure(function(gun, ...)
-            if Module._enabled and Module.config.force_auto and gun then
-                local old  = gun.automatic
-                gun.automatic = true
-                local r = table.pack(_forceAutoRenderOrig(gun, ...))
-                gun.automatic = old
-                return table.unpack(r, 1, r.n)
-            end
-            return _forceAutoRenderOrig(gun, ...)
+            return callInputWithMods(self, _forceAutoRenderOrig, gun, ...)
         end)
         hideStack(renderHook)
         _forceAutoRenderOrig = hook(renderFn, renderHook)
@@ -228,8 +249,7 @@ local function applyForceAutoHook(self, gunModule)
 end
 
 local function removeForceAutoHook()
-    _forceAutoShootOrig  = nil
-    _forceAutoRenderOrig = nil
+    -- Keep the wrappers installed; they pass through while both features are disabled.
 end
 
 function Module:_applyConfig()
@@ -247,19 +267,6 @@ function Module:_applyConfig()
         local horizontalValue = tonumber(self.config.horizontal_recoil) or 0
         local fireRateMultiplier = tonumber(self.config.fire_rate_multiplier) or 1
 
-        if fireRateMultiplier > 1 then
-            local fireRateConstant = 60 / fireRateMultiplier
-            local inputShootFn = self._rawInputShoot or gunModule.input_shoot
-            local inputRenderFn = self._rawInputRender or gunModule.input_render
-
-            if type(inputShootFn) == "function" then
-                patchConstantByValue(self, inputShootFn, "fire_rate", 60, fireRateConstant)
-            end
-
-            if type(inputRenderFn) == "function" then
-                patchConstantByValue(self, inputRenderFn, "fire_rate", 60, fireRateConstant)
-            end
-        end
 
         local recoilFn = gunModule.recoil_function
         if type(recoilFn) == "function" then
@@ -273,7 +280,7 @@ function Module:_applyConfig()
             end
         end
 
-        if self.config.force_auto == true then
+        if self.config.force_auto == true or fireRateMultiplier > 1 then
             applyForceAutoHook(self, gunModule)
         else
             removeForceAutoHook()
