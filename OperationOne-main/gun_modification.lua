@@ -7,12 +7,18 @@ local Module = {
     _rawInputShoot    = nil,
     _rawInputRender   = nil,
     _savedConstants   = {},
+    _savedStateOverrides = setmetatable({}, { __mode = "k" }),
+    _activeStateGun = nil,
+    _stateLoopRunning = false,
     config = {
         recoil_reduction = 0,
         horizontal_recoil = 0,
         no_spread        = false,
         force_auto       = false,
         fire_rate_multiplier = 1,
+        reload_speed_multiplier = 1,
+        zoom_override = 0,
+        ads_time_ms = 0,
     },
 }
 
@@ -20,6 +26,158 @@ local _forceAutoShootOrig  = nil
 local _forceAutoRenderOrig = nil
 
 local GUN_PATH = { "Modules", "Items", "Item", "Gun" }
+local stateObjectModule = nil
+
+local function isStateObject(state)
+    return state ~= nil
+        and type(state.get) == "function"
+        and type(state.set) == "function"
+end
+
+local function readState(state)
+    if not isStateObject(state) then
+        return nil
+    end
+
+    local ok, value = pcall(function()
+        return state:get()
+    end)
+
+    return ok and value or nil
+end
+
+local function writeState(state, value)
+    if not isStateObject(state) then
+        return false
+    end
+
+    return pcall(function()
+        state:set(value)
+    end)
+end
+
+local function getEquippedGun()
+    local ok, gun = pcall(function()
+        local replicatedStorage = game:GetService("ReplicatedStorage")
+        local players = game:GetService("Players")
+        local localPlayer = players.LocalPlayer
+        local characterModel = localPlayer and localPlayer.Character
+
+        if not characterModel then
+            return nil
+        end
+
+        if not stateObjectModule then
+            stateObjectModule = require(replicatedStorage.Modules.StateObject)
+        end
+
+        local character = stateObjectModule.get("Character", characterModel)
+        return character and character.values and character.values.equipped
+    end)
+
+    return ok and gun or nil
+end
+
+local function restoreGunState(self, gun)
+    local saved = gun and self._savedStateOverrides[gun]
+    if not saved or not gun.states then
+        return
+    end
+
+    local states = gun.states
+    writeState(states.reload_speed, saved.reloadSpeed)
+    writeState(states.zoom, saved.zoom)
+    writeState(states.ads, saved.ads)
+    self._savedStateOverrides[gun] = nil
+end
+
+local function restoreAllGunStates(self)
+    for gun in pairs(self._savedStateOverrides) do
+        restoreGunState(self, gun)
+    end
+    self._activeStateGun = nil
+end
+
+local function applyGunStateOverrides(self, gun)
+    if not gun or not gun.states then
+        return
+    end
+
+    local states = gun.states
+    local saved = self._savedStateOverrides[gun]
+
+    if not saved then
+        saved = {
+            reloadSpeed = readState(states.reload_speed),
+            zoom = readState(states.zoom),
+            ads = readState(states.ads),
+        }
+        self._savedStateOverrides[gun] = saved
+    end
+
+    local reloadMultiplier = tonumber(self.config.reload_speed_multiplier) or 1
+    local zoomOverride = tonumber(self.config.zoom_override) or 0
+    local adsTimeMs = tonumber(self.config.ads_time_ms) or 0
+
+    if saved.reloadSpeed ~= nil then
+        if reloadMultiplier > 1 then
+            writeState(states.reload_speed, saved.reloadSpeed * reloadMultiplier)
+        else
+            writeState(states.reload_speed, saved.reloadSpeed)
+        end
+    end
+
+    if saved.zoom ~= nil then
+        if zoomOverride > 0 then
+            writeState(states.zoom, zoomOverride)
+        else
+            writeState(states.zoom, saved.zoom)
+        end
+    end
+
+    if saved.ads ~= nil then
+        if adsTimeMs > 0 then
+            writeState(states.ads, adsTimeMs / 1000)
+        else
+            writeState(states.ads, saved.ads)
+        end
+    end
+
+    if reloadMultiplier <= 1 and zoomOverride <= 0 and adsTimeMs <= 0 then
+        self._savedStateOverrides[gun] = nil
+    end
+end
+
+function Module:_updateGunStateOverrides()
+    local gun = getEquippedGun()
+
+    if gun ~= self._activeStateGun then
+        restoreGunState(self, self._activeStateGun)
+        self._activeStateGun = gun
+    end
+
+    if self._enabled then
+        applyGunStateOverrides(self, gun)
+    else
+        restoreAllGunStates(self)
+    end
+end
+
+function Module:_startGunStateLoop()
+    if self._stateLoopRunning then
+        return
+    end
+
+    self._stateLoopRunning = true
+    task.spawn(function()
+        while self._stateLoopRunning do
+            self:_updateGunStateOverrides()
+            task.wait(0.15)
+        end
+
+        restoreAllGunStates(self)
+    end)
+end
 
 
 local function getGunModule()
@@ -263,6 +421,8 @@ function Module:_applyConfig()
     local enabled = self._enabled == true
 
     if enabled then
+        self:_updateGunStateOverrides()
+
         local recoilValue    = tonumber(self.config.recoil_reduction) or 0
         local horizontalValue = tonumber(self.config.horizontal_recoil) or 0
         local fireRateMultiplier = tonumber(self.config.fire_rate_multiplier) or 1
@@ -287,6 +447,7 @@ function Module:_applyConfig()
         end
     else
         removeForceAutoHook()
+        restoreAllGunStates(self)
     end
 
     return true
@@ -340,6 +501,7 @@ function Module:init(force)
     end
 
     self._initialized = true
+    self:_startGunStateLoop()
     return true
 end
 
@@ -380,6 +542,8 @@ end
 
 function Module:unload()
     self._enabled = false
+    self._stateLoopRunning = false
+    restoreAllGunStates(self)
     restoreSavedPatches(self)
     self._savedConstants = {}
     removeForceAutoHook()
