@@ -1,5 +1,3 @@
-local newcclosure = newcclosure or function(f) return f end
-
 local Module = {
     _initialized      = false,
     _enabled          = false,
@@ -168,16 +166,37 @@ local function patchRecoilFunction(self, fn, vertical, horizontal)
 end
 
 
+local function getRuntimeHelpers(self)
+    local runtime = self.shared
+    if type(runtime) ~= "table" then
+        return nil, "shared runtime unavailable"
+    end
+
+    local makeClosure = runtime.newcclosure or runtime.closure
+    local hook = runtime.hookfunction or runtime.hook
+    local hideStack = runtime.setstackhidden or runtime.sstackhidden
+
+    if type(makeClosure) ~= "function" then
+        return nil, "newcclosure unavailable"
+    end
+    if runtime.hasHookfunction ~= true or type(hook) ~= "function" then
+        return nil, "hookfunction unavailable"
+    end
+
+    return makeClosure, hook, type(hideStack) == "function" and hideStack or function() end
+end
+
 local function applyForceAutoHook(self, gunModule)
     if _forceAutoShootOrig then return end 
 
     local shootFn  = self._rawInputShoot  or gunModule.input_shoot
     local renderFn = self._rawInputRender or gunModule.input_render
 
-    if type(hookfunction) ~= "function" then return end
+    local makeClosure, hook, hideStack = getRuntimeHelpers(self)
+    if not makeClosure then return end
 
     if type(shootFn) == "function" then
-        _forceAutoShootOrig = hookfunction(shootFn, newcclosure(function(gun, pressed, fromRender, ...)
+        local shootHook = makeClosure(function(gun, pressed, fromRender, ...)
             if Module._enabled and Module.config.force_auto and gun then
                 local old  = gun.automatic
                 gun.automatic = true
@@ -186,11 +205,13 @@ local function applyForceAutoHook(self, gunModule)
                 return table.unpack(r, 1, r.n)
             end
             return _forceAutoShootOrig(gun, pressed, fromRender, ...)
-        end))
+        end)
+        hideStack(shootHook)
+        _forceAutoShootOrig = hook(shootFn, shootHook)
     end
 
     if type(renderFn) == "function" then
-        _forceAutoRenderOrig = hookfunction(renderFn, newcclosure(function(gun, ...)
+        local renderHook = makeClosure(function(gun, ...)
             if Module._enabled and Module.config.force_auto and gun then
                 local old  = gun.automatic
                 gun.automatic = true
@@ -199,7 +220,9 @@ local function applyForceAutoHook(self, gunModule)
                 return table.unpack(r, 1, r.n)
             end
             return _forceAutoRenderOrig(gun, ...)
-        end))
+        end)
+        hideStack(renderHook)
+        _forceAutoRenderOrig = hook(renderFn, renderHook)
     end
 end
 

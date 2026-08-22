@@ -3,12 +3,18 @@ Runtime.env_key = "__shared_runtime"
 
 Runtime.cloneref = cloneref or function(obj) return obj end
 Runtime.clonefunction = clonefunction or function(fn) return fn end
+Runtime.hasNewcclosure = type(newcclosure) == "function"
+Runtime.hasHookfunction = type(hookfunction) == "function"
+Runtime.hasSetstackhidden = type(setstackhidden) == "function"
+
 Runtime.newcclosure = newcclosure or function(fn) return fn end
 Runtime.hookfunction = hookfunction or function(fn) return fn end
+Runtime.setstackhidden = setstackhidden or function() end
 Runtime.ref = Runtime.cloneref
 Runtime.cfn = Runtime.clonefunction
 Runtime.closure = Runtime.newcclosure
 Runtime.hook = Runtime.hookfunction
+Runtime.sstackhidden = Runtime.setstackhidden
 
 Runtime.checkcaller = checkcaller
 Runtime.getrawmetatable = getrawmetatable
@@ -28,6 +34,7 @@ function Runtime:applyToEnv()
         env.clonefunction = env.clonefunction or self.clonefunction
         env.newcclosure = env.newcclosure or self.newcclosure
         env.hookfunction = env.hookfunction or self.hookfunction
+        env.setstackhidden = env.setstackhidden or self.setstackhidden
         env.checkcaller_safe = env.checkcaller_safe or self.checkcaller or function() return false end
         env.ref = env.ref or self.ref
         env.cfn = env.cfn or self.cfn

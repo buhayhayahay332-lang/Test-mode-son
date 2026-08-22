@@ -8,6 +8,8 @@ local Module = {
     _originalRunning = nil, -- added
 }
 
+
+
 local function getGunModule()
     local replicatedStorage = game:GetService("ReplicatedStorage")
     local node = replicatedStorage
@@ -40,13 +42,34 @@ function Module:setEnabled(state)
     return true
 end
 
+function Module:_getRuntimeHelpers()
+    local runtime = self.shared
+    if type(runtime) ~= "table" then
+        return nil, "shared runtime unavailable"
+    end
+
+    local makeClosure = runtime.newcclosure or runtime.closure
+    local hook = runtime.hookfunction or runtime.hook
+    local hideStack = runtime.setstackhidden or runtime.sstackhidden
+
+    if type(makeClosure) ~= "function" then
+        return nil, "newcclosure unavailable"
+    end
+    if runtime.hasHookfunction ~= true or type(hook) ~= "function" then
+        return nil, "hookfunction unavailable"
+    end
+
+    return makeClosure, hook, type(hideStack) == "function" and hideStack or function() end
+end
+
 function Module:_installRunningFireHook()
     if self._originalInputShoot and self._originalInputRender then
         return true
     end
     
-    if type(hookfunction) ~= "function" then
-        return false, "hookfunction unavailable"
+    local makeClosure, hook, hideStack = self:_getRuntimeHelpers()
+    if not makeClosure then
+        return false, hook
     end
 
     local gunModule, err = getGunModule()
@@ -56,7 +79,7 @@ function Module:_installRunningFireHook()
 
     self._gunModule = gunModule
     local originalInputShoot
-    originalInputShoot = hookfunction(gunModule.input_shoot, function(gun, pressed, ...)
+    local inputShootHook = makeClosure(function(gun, pressed, ...)
         if not self._enabled then
             return originalInputShoot(gun, pressed, ...)
         end
@@ -80,11 +103,13 @@ function Module:_installRunningFireHook()
 
         return table.unpack(results, 1, results.n)
     end)
+    hideStack(inputShootHook)
+    originalInputShoot = hook(gunModule.input_shoot, inputShootHook)
 
     self._originalInputShoot = originalInputShoot
 
     local originalInputRender
-    originalInputRender = hookfunction(gunModule.input_render, function(gun, ...)
+    local inputRenderHook = makeClosure(function(gun, ...)
         if not self._enabled then
             return originalInputRender(gun, ...)
         end
@@ -108,12 +133,14 @@ function Module:_installRunningFireHook()
 
         return table.unpack(results, 1, results.n)
     end)
+    hideStack(inputRenderHook)
+    originalInputRender = hook(gunModule.input_render, inputRenderHook)
 
     self._originalInputRender = originalInputRender
 
     if type(gunModule.running) == "function" then
         local originalRunning
-        originalRunning = hookfunction(gunModule.running, function(gun, owner, isRunning, ...)
+        local runningHook = makeClosure(function(gun, owner, isRunning, ...)
             if not self._enabled then
                 return originalRunning(gun, owner, isRunning, ...)
             end
@@ -126,6 +153,8 @@ function Module:_installRunningFireHook()
                 owner.values.cframes:get("arms"):remove_offset("run")
             end
         end)
+        hideStack(runningHook)
+        originalRunning = hook(gunModule.running, runningHook)
         self._originalRunning = originalRunning
     end
 
