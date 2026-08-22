@@ -8,7 +8,6 @@ local Module = {
     _rawInputRender   = nil,
     _savedConstants   = {},
     _savedStateOverrides = setmetatable({}, { __mode = "k" }),
-    _activeStateGun = nil,
     _stateLoopRunning = false,
     _applyingStateOverrides = false,
     config = {
@@ -58,8 +57,8 @@ local function writeState(state, value)
     end)
 end
 
-local function getEquippedGun()
-    local ok, gun = pcall(function()
+local function getCharacterObject()
+    local ok, character = pcall(function()
         local replicatedStorage = game:GetService("ReplicatedStorage")
         local players = game:GetService("Players")
         local localPlayer = players.LocalPlayer
@@ -73,11 +72,10 @@ local function getEquippedGun()
             stateObjectModule = require(replicatedStorage.Modules.StateObject)
         end
 
-        local character = stateObjectModule.get("Character", characterModel)
-        return character and character.values and character.values.equipped
+        return stateObjectModule.get("Character", characterModel)
     end)
 
-    return ok and gun or nil
+    return ok and character or nil
 end
 
 local function restoreGunState(self, gun)
@@ -108,7 +106,6 @@ local function restoreAllGunStates(self)
     for gun in pairs(self._savedStateOverrides) do
         restoreGunState(self, gun)
     end
-    self._activeStateGun = nil
 end
 
 local function applyGunStateOverrides(self, gun)
@@ -183,17 +180,39 @@ local function applyGunStateOverrides(self, gun)
 end
 
 function Module:_updateGunStateOverrides()
-    local gun = getEquippedGun()
-
-    if gun ~= self._activeStateGun then
-        restoreGunState(self, self._activeStateGun)
-        self._activeStateGun = gun
+    if not self._enabled then
+        restoreAllGunStates(self)
+        return
     end
 
-    if self._enabled then
-        applyGunStateOverrides(self, gun)
-    else
-        restoreAllGunStates(self)
+    local character = getCharacterObject()
+    local values = character and character.values
+    local items = values and values.items
+    local liveGuns = {}
+
+    if type(items) == "table" then
+        for _, item in pairs(items) do
+            if item and item.states and (
+                isStateObject(item.states.reload_speed)
+                or isStateObject(item.states.zoom)
+                or isStateObject(item.states.ads)
+            ) then
+                liveGuns[item] = true
+                applyGunStateOverrides(self, item)
+            end
+        end
+    end
+
+    local equipped = values and values.equipped
+    if equipped and not liveGuns[equipped] and equipped.states then
+        liveGuns[equipped] = true
+        applyGunStateOverrides(self, equipped)
+    end
+
+    for gun in pairs(self._savedStateOverrides) do
+        if not liveGuns[gun] then
+            restoreGunState(self, gun)
+        end
     end
 end
 
